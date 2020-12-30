@@ -101,3 +101,9 @@ pub struct Registers {
     noise: Noise,
     wavetable: WaveTable,
 }
+
+#[derive(Debug)]
+pub struct APU {
+    pub registers: Registers,
+    // some internal states
+}
