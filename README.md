@@ -1,4 +1,4 @@
-# OscBoy - Chiptune VST
+# gbi - A GameBoy instrument
 
 I want to do chiptune on GNU/Linux.
 

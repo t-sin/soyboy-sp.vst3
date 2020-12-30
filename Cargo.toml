@@ -1,5 +1,5 @@
 [package]
-name = "cp1"
+name = "gbi"
 version = "0.1.0"
 authors = ["t-sin <shinichi.tanaka45@gmail.com>"]
 edition = "2018"
