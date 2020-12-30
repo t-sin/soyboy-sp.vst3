@@ -3,3 +3,10 @@
 [[package]]
 name = "gbi"
 version = "0.1.0"
+dependencies = [
+ "gbi_apu",
+]
+
+[[package]]
+name = "gbi_apu"
+version = "0.1.0"

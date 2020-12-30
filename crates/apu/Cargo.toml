@@ -1,0 +1,8 @@
+[package]
+name = "gbi_apu"
+version = "0.1.0"
+authors = ["t-sin <shinichi.tanaka45@gmail.com>"]
+edition = "2018"
+
+[lib]
+path = "lib.rs"
