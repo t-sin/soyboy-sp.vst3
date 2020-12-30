@@ -8,7 +8,7 @@ I want to do chiptune on GNU/Linux.
 
 ## Author
 
-- Shinichi Tanaka <shinichi.tanaka45@gmail.com>
+- Shinichi Tanaka (<shinichi.tanaka45@gmail.com>)
 
 ## License
 
