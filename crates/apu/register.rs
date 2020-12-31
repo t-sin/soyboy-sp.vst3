@@ -258,6 +258,17 @@ pub struct Status {
     pub noise: bool,
 }
 
+impl Status {
+    pub fn init() -> Status {
+        Status {
+            square1: false,
+            square2: false,
+            wave: false,
+            noise: false,
+        }
+    }
+}
+
 /// Registers for controlling and checking statuses.
 #[derive(Debug)]
 pub struct Control {
@@ -271,6 +282,18 @@ pub struct Control {
 }
 
 impl Control {
+    pub fn init() -> Control {
+        Control {
+            vin_l_enabled: false,
+            vin_l_volume: 0,
+            vin_r_enabled: false,
+            vin_r_volume: 0,
+            left_enabled: Status::init(),
+            right_enabled: Status::init(),
+            power_control: Status::init(),
+        }
+    }
+
     pub fn set_vin_l_volume(&mut self, vin_l_volume: u32) -> Result<(), RegisterError> {
         if within(vin_l_volume, 3) {
             self.vin_l_volume = vin_l_volume as u8;
@@ -311,6 +334,7 @@ pub struct Register {
     pub square2: Square2,
     pub wave: Wave,
     pub noise: Noise,
+    pub control: Control,
     pub wavetable: WaveTable,
 }
 
@@ -326,6 +350,7 @@ impl Register {
             },
             wave: Wave::init(),
             noise: Noise::init(),
+            control: Control::init(),
             wavetable: WaveTable::init(),
         }
     }
