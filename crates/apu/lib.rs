@@ -3,11 +3,6 @@
 //! References:
 //! - <https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware>
 
+pub mod apu;
 pub mod register;
 mod util;
-
-#[derive(Debug)]
-pub struct APU {
-    pub registers: register::Register,
-    // some internal states
-}

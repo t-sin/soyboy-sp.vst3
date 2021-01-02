@@ -1,9 +1,6 @@
-use gbi_apu::register::Register;
-use gbi_apu::APU;
+use gbi_apu::apu::APU;
 
 fn main() {
-    let apu = APU {
-        registers: Register::init(),
-    };
+    let apu = APU::init();
     println!("apu = {:?}", apu);
 }
