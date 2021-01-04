@@ -29,8 +29,8 @@ impl Sample {
 
 #[derive(Debug)]
 pub struct APU {
+    /// Registers to control behavior of APU.
     pub registers: Register,
-    // some internal states
 }
 
 impl APU {
