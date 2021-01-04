@@ -31,12 +31,60 @@ impl Sample {
 pub struct APU {
     /// Registers to control behavior of APU.
     pub registers: Register,
+
+    /// timer count of frame sequencer in APU sound processing.
+    timer_count: u32,
 }
 
 impl APU {
+    /// Returns initialized Gameboy's APU object.
     pub fn init() -> APU {
         APU {
             registers: Register::init(),
+            timer_count: 0,
         }
+    }
+
+    /// Return `true` if length counter is triggered. (512Hz / 2 = 256Hz).
+    fn length_counter_triggered(&self) -> bool {
+        self.timer_count % 2 == 0
+    }
+
+    /// Return `true` if volume emvelope is triggererd. (512Hz / 8 = 64Hz).
+    fn volume_envelope_triggered(&self) -> bool {
+        self.timer_count % 8 == 7
+    }
+
+    /// Return `true` if frequency sweep is triggered. (512Hz / 4 = 128Hz).
+    fn frequency_sweep_triggered(&self) -> bool {
+        self.timer_count % 4 == 3
+    }
+
+    /// Update APU internal states.
+    /// This function must be called at every 1/512 seconds because of timer event timing.
+    pub fn update(&mut self) {
+        if self.length_counter_triggered() {}
+
+        if self.volume_envelope_triggered() {}
+
+        if self.frequency_sweep_triggered() {}
+
+        // increment timer count
+        if self.timer_count + 1 > 0xFFFF {
+            self.timer_count = 0;
+        } else {
+            self.timer_count += 1;
+        }
+    }
+
+    /// Generate one signal depends on APU states.
+    /// This function may be called at arbitrary time.
+    pub fn generate(&self) -> Sample {
+        let square1 = Sample::create(0, 0);
+        let square2 = Sample::create(0, 0);
+        let wave = Sample::create(0, 0);
+        let noise = Sample::create(0, 0);
+
+        square1.add(&square2).add(&wave).add(&noise)
     }
 }
