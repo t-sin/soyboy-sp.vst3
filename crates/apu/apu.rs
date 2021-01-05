@@ -27,6 +27,32 @@ impl Sample {
     }
 }
 
+/// A module for note length counter.
+#[derive(Debug)]
+struct LengthCounter {
+    /// Denotes the note continues for. If it's zero that denotes the note is off.
+    count: u8,
+}
+
+impl LengthCounter {
+    /// Returns initialized length counter object.
+    fn init() -> LengthCounter {
+        LengthCounter { count: 0 }
+    }
+
+    /// Update length counter state.
+    fn update(&mut self) {
+        if count != 0 {
+            count -= 1;
+        }
+    }
+
+    /// Returns `true` if the note is on.
+    fn note_on(&self) -> bool {
+        count != 0
+    }
+}
+
 #[derive(Debug)]
 pub struct APU {
     /// Registers to control behavior of APU.
