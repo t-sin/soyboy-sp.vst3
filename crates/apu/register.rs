@@ -1,11 +1,5 @@
 //! Types and functions for GameBoy's APU registers.
 
-use crate::util::within;
-
-pub enum RegisterError {
-    TooLargeNumberInBits(u32, u8),
-}
-
 /// Frequency-sweeping-related paramaters for square wave channel.
 #[derive(Debug)]
 pub struct Sweep {
@@ -41,48 +35,6 @@ impl Sweep {
             Ok(())
         } else {
             Err(RegisterError::TooLargeNumberInBits(shift.into(), 3))
-        }
-    }
-}
-
-/// Envelope generator paramaters for some channels.
-#[derive(Debug)]
-pub struct Envelope {
-    /// Volume at start time. 4 bits.
-    pub starting_volume: u8,
-    /// Flag to switch envelope add mode. Use adding if it's true, otherwise subtracting. 1 bits.
-    pub add_mode: bool,
-    /// Envelope speed. 3 bits.
-    pub period: u8,
-}
-
-impl Envelope {
-    pub fn init() -> Envelope {
-        Envelope {
-            starting_volume: 0,
-            add_mode: false,
-            period: 0,
-        }
-    }
-
-    pub fn set_starting_volume(&mut self, starting_volume: u32) -> Result<(), RegisterError> {
-        if within(starting_volume.into(), 4) {
-            self.starting_volume = starting_volume as u8;
-            Ok(())
-        } else {
-            Err(RegisterError::TooLargeNumberInBits(
-                starting_volume.into(),
-                3,
-            ))
-        }
-    }
-
-    pub fn set_period(&mut self, period: u32) -> Result<(), RegisterError> {
-        if within(period.into(), 3) {
-            self.period = period as u8;
-            Ok(())
-        } else {
-            Err(RegisterError::TooLargeNumberInBits(period.into(), 3))
         }
     }
 }
@@ -163,15 +115,6 @@ impl SquareCommon {
             envelope: Envelope::init(),
             frequency: Frequency::init(),
             event: Event::init(),
-        }
-    }
-
-    pub fn set_length_load(&mut self, length_load: u32) -> Result<(), RegisterError> {
-        if within(length_load, 6) {
-            self.length_load = length_load as u8;
-            Ok(())
-        } else {
-            Err(RegisterError::TooLargeNumberInBits(length_load.into(), 6))
         }
     }
 }
