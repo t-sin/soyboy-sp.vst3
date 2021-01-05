@@ -4,7 +4,5 @@
 //! - <https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware>
 
 pub mod apu;
-mod types;
+pub mod types;
 mod util;
-
-pub use types::Sample;
