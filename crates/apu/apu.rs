@@ -127,6 +127,53 @@ impl Generator for VolumeEnvelope {
     }
 }
 
+/// Frequency-sweeping-related paramaters for square wave channel.
+#[derive(Debug)]
+pub struct FrequencySweep {
+    /// Sweeping speed. 3 bits.
+    pub period: u8,
+    /// A modifier for frequency calculation. 1 bits.
+    pub negate: bool,
+    /// Sweeping intensity. 3 bits.
+    pub shift: u8,
+
+    /// internal state
+    count: u8,
+}
+
+impl FrequencySweep {
+    pub fn init() -> FrequencySweep {
+        FrequencySweep {
+            period: 0,
+            negate: false,
+            shift: 0,
+            count: 0,
+        }
+    }
+
+    pub fn set_period(&mut self, period: u32) -> Result<(), RegisterError> {
+        if within(period.into(), 3) {
+            self.period = period as u8;
+            Ok(())
+        } else {
+            Err(RegisterError::TooLargeNumberInBits(period.into(), 3))
+        }
+    }
+
+    pub fn set_shift(&mut self, shift: u32) -> Result<(), RegisterError> {
+        if within(shift.into(), 3) {
+            self.shift = shift as u8;
+            Ok(())
+        } else {
+            Err(RegisterError::TooLargeNumberInBits(shift.into(), 3))
+        }
+    }
+}
+
+impl Stateful for FrequencySweep {
+    fn update(&mut self) {}
+}
+
 #[derive(Debug)]
 pub struct APU {
     /// timer count of frame sequencer in APU sound processing.

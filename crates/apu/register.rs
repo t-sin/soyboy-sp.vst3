@@ -1,44 +1,5 @@
 //! Types and functions for GameBoy's APU registers.
 
-/// Frequency-sweeping-related paramaters for square wave channel.
-#[derive(Debug)]
-pub struct Sweep {
-    /// Sweeping speed. 3 bits.
-    pub period: u8,
-    /// A modifier for frequency calculation. 1 bits.
-    pub negate: bool,
-    /// Sweeping intensity. 3 bits.
-    pub shift: u8,
-}
-
-impl Sweep {
-    pub fn init() -> Sweep {
-        Sweep {
-            period: 0,
-            negate: false,
-            shift: 0,
-        }
-    }
-
-    pub fn set_period(&mut self, period: u32) -> Result<(), RegisterError> {
-        if within(period.into(), 3) {
-            self.period = period as u8;
-            Ok(())
-        } else {
-            Err(RegisterError::TooLargeNumberInBits(period.into(), 3))
-        }
-    }
-
-    pub fn set_shift(&mut self, shift: u32) -> Result<(), RegisterError> {
-        if within(shift.into(), 3) {
-            self.shift = shift as u8;
-            Ok(())
-        } else {
-            Err(RegisterError::TooLargeNumberInBits(shift.into(), 3))
-        }
-    }
-}
-
 /// Available values of Wavetable channel volume.
 #[derive(Debug)]
 pub enum Volume {
