@@ -1,4 +1,4 @@
-use crate::types::{Generator, RegisterError, Sample, Stateful};
+use crate::types::{Duty, Generator, RegisterError, Sample, Stateful};
 use crate::util::within;
 
 /// A module for note length counter.
@@ -137,7 +137,6 @@ pub struct FrequencySweep {
     /// Sweeping intensity. 3 bits.
     pub shift: u8,
 
-    /// internal state
     count: u8,
 }
 
@@ -172,6 +171,53 @@ impl FrequencySweep {
 
 impl Stateful for FrequencySweep {
     fn update(&mut self) {}
+}
+
+pub struct DutyCycler {
+    /// Duty ratio selector.
+    pub duty: Duty,
+
+    // internal regsiters
+    reg12_5: u8,
+    reg25: u8,
+    reg50: u8,
+    reg75: u8,
+}
+
+impl DutyCycler {
+    /// Returns initialized duty cycler object.
+    pub fn init() -> DutyCycler {
+        DutyCycler {
+            duty: Duty::Percent50,
+            reg12_5: 0b00000001,
+            reg25: 0b10000001,
+            reg50: 0b10000111,
+            reg75: 0b01111110,
+        }
+    }
+}
+
+impl Stateful for DutyCycler {
+    fn update(&mut self) {
+        self.reg12_5.rotate_left(1);
+        self.reg25.rotate_left(1);
+        self.reg50.rotate_left(1);
+        self.reg75.rotate_left(1);
+    }
+}
+
+impl Generator for DutyCycler {
+    fn generate(&self) -> Sample {
+        let v = 0b00000001
+            & match self.duty {
+                Duty::Percent12_5 => self.reg12_5,
+                Duty::Percent25 => self.reg25,
+                Duty::Percent50 => self.reg50,
+                Duty::Percent75 => self.reg75,
+            };
+        let v = v << 4;
+        Sample::new(v, v)
+    }
 }
 
 #[derive(Debug)]

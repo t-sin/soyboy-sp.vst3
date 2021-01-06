@@ -47,15 +47,6 @@ impl Event {
     }
 }
 
-/// Available duty ratio for square oscillators.
-#[derive(Debug)]
-pub enum Duty {
-    Percent12_5,
-    Percent25,
-    Percent50,
-    Percent75,
-}
-
 /// Parameters for both (square1 and square2) square wave channel.
 #[derive(Debug)]
 pub struct SquareCommon {
