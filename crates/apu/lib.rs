@@ -2,6 +2,7 @@
 //!
 //! References:
 //! - <https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware>
+//! - <https://aselker.github.io/gameboy-sound-chip/>
 
 pub mod apu;
 pub mod types;
