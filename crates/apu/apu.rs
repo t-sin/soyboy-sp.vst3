@@ -51,9 +51,9 @@ impl Stateful for LengthCounter {
 impl Generator for LengthCounter {
     fn generate(&self) -> Sample {
         if self.note_on() {
-            Sample::create(1, 1)
+            Sample::new(1, 1)
         } else {
-            Sample::create(0, 0)
+            Sample::new(0, 0)
         }
     }
 }
@@ -123,7 +123,7 @@ impl Stateful for VolumeEnvelope {
 
 impl Generator for VolumeEnvelope {
     fn generate(&self) -> Sample {
-        Sample::create(self.volume, self.volume)
+        Sample::new(self.volume, self.volume)
     }
 }
 
@@ -206,10 +206,10 @@ impl Generator for APU {
     /// Generate one signal depends on APU states.
     /// This function may be called at arbitrary time.
     fn generate(&self) -> Sample {
-        let square1 = Sample::create(0, 0);
-        let square2 = Sample::create(0, 0);
-        let wave = Sample::create(0, 0);
-        let noise = Sample::create(0, 0);
+        let square1 = Sample::new(0, 0);
+        let square2 = Sample::new(0, 0);
+        let wave = Sample::new(0, 0);
+        let noise = Sample::new(0, 0);
 
         square1.add(&square2).add(&wave).add(&noise)
     }

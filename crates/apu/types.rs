@@ -4,7 +4,7 @@
 pub struct Sample(u8);
 
 impl Sample {
-    pub fn create(left: u8, right: u8) -> Sample {
+    pub fn new(left: u8, right: u8) -> Sample {
         let l = (left << 4) & 0b11110000;
         let r = right & 0b00001111;
 
@@ -23,7 +23,7 @@ impl Sample {
         let l = self.left() + other.left();
         let r = self.right() + other.right();
 
-        Self::create(l, r)
+        Self::new(l, r)
     }
 }
 
@@ -42,4 +42,13 @@ pub trait Generator {
 /// Denote errors when setting value to registers.
 pub enum RegisterError {
     TooLargeNumberInBits(u32, u8),
+}
+
+/// Available duty ratio for square oscillators.
+#[derive(Debug)]
+pub enum Duty {
+    Percent12_5,
+    Percent25,
+    Percent50,
+    Percent75,
 }
