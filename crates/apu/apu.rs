@@ -1,4 +1,4 @@
-use crate::types::{Duty, Generator, RegisterError, Sample, Stateful};
+use crate::types::{u4, Duty, Generator, RegisterError, Sample, Stateful};
 use crate::util::within;
 
 /// A module for note length counter.
@@ -49,11 +49,11 @@ impl Stateful for LengthCounter {
 }
 
 impl Generator for LengthCounter {
-    fn generate(&self) -> Sample {
+    fn generate(&self) -> u4 {
         if self.note_on() {
-            Sample::new(1, 1)
+            u4::new(1)
         } else {
-            Sample::new(0, 0)
+            u4::new(0)
         }
     }
 }
@@ -122,8 +122,8 @@ impl Stateful for VolumeEnvelope {
 }
 
 impl Generator for VolumeEnvelope {
-    fn generate(&self) -> Sample {
-        Sample::new(self.volume, self.volume)
+    fn generate(&self) -> u4 {
+        u4::new(self.volume)
     }
 }
 
@@ -207,7 +207,7 @@ impl Stateful for DutyCycler {
 }
 
 impl Generator for DutyCycler {
-    fn generate(&self) -> Sample {
+    fn generate(&self) -> u4 {
         let v = 0b00000001
             & match self.duty {
                 Duty::Percent12_5 => self.reg12_5,
@@ -216,7 +216,7 @@ impl Generator for DutyCycler {
                 Duty::Percent75 => self.reg75,
             };
         let v = v << 4;
-        Sample::new(v, v)
+        u4::new(v)
     }
 }
 
@@ -251,13 +251,14 @@ impl APU {
 impl Generator for APU {
     /// Generate one signal depends on APU states.
     /// This function may be called at arbitrary time.
-    fn generate(&self) -> Sample {
-        let square1 = Sample::new(0, 0);
-        let square2 = Sample::new(0, 0);
-        let wave = Sample::new(0, 0);
-        let noise = Sample::new(0, 0);
+    fn generate(&self) -> u4 {
+        let square1 = u4::new(0);
+        let square2 = u4::new(0);
+        let wave = u4::new(0);
+        let noise = u4::new(0);
 
-        square1.add(&square2).add(&wave).add(&noise)
+        // square1.add(&square2).add(&wave).add(&noise)
+        square1
     }
 }
 

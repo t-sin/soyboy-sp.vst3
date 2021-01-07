@@ -1,5 +1,15 @@
 //! Types and traits for GameBoy's APU.
 
+/// Type of output monoraul sample. It's 4 bit.
+#[allow(non_camel_case_types)]
+pub struct u4(u8);
+
+impl u4 {
+    pub fn new(v: u8) -> u4 {
+        u4(v & 0x0F)
+    }
+}
+
 /// Type of output sample including two channel values. Each channels have 4 bit value.
 pub struct Sample(u8);
 
@@ -36,7 +46,7 @@ pub trait Stateful {
 /// Objects that generates signal output.
 pub trait Generator {
     /// Generate one signal depends on obejct's internal states.
-    fn generate(&self) -> Sample;
+    fn generate(&self) -> u4;
 }
 
 /// Denote errors when setting value to registers.
