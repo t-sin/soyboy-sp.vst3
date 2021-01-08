@@ -1,7 +1,7 @@
 use crate::types::{u4, Duty, Generator, RegisterError, Sample, Stateful};
 use crate::util::within;
 
-/// A module for note length counter.
+/// A module for note length counter. This enables note off by auto-disabling channel.
 #[derive(Debug)]
 pub struct LengthCounter {
     /// Wheather LengthCounter is enabled.
@@ -59,6 +59,7 @@ impl Generator for LengthCounter {
 }
 
 /// A module for controlling channel volume.
+/// This enables changing volumes over times, like ADSR envelope.
 #[derive(Debug)]
 pub struct VolumeEnvelope {
     /// Volume at start time. 4 bits.
@@ -128,6 +129,7 @@ impl Generator for VolumeEnvelope {
 }
 
 /// Frequency-sweeping-related paramaters for square wave channel.
+/// This enables effects with ocillator pitch, e.g. vibrato.
 #[derive(Debug)]
 pub struct FrequencySweep {
     /// Sweeping speed. 3 bits.
