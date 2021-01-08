@@ -194,6 +194,24 @@ impl FrequencyTimer {
             count: 0,
         }
     }
+
+    pub fn set_frequency(&mut self, frequency: u32) -> Result<(), RegisterError> {
+        if within(frequency.into(), 13) {
+            self.frequency = frequency as u16;
+            Ok(())
+        } else {
+            Err(RegisterError::TooLargeNumberInBits(frequency.into(), 13))
+        }
+    }
+
+    pub fn set_period(&mut self, period: u32) -> Result<(), RegisterError> {
+        if within(period.into(), 13) {
+            self.period = period as u16;
+            Ok(())
+        } else {
+            Err(RegisterError::TooLargeNumberInBits(period.into(), 13))
+        }
+    }
 }
 
 impl Stateful for FrequencyTimer {
