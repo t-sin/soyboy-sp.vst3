@@ -174,6 +174,31 @@ impl Stateful for FrequencySweep {
     fn update(&mut self) {}
 }
 
+/// General frequency counter. It generates clocks to determine ocillator's frequency.
+#[derive(Debug)]
+pub struct FrequencyTimer {
+    /// Frequency for ocillators.
+    pub frequency: u16,
+    pub period: u16,
+
+    count: u16,
+}
+
+impl FrequencyTimer {
+    fn init(period: u16) -> FrequencyTimer {
+        FrequencyTimer {
+            frequency: 0,
+            period: period,
+            count: 0,
+        }
+    }
+}
+
+impl Stateful for FrequencyTimer {
+    /// It must be called at every ??? seconds.
+    fn update(&mut self) {}
+}
+
 pub struct DutyCycler {
     /// Duty ratio selector.
     pub duty: Duty,
