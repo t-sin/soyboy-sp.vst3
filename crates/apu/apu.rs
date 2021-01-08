@@ -236,10 +236,10 @@ impl DutyCycler {
 
 impl Stateful for DutyCycler {
     fn update(&mut self) {
-        self.reg12_5.rotate_left(1);
-        self.reg25.rotate_left(1);
-        self.reg50.rotate_left(1);
-        self.reg75.rotate_left(1);
+        self.reg12_5 = self.reg12_5.rotate_left(1);
+        self.reg25 = self.reg25.rotate_left(1);
+        self.reg50 = self.reg50.rotate_left(1);
+        self.reg75 = self.reg75.rotate_left(1);
     }
 }
 
