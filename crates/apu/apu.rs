@@ -199,6 +199,9 @@ impl Stateful for FrequencyTimer {
     fn update(&mut self) {}
 }
 
+/// Square waveform generator. Four waveforms are available and it realized by 8-bit wavetables.
+/// Duty cycler takes 8 clocks (these from frequency timer) to one cycle of waveform.
+#[derive(Debug)]
 pub struct DutyCycler {
     /// Duty ratio selector.
     pub duty: Duty,
