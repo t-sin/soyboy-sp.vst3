@@ -40,7 +40,7 @@ impl LengthCounter {
 }
 
 impl Stateful for LengthCounter {
-    /// Update length counter state.
+    /// Update length counter state. This must be called at 256Hz frequency.
     fn update(&mut self) {
         if self.count != 0 {
             self.count -= 1;
@@ -107,7 +107,7 @@ impl VolumeEnvelope {
 }
 
 impl Stateful for VolumeEnvelope {
-    /// Update volume envelope state.
+    /// Update volume envelope state. This must be called at 64Hz frequency.
     fn update(&mut self) {
         if self.add_mode {
             if self.volume < 0xf {
@@ -170,6 +170,7 @@ impl FrequencySweep {
 }
 
 impl Stateful for FrequencySweep {
+    /// Updates internal states. This function must be called at 128Hz frequency.
     fn update(&mut self) {}
 }
 
