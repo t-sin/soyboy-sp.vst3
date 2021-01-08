@@ -197,8 +197,14 @@ impl FrequencyTimer {
 }
 
 impl Stateful for FrequencyTimer {
-    /// It must be called at every ??? seconds.
-    fn update(&mut self) {}
+    /// Update frequency timer state. It must be called at every ??? seconds.
+    fn update(&mut self) {
+        if self.count >= self.period {
+            self.count = 0;
+        } else {
+            self.count += 1;
+        }
+    }
 }
 
 /// Square waveform generator. Four waveforms are available and it realized by 8-bit wavetables.
