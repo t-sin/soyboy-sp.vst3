@@ -193,17 +193,27 @@ pub struct FrequencySweep {
     pub negate: bool,
     /// Sweeping intensity. 3 bits.
     pub shift: u8,
+    /// A modulation target of sweeping.
+    pub freq_timer: FrequencyTimer,
 
+    /// A flag denotes wheather FrequencySweep is on sweeping or not.
+    enable: bool,
+    /// An internal counter.
     count: u8,
+    /// A copy of frequency of `freq_timer`.
+    freq: u16,
 }
 
 impl FrequencySweep {
-    pub fn init() -> FrequencySweep {
+    pub fn init(freq_timer: FrequencyTimer) -> FrequencySweep {
         FrequencySweep {
             period: 0,
             negate: false,
             shift: 0,
+            freq_timer: freq_timer,
+            enable: false,
             count: 0,
+            freq: 0,
         }
     }
 
@@ -224,11 +234,54 @@ impl FrequencySweep {
             Err(RegisterError::TooLargeNumberInBits(shift.into(), 3))
         }
     }
+
+    fn calculate_frequency(&mut self) -> u16 {
+        let freq = self.freq;
+        let new_freq = if self.negate {
+            freq - (freq >> self.shift)
+        } else {
+            freq + (freq >> self.shift)
+        };
+
+        new_freq
+    }
+
+    fn check_overflow(&mut self, new_freq: u16) {
+        if new_freq > 0xFFFFFFFFFFF {
+            self.enable = false;
+        }
+    }
+
+    pub fn trigger(&mut self) {
+        self.freq = self.freq_timer.frequency;
+
+        // Reload sweep timer
+        self.count = 0;
+
+        if self.period != 0 || self.shift != 0 {
+            self.enable = true;
+        } else {
+            self.enable = false;
+        }
+
+        let new_freq = self.calculate_frequency();
+        self.check_overflow(new_freq);
+    }
 }
 
 impl Stateful for FrequencySweep {
     /// Updates internal states. This function must be called at 128Hz frequency.
-    fn update(&mut self) {}
+    fn update(&mut self) {
+        if self.enable && self.period != 0 {
+            let new_freq = self.calculate_frequency();
+            self.check_overflow(new_freq);
+
+            if new_freq <= 0xFFFFFFFFFFF && self.shift != 0 {
+                self.freq = new_freq;
+                self.freq_timer.frequency = new_freq;
+            }
+        }
+    }
 }
 
 /// Square waveform generator. Four waveforms are available and it realized by 8-bit wavetables.
