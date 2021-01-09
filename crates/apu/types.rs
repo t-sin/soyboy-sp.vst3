@@ -1,5 +1,7 @@
 //! Types and traits for GameBoy's APU.
 
+use std::ops::Add;
+
 /// Type of output monoraul sample. It's 4 bit.
 #[allow(non_camel_case_types)]
 pub struct u4(u8);
@@ -7,6 +9,14 @@ pub struct u4(u8);
 impl u4 {
     pub fn new(v: u8) -> u4 {
         u4(v & 0x0F)
+    }
+}
+
+impl Add for u4 {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self::Output {
+        u4::new(self.0 + other.0)
     }
 }
 
