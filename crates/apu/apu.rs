@@ -134,6 +134,8 @@ impl Generator for VolumeEnvelope {
     }
 }
 
+pub const max_frequency: u16 = 0b11111111111;
+
 /// General frequency counter. It generates clocks to determine ocillator's frequency.
 #[derive(Debug)]
 pub struct FrequencyTimer {
@@ -247,7 +249,7 @@ impl FrequencySweep {
     }
 
     fn check_overflow(&mut self, new_freq: u16) {
-        if new_freq > 0xFFFFFFFFFFF {
+        if new_freq > max_frequency {
             self.enable = false;
         }
     }
@@ -276,7 +278,7 @@ impl Stateful for FrequencySweep {
             let new_freq = self.calculate_frequency();
             self.check_overflow(new_freq);
 
-            if new_freq <= 0xFFFFFFFFFFF && self.shift != 0 {
+            if new_freq <= max_frequency && self.shift != 0 {
                 self.freq = new_freq;
                 self.freq_timer.frequency = new_freq;
             }
