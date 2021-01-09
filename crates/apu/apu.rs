@@ -314,6 +314,8 @@ impl DutyCycler {
 }
 
 impl Stateful for DutyCycler {
+    /// Updates internal states.
+    /// This function must be called at every eight times of ocillator's frequency.
     fn update(&mut self) {
         self.reg12_5 = self.reg12_5.rotate_left(1);
         self.reg25 = self.reg25.rotate_left(1);
