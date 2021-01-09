@@ -128,54 +128,6 @@ impl Generator for VolumeEnvelope {
     }
 }
 
-/// Frequency-sweeping-related paramaters for square wave channel.
-/// This enables effects with ocillator pitch, e.g. vibrato.
-#[derive(Debug)]
-pub struct FrequencySweep {
-    /// Sweeping speed. 3 bits.
-    pub period: u8,
-    /// A modifier for frequency calculation. 1 bits.
-    pub negate: bool,
-    /// Sweeping intensity. 3 bits.
-    pub shift: u8,
-
-    count: u8,
-}
-
-impl FrequencySweep {
-    pub fn init() -> FrequencySweep {
-        FrequencySweep {
-            period: 0,
-            negate: false,
-            shift: 0,
-            count: 0,
-        }
-    }
-
-    pub fn set_period(&mut self, period: u32) -> Result<(), RegisterError> {
-        if within(period.into(), 3) {
-            self.period = period as u8;
-            Ok(())
-        } else {
-            Err(RegisterError::TooLargeNumberInBits(period.into(), 3))
-        }
-    }
-
-    pub fn set_shift(&mut self, shift: u32) -> Result<(), RegisterError> {
-        if within(shift.into(), 3) {
-            self.shift = shift as u8;
-            Ok(())
-        } else {
-            Err(RegisterError::TooLargeNumberInBits(shift.into(), 3))
-        }
-    }
-}
-
-impl Stateful for FrequencySweep {
-    /// Updates internal states. This function must be called at 128Hz frequency.
-    fn update(&mut self) {}
-}
-
 /// General frequency counter. It generates clocks to determine ocillator's frequency.
 #[derive(Debug)]
 pub struct FrequencyTimer {
@@ -223,6 +175,54 @@ impl Stateful for FrequencyTimer {
             self.count += 1;
         }
     }
+}
+
+/// Frequency-sweeping-related paramaters for square wave channel.
+/// This enables effects with ocillator pitch, e.g. vibrato.
+#[derive(Debug)]
+pub struct FrequencySweep {
+    /// Sweeping speed. 3 bits.
+    pub period: u8,
+    /// A modifier for frequency calculation. 1 bits.
+    pub negate: bool,
+    /// Sweeping intensity. 3 bits.
+    pub shift: u8,
+
+    count: u8,
+}
+
+impl FrequencySweep {
+    pub fn init() -> FrequencySweep {
+        FrequencySweep {
+            period: 0,
+            negate: false,
+            shift: 0,
+            count: 0,
+        }
+    }
+
+    pub fn set_period(&mut self, period: u32) -> Result<(), RegisterError> {
+        if within(period.into(), 3) {
+            self.period = period as u8;
+            Ok(())
+        } else {
+            Err(RegisterError::TooLargeNumberInBits(period.into(), 3))
+        }
+    }
+
+    pub fn set_shift(&mut self, shift: u32) -> Result<(), RegisterError> {
+        if within(shift.into(), 3) {
+            self.shift = shift as u8;
+            Ok(())
+        } else {
+            Err(RegisterError::TooLargeNumberInBits(shift.into(), 3))
+        }
+    }
+}
+
+impl Stateful for FrequencySweep {
+    /// Updates internal states. This function must be called at 128Hz frequency.
+    fn update(&mut self) {}
 }
 
 /// Square waveform generator. Four waveforms are available and it realized by 8-bit wavetables.
