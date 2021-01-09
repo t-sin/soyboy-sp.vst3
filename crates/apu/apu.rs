@@ -35,15 +35,21 @@ impl LengthCounter {
 
     /// Returns `true` if the note is on.
     fn note_on(&self) -> bool {
-        self.count != 0
+        self.enable && self.count != 0
     }
 }
 
 impl Stateful for LengthCounter {
     /// Update length counter state. This must be called at 256Hz frequency.
     fn update(&mut self) {
+        if !self.enable {
+            return;
+        }
+
         if self.count != 0 {
             self.count -= 1;
+        } else {
+            self.enable = false;
         }
     }
 }
