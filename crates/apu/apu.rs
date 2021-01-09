@@ -339,15 +339,111 @@ impl Generator for DutyCycler {
 }
 
 #[derive(Debug)]
+pub struct Square1 {
+    length_counter: LengthCounter,
+    frequency_sweep: FrequencySweep,
+    duty_cycler: DutyCycler,
+    volume_envelope: VolumeEnvelope,
+}
+
+impl Square1 {
+    fn init() -> Square1 {
+        let freq_timer = FrequencyTimer::init(0);
+        Square1 {
+            length_counter: LengthCounter::init(),
+            frequency_sweep: FrequencySweep::init(freq_timer),
+            duty_cycler: DutyCycler::init(),
+            volume_envelope: VolumeEnvelope::init(),
+        }
+    }
+}
+
+impl Generator for Square1 {
+    fn generate(&self) -> u4 {
+        u4::new(0)
+    }
+}
+
+#[derive(Debug)]
+pub struct Square2 {
+    length_counter: LengthCounter,
+    frequency_timer: FrequencyTimer,
+    duty_cycler: DutyCycler,
+    volume_envelope: VolumeEnvelope,
+}
+
+impl Square2 {
+    fn init() -> Square2 {
+        Square2 {
+            length_counter: LengthCounter::init(),
+            frequency_timer: FrequencyTimer::init(0),
+            duty_cycler: DutyCycler::init(),
+            volume_envelope: VolumeEnvelope::init(),
+        }
+    }
+}
+
+impl Generator for Square2 {
+    fn generate(&self) -> u4 {
+        u4::new(0)
+    }
+}
+
+#[derive(Debug)]
+pub struct Wavetable {}
+
+impl Wavetable {
+    fn init() -> Wavetable {
+        Wavetable {}
+    }
+}
+
+impl Generator for Wavetable {
+    fn generate(&self) -> u4 {
+        u4::new(0)
+    }
+}
+
+#[derive(Debug)]
+pub struct Noise {}
+
+impl Noise {
+    fn init() -> Noise {
+        Noise {}
+    }
+}
+
+impl Generator for Noise {
+    fn generate(&self) -> u4 {
+        u4::new(0)
+    }
+}
+
+#[derive(Debug)]
 pub struct APU {
     /// timer count of frame sequencer in APU sound processing.
     timer_count: u32,
+
+    /// Square wave channel No.1 with frequency sweep.
+    square1: Square1,
+    /// Square wave channel No.2 without frequency sweep.
+    square2: Square2,
+    /// Wavetable channel.
+    wavetable: Wavetable,
+    /// Noise channel.
+    noise: Noise,
 }
 
 impl APU {
     /// Returns initialized Gameboy's APU object.
     pub fn init() -> APU {
-        APU { timer_count: 0 }
+        APU {
+            timer_count: 0,
+            square1: Square1::init(),
+            square2: Square2::init(),
+            wavetable: Wavetable::init(),
+            noise: Noise::init(),
+        }
     }
 
     /// Return `true` if length counter is triggered. (512Hz / 2 = 256Hz).
@@ -370,13 +466,13 @@ impl Generator for APU {
     /// Generate one signal depends on APU states.
     /// This function may be called at arbitrary time.
     fn generate(&self) -> u4 {
-        let square1 = u4::new(0);
-        let square2 = u4::new(0);
-        let wave = u4::new(0);
-        let noise = u4::new(0);
+        let square1 = self.square1.generate();
+        let square2 = self.square2.generate();
+        let wavetable = self.wavetable.generate();
+        let noise = self.noise.generate();
 
         // square1.add(&square2).add(&wave).add(&noise)
-        square1
+        square1 + square2 + wavetable + noise
     }
 }
 
