@@ -51,14 +51,19 @@ pub trait Generator {
 
 /// Denote errors when setting value to registers.
 pub enum RegisterError {
+    /// Means that given too large number of u8 bits.
     TooLargeNumberInBits(u32, u8),
 }
 
 /// Available duty ratio for square oscillators.
 #[derive(Debug)]
 pub enum Duty {
+    /// Means duty ratio 12.5%.
     Percent12_5,
+    /// Means duty ratio 25%.
     Percent25,
+    /// Means duty ratio 50%.
     Percent50,
+    /// Means duty ratio 75%.
     Percent75,
 }
