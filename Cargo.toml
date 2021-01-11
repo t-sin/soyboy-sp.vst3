@@ -13,6 +13,6 @@ name = "gbi"
 path = "main.rs"
 
 [dependencies]
-gbi_apu = { path = "crates/apu" }
+# gbi_apu = { path = "crates/apu" }
 # gbi_gui = { path = "crates/gui" }
 # gbi_vst3 = { path = "crates/vst3" }
