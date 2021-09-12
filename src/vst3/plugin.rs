@@ -175,12 +175,6 @@ impl IAudioProcessor for GameBoyPlugin {
         // let inputs: &mut AudioBusBuffers = &mut *data.inputs;
         let outputs: &mut AudioBusBuffers = &mut *data.outputs;
         let num_channels = outputs.num_channels as usize;
-        //let input_ptr = std::slice::from_raw_parts(inputs.buffers, num_channels);
-        // let output_ptr = std::slice::from_raw_parts(outputs.buffers, num_channels);
-        //let sample_size = if data.symbolic_sample_size == 0 { 4 } else { 8 };
-        // for (i, o) in input_ptr.iter().zip(output_ptr.iter()) {
-        //     copy_nonoverlapping(*i, *o, num_samples * sample_size);
-        // }
 
         let out = (*(*data).outputs).buffers;
 
