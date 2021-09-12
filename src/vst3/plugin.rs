@@ -182,12 +182,10 @@ impl IAudioProcessor for GameBoyPlugin {
             K_SAMPLE32 => {
                 for i in 0..num_channels as isize {
                     let ch_out = *out.offset(i) as *mut f32;
+                    let s = self.gbi.borrow_mut().process();
+
                     for n in 0..num_samples as isize {
-                        {
-                            let ph = self.gbi.borrow().ph as f32;
-                            *ch_out.offset(n) = ph.sin();
-                        }
-                        self.gbi.borrow_mut().ph += 0.05;
+                        *ch_out.offset(n) = s.0 as f32;
                     }
                 }
 
@@ -196,12 +194,10 @@ impl IAudioProcessor for GameBoyPlugin {
             K_SAMPLE64 => {
                 for i in 0..num_channels as isize {
                     let ch_out = *out.offset(i) as *mut f64;
+                    let s = self.gbi.borrow_mut().process();
+
                     for n in 0..num_samples as isize {
-                        {
-                            let ph = self.gbi.borrow().ph;
-                            *ch_out.offset(n) = ph.sin();
-                        }
-                        self.gbi.borrow_mut().ph += 0.05;
+                        *ch_out.offset(n) = s.0;
                     }
                 }
 
