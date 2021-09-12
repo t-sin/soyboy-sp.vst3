@@ -2,6 +2,7 @@ extern crate env_logger;
 extern crate vst3_com;
 extern crate vst3_sys;
 
+mod constant;
 mod plugin;
 mod util;
 
@@ -35,9 +36,9 @@ impl IPluginFactory for GameBoyPluginFactory {
         let info = &mut *info;
 
         // set information
-        strcpy("t-sin", info.vendor.as_mut_ptr());
-        strcpy("https://github.com/t-sin/gbi", info.url.as_mut_ptr());
-        strcpy("shinichi.tanaka45@gmail.com", info.email.as_mut_ptr());
+        strcpy(constant::PLUGIN_VENDOR, info.vendor.as_mut_ptr());
+        strcpy(constant::PLUGIN_URL, info.url.as_mut_ptr());
+        strcpy(constant::PLUGIN_EMAIL, info.email.as_mut_ptr());
 
         kResultOk
     }
@@ -54,8 +55,9 @@ impl IPluginFactory for GameBoyPluginFactory {
                 info.cardinality = 0x7FFF_FFFF;
                 info.cid = GameBoyPlugin::CID;
 
-                strcpy("Audio Module Class", info.category.as_mut_ptr());
-                strcpy("gbi", info.name.as_mut_ptr());
+                strcpy(constant::PLUGIN_CLASS_NAME, info.name.as_mut_ptr());
+                strcpy(constant::PLUGIN_CLASS_CATEGORY, info.category.as_mut_ptr());
+                strcpy(constant::PLUGIN_CLASS_NAME, info.name.as_mut_ptr());
             }
             _ => {
                 return kInvalidArgument;
@@ -89,9 +91,14 @@ impl IPluginFactory2 for GameBoyPluginFactory {
             0 => {
                 let info = &mut *info;
 
-                strcpy("Audio Module Class", info.category.as_mut_ptr());
-                strcpy("gbi", info.name.as_mut_ptr());
-                strcpy("0.1.0", info.version.as_mut_ptr());
+                strcpy(constant::PLUGIN_CLASS_NAME, info.name.as_mut_ptr());
+                strcpy(constant::PLUGIN_VENDOR, info.vendor.as_mut_ptr());
+                strcpy(constant::PLUGIN_CLASS_VERSION, info.version.as_mut_ptr());
+                strcpy(constant::PLUGIN_CLASS_CATEGORY, info.category.as_mut_ptr());
+                strcpy(
+                    constant::PLUGIN_CLASS_SUBCATEGORIES,
+                    info.subcategories.as_mut_ptr(),
+                );
 
                 kResultOk
             }
@@ -106,9 +113,14 @@ impl IPluginFactory3 for GameBoyPluginFactory {
             0 => {
                 let info = &mut *info;
 
-                strcpy("Audio Module Class", info.category.as_mut_ptr());
-                wstrcpy("gbi", info.name.as_mut_ptr());
-                wstrcpy("0.1.0", info.version.as_mut_ptr());
+                wstrcpy(constant::PLUGIN_CLASS_NAME, info.name.as_mut_ptr());
+                wstrcpy(constant::PLUGIN_VENDOR, info.vendor.as_mut_ptr());
+                wstrcpy(constant::PLUGIN_CLASS_VERSION, info.version.as_mut_ptr());
+                strcpy(constant::PLUGIN_CLASS_CATEGORY, info.category.as_mut_ptr());
+                strcpy(
+                    constant::PLUGIN_CLASS_SUBCATEGORIES,
+                    info.subcategories.as_mut_ptr(),
+                );
 
                 kResultOk
             }
