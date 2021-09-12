@@ -1,22 +1,31 @@
 use log::*;
+
+use std::cell::RefCell;
 use std::os::raw::c_void;
 use std::ptr::{copy_nonoverlapping, null_mut};
 
 use vst3_com::{sys::GUID, IID};
 use vst3_sys::{
-    base::{kInvalidArgument, kResultFalse, kResultOk, tresult, FIDString, IPluginBase, TBool},
+    base::{
+        kInvalidArgument, kResultFalse, kResultOk, kResultTrue, tresult, FIDString, IPluginBase,
+        TBool,
+    },
     vst::{
         AudioBusBuffers, BusDirections, BusFlags, BusInfo, IAudioProcessor, IComponent,
-        IEditController, MediaTypes, ParameterInfo, ProcessData, ProcessSetup, RoutingInfo,
-        SymbolicSampleSizes, TChar,
+        IEditController, MediaTypes, ParameterInfo, ProcessData, ProcessSetup, RoutingInfo, TChar,
+        K_SAMPLE32, K_SAMPLE64,
     },
     VST3,
 };
 
 use crate::util::wstrcpy;
 
+struct Phase(f64);
+
 #[VST3(implements(IComponent, IAudioProcessor, IEditController))]
-pub struct GameBoyPlugin {}
+pub struct GameBoyPlugin {
+    ph: RefCell<Phase>,
+}
 
 impl GameBoyPlugin {
     pub const CID: GUID = GUID {
@@ -27,7 +36,8 @@ impl GameBoyPlugin {
     };
 
     pub fn new() -> Box<Self> {
-        let gb = GameBoyPlugin::allocate();
+        let ph = RefCell::new(Phase(0.0));
+        let gb = GameBoyPlugin::allocate(ph);
         gb
     }
 }
@@ -65,13 +75,13 @@ impl IComponent for GameBoyPlugin {
             if dir == BusDirections::kInput as i32 {
                 info.direction = dir;
                 info.bus_type = MediaTypes::kAudio as i32;
-                info.channel_count = 2;
+                info.channel_count = 1;
                 info.flags = BusFlags::kDefaultActive as u32;
                 wstrcpy("Audio Input", info.name.as_mut_ptr());
             } else {
                 info.direction = dir;
                 info.bus_type = MediaTypes::kAudio as i32;
-                info.channel_count = 2;
+                info.channel_count = 1;
                 info.flags = BusFlags::kDefaultActive as u32;
                 wstrcpy("Audio Output", info.name.as_mut_ptr());
             }
@@ -127,8 +137,12 @@ impl IAudioProcessor for GameBoyPlugin {
         }
     }
 
-    unsafe fn can_process_sample_size(&self, _symbolic_sample_size: i32) -> i32 {
-        kResultOk
+    unsafe fn can_process_sample_size(&self, symbolic_sample_size: i32) -> i32 {
+        match symbolic_sample_size {
+            K_SAMPLE32 => kResultTrue,
+            K_SAMPLE64 => kResultTrue,
+            _ => kResultFalse,
+        }
     }
 
     unsafe fn get_latency_samples(&self) -> u32 {
@@ -158,7 +172,7 @@ impl IAudioProcessor for GameBoyPlugin {
         let outputs: &mut AudioBusBuffers = &mut *data.outputs;
         let num_channels = outputs.num_channels as usize;
         //let input_ptr = std::slice::from_raw_parts(inputs.buffers, num_channels);
-        let output_ptr = std::slice::from_raw_parts(outputs.buffers, num_channels);
+        // let output_ptr = std::slice::from_raw_parts(outputs.buffers, num_channels);
         //let sample_size = if data.symbolic_sample_size == 0 { 4 } else { 8 };
         // for (i, o) in input_ptr.iter().zip(output_ptr.iter()) {
         //     copy_nonoverlapping(*i, *o, num_samples * sample_size);
@@ -167,32 +181,35 @@ impl IAudioProcessor for GameBoyPlugin {
         let out = (*(*data).outputs).buffers;
 
         match data.symbolic_sample_size {
-            kSample32 => {
-                let mut ph: f32 = 0.0;
-
+            K_SAMPLE32 => {
                 for i in 0..num_channels as isize {
                     let ch_out = *out.offset(i) as *mut f32;
                     for n in 0..num_samples as isize {
-                        *ch_out.offset(n) = ph.sin();
-                        ph += 0.1;
+                        {
+                            let ph = self.ph.borrow().0 as f32;
+                            *ch_out.offset(n) = ph.sin();
+                        }
+                        self.ph.borrow_mut().0 += 0.05;
                     }
                 }
 
                 kResultOk
             }
-            kSample64 => {
-                let mut ph: f64 = 0.0;
-
+            K_SAMPLE64 => {
                 for i in 0..num_channels as isize {
                     let ch_out = *out.offset(i) as *mut f64;
                     for n in 0..num_samples as isize {
-                        *ch_out.offset(n) = ph.sin();
-                        ph += 0.1;
+                        {
+                            let ph = self.ph.borrow().0;
+                            *ch_out.offset(n) = ph.sin();
+                        }
+                        self.ph.borrow_mut().0 += 0.05;
                     }
                 }
 
                 kResultOk
             }
+            _ => unreachable!(),
         }
     }
 }
