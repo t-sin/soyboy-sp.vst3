@@ -10,6 +10,7 @@ use vst3_sys::{
 };
 
 use crate::constant;
+use crate::gbi::GameBoyInstrument;
 use crate::vst3::{
     plugin::GameBoyPlugin,
     util::{strcpy, wstrcpy},
@@ -69,7 +70,8 @@ impl IPluginFactory for GameBoyPluginFactory {
         let iid = *cid;
         match iid {
             GameBoyPlugin::CID => {
-                let ptr = Box::into_raw(GameBoyPlugin::new()) as *mut c_void;
+                let ptr =
+                    Box::into_raw(GameBoyPlugin::new(GameBoyInstrument::new())) as *mut c_void;
                 *obj = ptr;
                 kResultOk
             }

@@ -21,11 +21,11 @@ use vst3_sys::{
 use crate::constant;
 use crate::vst3::util::wstrcpy;
 
-struct Phase(f64);
+use crate::gbi::GameBoyInstrument;
 
 #[VST3(implements(IComponent, IAudioProcessor, IEditController))]
 pub struct GameBoyPlugin {
-    ph: RefCell<Phase>,
+    gbi: RefCell<GameBoyInstrument>,
 }
 
 impl GameBoyPlugin {
@@ -33,9 +33,9 @@ impl GameBoyPlugin {
         data: constant::VST3_CID,
     };
 
-    pub fn new() -> Box<Self> {
-        let ph = RefCell::new(Phase(0.0));
-        let gb = GameBoyPlugin::allocate(ph);
+    pub fn new(gbi: GameBoyInstrument) -> Box<Self> {
+        let gbi = RefCell::new(gbi);
+        let gb = GameBoyPlugin::allocate(gbi);
         gb
     }
 }
@@ -184,10 +184,10 @@ impl IAudioProcessor for GameBoyPlugin {
                     let ch_out = *out.offset(i) as *mut f32;
                     for n in 0..num_samples as isize {
                         {
-                            let ph = self.ph.borrow().0 as f32;
+                            let ph = self.gbi.borrow().ph as f32;
                             *ch_out.offset(n) = ph.sin();
                         }
-                        self.ph.borrow_mut().0 += 0.05;
+                        self.gbi.borrow_mut().ph += 0.05;
                     }
                 }
 
@@ -198,10 +198,10 @@ impl IAudioProcessor for GameBoyPlugin {
                     let ch_out = *out.offset(i) as *mut f64;
                     for n in 0..num_samples as isize {
                         {
-                            let ph = self.ph.borrow().0;
+                            let ph = self.gbi.borrow().ph;
                             *ch_out.offset(n) = ph.sin();
                         }
-                        self.ph.borrow_mut().0 += 0.05;
+                        self.gbi.borrow_mut().ph += 0.05;
                     }
                 }
 
