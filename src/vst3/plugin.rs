@@ -70,20 +70,26 @@ impl IComponent for GameBoyPlugin {
     unsafe fn get_bus_info(&self, type_: i32, dir: i32, _idx: i32, info: *mut BusInfo) -> tresult {
         if type_ == MediaTypes::kAudio as i32 {
             let info = &mut *info;
+
             if dir == BusDirections::kInput as i32 {
                 info.direction = dir;
-                info.bus_type = MediaTypes::kAudio as i32;
+                info.bus_type = MediaTypes::kEvent as i32;
                 info.channel_count = 1;
                 info.flags = BusFlags::kDefaultActive as u32;
-                wstrcpy("Audio Input", info.name.as_mut_ptr());
-            } else {
+                wstrcpy("Event Input", info.name.as_mut_ptr());
+
+                kResultOk
+            } else if dir == BusDirections::kOutput as i32 {
                 info.direction = dir;
                 info.bus_type = MediaTypes::kAudio as i32;
-                info.channel_count = 1;
+                info.channel_count = 2;
                 info.flags = BusFlags::kDefaultActive as u32;
                 wstrcpy("Audio Output", info.name.as_mut_ptr());
+
+                kResultOk
+            } else {
+                kInvalidArgument
             }
-            kResultOk
         } else {
             kInvalidArgument
         }
@@ -180,11 +186,11 @@ impl IAudioProcessor for GameBoyPlugin {
 
         match data.symbolic_sample_size {
             K_SAMPLE32 => {
-                for i in 0..num_channels as isize {
-                    let ch_out = *out.offset(i) as *mut f32;
+                for n in 0..num_samples as isize {
                     let s = self.gbi.borrow_mut().process();
 
-                    for n in 0..num_samples as isize {
+                    for i in 0..num_channels as isize {
+                        let ch_out = *out.offset(i) as *mut f32;
                         *ch_out.offset(n) = s.0 as f32;
                     }
                 }
@@ -192,11 +198,11 @@ impl IAudioProcessor for GameBoyPlugin {
                 kResultOk
             }
             K_SAMPLE64 => {
-                for i in 0..num_channels as isize {
-                    let ch_out = *out.offset(i) as *mut f64;
+                for n in 0..num_samples as isize {
                     let s = self.gbi.borrow_mut().process();
 
-                    for n in 0..num_samples as isize {
+                    for i in 0..num_channels as isize {
+                        let ch_out = *out.offset(i) as *mut f64;
                         *ch_out.offset(n) = s.0;
                     }
                 }
