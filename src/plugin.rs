@@ -7,7 +7,8 @@ use vst3_sys::{
     base::{kInvalidArgument, kResultFalse, kResultOk, tresult, FIDString, IPluginBase, TBool},
     vst::{
         AudioBusBuffers, BusDirections, BusFlags, BusInfo, IAudioProcessor, IComponent,
-        IEditController, MediaTypes, ParameterInfo, ProcessData, ProcessSetup, RoutingInfo, TChar,
+        IEditController, MediaTypes, ParameterInfo, ProcessData, ProcessSetup, RoutingInfo,
+        SymbolicSampleSizes, TChar,
     },
     VST3,
 };
@@ -148,20 +149,51 @@ impl IAudioProcessor for GameBoyPlugin {
 
     unsafe fn process(&self, data: *mut ProcessData) -> tresult {
         let data = &*data;
+
         let num_samples = data.num_samples as usize;
         if data.inputs.is_null() || data.outputs.is_null() {
             return kResultOk;
         }
-        let inputs: &mut AudioBusBuffers = &mut *data.inputs;
+        // let inputs: &mut AudioBusBuffers = &mut *data.inputs;
         let outputs: &mut AudioBusBuffers = &mut *data.outputs;
-        let num_channels = inputs.num_channels as usize;
-        let input_ptr = std::slice::from_raw_parts(inputs.buffers, num_channels);
+        let num_channels = outputs.num_channels as usize;
+        //let input_ptr = std::slice::from_raw_parts(inputs.buffers, num_channels);
         let output_ptr = std::slice::from_raw_parts(outputs.buffers, num_channels);
-        let sample_size = if data.symbolic_sample_size == 0 { 4 } else { 8 };
-        for (i, o) in input_ptr.iter().zip(output_ptr.iter()) {
-            copy_nonoverlapping(*i, *o, num_samples * sample_size);
+        //let sample_size = if data.symbolic_sample_size == 0 { 4 } else { 8 };
+        // for (i, o) in input_ptr.iter().zip(output_ptr.iter()) {
+        //     copy_nonoverlapping(*i, *o, num_samples * sample_size);
+        // }
+
+        let out = (*(*data).outputs).buffers;
+
+        match data.symbolic_sample_size {
+            kSample32 => {
+                let mut ph: f32 = 0.0;
+
+                for i in 0..num_channels as isize {
+                    let ch_out = *out.offset(i) as *mut f32;
+                    for n in 0..num_samples as isize {
+                        *ch_out.offset(n) = ph.sin();
+                        ph += 0.1;
+                    }
+                }
+
+                kResultOk
+            }
+            kSample64 => {
+                let mut ph: f64 = 0.0;
+
+                for i in 0..num_channels as isize {
+                    let ch_out = *out.offset(i) as *mut f64;
+                    for n in 0..num_samples as isize {
+                        *ch_out.offset(n) = ph.sin();
+                        ph += 0.1;
+                    }
+                }
+
+                kResultOk
+            }
         }
-        kResultOk
     }
 }
 
