@@ -10,15 +10,18 @@ use std::os::raw::c_void;
 
 use vst3_com::sys::GUID;
 use vst3_sys::{
-    base::{kInvalidArgument, kResultFalse, kResultOk, IPluginFactory, PClassInfo, PFactoryInfo},
+    base::{
+        kInvalidArgument, kResultFalse, kResultOk, tresult, IPluginFactory, IPluginFactory2,
+        IPluginFactory3, PClassInfo, PClassInfo2, PClassInfoW, PFactoryInfo,
+    },
     VST3,
 };
 
-use crate::util::strcpy;
+use crate::util::{strcpy, wstrcpy};
 
 use crate::plugin::GameBoyPlugin;
 
-#[VST3(implements(IPluginFactory))]
+#[VST3(implements(IPluginFactory3))]
 pub struct GameBoyPluginFactory {}
 
 impl GameBoyPluginFactory {
@@ -28,12 +31,13 @@ impl GameBoyPluginFactory {
 }
 
 impl IPluginFactory for GameBoyPluginFactory {
-    unsafe fn get_factory_info(&self, info: *mut PFactoryInfo) -> i32 {
+    unsafe fn get_factory_info(&self, info: *mut PFactoryInfo) -> tresult {
         let info = &mut *info;
 
         // set information
         strcpy("t-sin", info.vendor.as_mut_ptr());
         strcpy("https://github.com/t-sin/gbi", info.url.as_mut_ptr());
+        strcpy("shinichi.tanaka45@gmail.com", info.email.as_mut_ptr());
 
         kResultOk
     }
@@ -42,7 +46,7 @@ impl IPluginFactory for GameBoyPluginFactory {
         1
     }
 
-    unsafe fn get_class_info(&self, idx: i32, info: *mut PClassInfo) -> i32 {
+    unsafe fn get_class_info(&self, idx: i32, info: *mut PClassInfo) -> tresult {
         match idx {
             0 => {
                 let info = &mut *info;
@@ -76,6 +80,44 @@ impl IPluginFactory for GameBoyPluginFactory {
             }
             _ => kResultFalse,
         }
+    }
+}
+
+impl IPluginFactory2 for GameBoyPluginFactory {
+    unsafe fn get_class_info2(&self, idx: i32, info: *mut PClassInfo2) -> tresult {
+        match idx {
+            0 => {
+                let info = &mut *info;
+
+                strcpy("Audio Module Class", info.category.as_mut_ptr());
+                strcpy("gbi", info.name.as_mut_ptr());
+                strcpy("0.1.0", info.version.as_mut_ptr());
+
+                kResultOk
+            }
+            _ => return kInvalidArgument,
+        }
+    }
+}
+
+impl IPluginFactory3 for GameBoyPluginFactory {
+    unsafe fn get_class_info_unicode(&self, idx: i32, info: *mut PClassInfoW) -> tresult {
+        match idx {
+            0 => {
+                let info = &mut *info;
+
+                strcpy("Audio Module Class", info.category.as_mut_ptr());
+                wstrcpy("gbi", info.name.as_mut_ptr());
+                wstrcpy("0.1.0", info.version.as_mut_ptr());
+
+                kResultOk
+            }
+            _ => return kInvalidArgument,
+        }
+    }
+
+    unsafe fn set_host_context(&self, _context: *mut c_void) -> tresult {
+        kResultOk
     }
 }
 
