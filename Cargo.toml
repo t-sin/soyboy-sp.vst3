@@ -8,5 +8,14 @@ description = "A VST3 instrument to do GameBoy"
 [lib]
 crate-type = ["cdylib"]
 
+[dev-dependencies]
+
 [dependencies]
 vst3-sys = { version = "0.1.0", git = "https://github.com/RustAudio/vst3-sys" }
+vst3-com = { version = "0.1.0", git = "https://github.com/RustAudio/vst3-sys" }
+
+widestring = "0.4.0"
+
+# I want to build these at debugging...
+log = "0.4"
+env_logger = "0.9.0"
