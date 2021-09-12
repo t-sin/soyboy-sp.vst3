@@ -18,6 +18,7 @@ use vst3_sys::{
     VST3,
 };
 
+use crate::constant;
 use crate::util::wstrcpy;
 
 struct Phase(f64);
@@ -29,10 +30,7 @@ pub struct GameBoyPlugin {
 
 impl GameBoyPlugin {
     pub const CID: GUID = GUID {
-        data: [
-            0xd6, 0x8e, 0x5c, 0xd2, 0x8a, 0x5d, 0x4d, 0xbe, 0xaf, 0xfa, 0x4a, 0x3f, 0x01, 0xfc,
-            0x93, 0xd1,
-        ],
+        data: constant::VST3_CID,
     };
 
     pub fn new() -> Box<Self> {

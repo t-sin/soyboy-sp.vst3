@@ -27,9 +27,9 @@ impl IPluginFactory for GameBoyPluginFactory {
         let info = &mut *info;
 
         // set information
-        strcpy(constant::PLUGIN_VENDOR, info.vendor.as_mut_ptr());
-        strcpy(constant::PLUGIN_URL, info.url.as_mut_ptr());
-        strcpy(constant::PLUGIN_EMAIL, info.email.as_mut_ptr());
+        strcpy(constant::VST3_VENDOR, info.vendor.as_mut_ptr());
+        strcpy(constant::VST3_URL, info.url.as_mut_ptr());
+        strcpy(constant::VST3_EMAIL, info.email.as_mut_ptr());
 
         kResultOk
     }
@@ -46,9 +46,9 @@ impl IPluginFactory for GameBoyPluginFactory {
                 info.cardinality = 0x7FFF_FFFF;
                 info.cid = GameBoyPlugin::CID;
 
-                strcpy(constant::PLUGIN_CLASS_NAME, info.name.as_mut_ptr());
-                strcpy(constant::PLUGIN_CLASS_CATEGORY, info.category.as_mut_ptr());
-                strcpy(constant::PLUGIN_CLASS_NAME, info.name.as_mut_ptr());
+                strcpy(constant::VST3_CLASS_NAME, info.name.as_mut_ptr());
+                strcpy(constant::VST3_CLASS_CATEGORY, info.category.as_mut_ptr());
+                strcpy(constant::VST3_CLASS_NAME, info.name.as_mut_ptr());
             }
             _ => {
                 return kInvalidArgument;
@@ -82,12 +82,12 @@ impl IPluginFactory2 for GameBoyPluginFactory {
             0 => {
                 let info = &mut *info;
 
-                strcpy(constant::PLUGIN_CLASS_NAME, info.name.as_mut_ptr());
-                strcpy(constant::PLUGIN_VENDOR, info.vendor.as_mut_ptr());
-                strcpy(constant::PLUGIN_CLASS_VERSION, info.version.as_mut_ptr());
-                strcpy(constant::PLUGIN_CLASS_CATEGORY, info.category.as_mut_ptr());
+                strcpy(constant::VST3_CLASS_NAME, info.name.as_mut_ptr());
+                strcpy(constant::VST3_VENDOR, info.vendor.as_mut_ptr());
+                strcpy(constant::VST3_CLASS_VERSION, info.version.as_mut_ptr());
+                strcpy(constant::VST3_CLASS_CATEGORY, info.category.as_mut_ptr());
                 strcpy(
-                    constant::PLUGIN_CLASS_SUBCATEGORIES,
+                    constant::VST3_CLASS_SUBCATEGORIES,
                     info.subcategories.as_mut_ptr(),
                 );
 
@@ -104,12 +104,12 @@ impl IPluginFactory3 for GameBoyPluginFactory {
             0 => {
                 let info = &mut *info;
 
-                wstrcpy(constant::PLUGIN_CLASS_NAME, info.name.as_mut_ptr());
-                wstrcpy(constant::PLUGIN_VENDOR, info.vendor.as_mut_ptr());
-                wstrcpy(constant::PLUGIN_CLASS_VERSION, info.version.as_mut_ptr());
-                strcpy(constant::PLUGIN_CLASS_CATEGORY, info.category.as_mut_ptr());
+                wstrcpy(constant::VST3_CLASS_NAME, info.name.as_mut_ptr());
+                wstrcpy(constant::VST3_VENDOR, info.vendor.as_mut_ptr());
+                wstrcpy(constant::VST3_CLASS_VERSION, info.version.as_mut_ptr());
+                strcpy(constant::VST3_CLASS_CATEGORY, info.category.as_mut_ptr());
                 strcpy(
-                    constant::PLUGIN_CLASS_SUBCATEGORIES,
+                    constant::VST3_CLASS_SUBCATEGORIES,
                     info.subcategories.as_mut_ptr(),
                 );
 
