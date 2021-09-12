@@ -1,19 +1,20 @@
+use log::*;
 use std::os::raw::c_void;
-use std::ptr::copy_nonoverlapping;
+use std::ptr::{copy_nonoverlapping, null_mut};
 
 use vst3_com::{sys::GUID, IID};
 use vst3_sys::{
-    base::{kInvalidArgument, kResultFalse, kResultOk, tresult, IPluginBase, TBool},
+    base::{kInvalidArgument, kResultFalse, kResultOk, tresult, FIDString, IPluginBase, TBool},
     vst::{
-        AudioBusBuffers, BusDirections, BusFlags, BusInfo, IAudioProcessor, IComponent, MediaTypes,
-        ProcessData, ProcessSetup, RoutingInfo,
+        AudioBusBuffers, BusDirections, BusFlags, BusInfo, IAudioProcessor, IComponent,
+        IEditController, MediaTypes, ParameterInfo, ProcessData, ProcessSetup, RoutingInfo, TChar,
     },
     VST3,
 };
 
 use crate::util::wstrcpy;
 
-#[VST3(implements(IComponent, IAudioProcessor))]
+#[VST3(implements(IComponent, IAudioProcessor, IEditController))]
 pub struct GameBoyPlugin {}
 
 impl GameBoyPlugin {
@@ -161,5 +162,82 @@ impl IAudioProcessor for GameBoyPlugin {
             copy_nonoverlapping(*i, *o, num_samples * sample_size);
         }
         kResultOk
+    }
+}
+
+impl IEditController for GameBoyPlugin {
+    unsafe fn set_component_state(&self, _state: *mut c_void) -> tresult {
+        info!("set_component_state");
+        kResultOk
+    }
+
+    unsafe fn set_state(&self, _state: *mut c_void) -> tresult {
+        info!("set_state");
+        kResultOk
+    }
+
+    unsafe fn get_state(&self, _state: *mut c_void) -> tresult {
+        info!("get_state");
+        kResultOk
+    }
+
+    unsafe fn get_parameter_count(&self) -> i32 {
+        info!("get_parameter_count");
+        0
+    }
+
+    unsafe fn get_parameter_info(&self, _: i32, _: *mut ParameterInfo) -> tresult {
+        info!("get_parameter_info");
+        kResultFalse
+    }
+
+    unsafe fn get_param_string_by_value(
+        &self,
+        _id: u32,
+        _value_normalized: f64,
+        _string: *mut TChar,
+    ) -> tresult {
+        info!("get_param_string_by_value");
+        kResultFalse
+    }
+
+    unsafe fn get_param_value_by_string(
+        &self,
+        _id: u32,
+        _string: *const TChar,
+        _value_normalized: *mut f64,
+    ) -> tresult {
+        info!("get_param_value_by_string");
+        kResultFalse
+    }
+
+    unsafe fn normalized_param_to_plain(&self, _id: u32, _value_normalized: f64) -> f64 {
+        info!("normalized_param_to_plain");
+        0.0
+    }
+
+    unsafe fn plain_param_to_normalized(&self, _id: u32, _plain_value: f64) -> f64 {
+        info!("plain_param_to_normalized");
+        0.0
+    }
+
+    unsafe fn get_param_normalized(&self, _id: u32) -> f64 {
+        info!("get_param_normalized");
+        0.0
+    }
+
+    unsafe fn set_param_normalized(&self, _id: u32, _value: f64) -> tresult {
+        info!("set_param_normalized");
+        kResultOk
+    }
+
+    unsafe fn set_component_handler(&self, _handler: *mut c_void) -> tresult {
+        info!("set_component_handler");
+        kResultOk
+    }
+
+    unsafe fn create_view(&self, _name: FIDString) -> *mut c_void {
+        info!("Called: AGainController::create_view()");
+        null_mut()
     }
 }
