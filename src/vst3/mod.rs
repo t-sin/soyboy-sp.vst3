@@ -1,5 +1,6 @@
 mod factory;
 mod plugin;
+mod util;
 
 use log::*;
 use std::os::raw::c_void;

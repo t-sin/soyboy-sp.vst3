@@ -10,8 +10,10 @@ use vst3_sys::{
 };
 
 use crate::constant;
-use crate::util::{strcpy, wstrcpy};
-use crate::vst3::plugin::GameBoyPlugin;
+use crate::vst3::{
+    plugin::GameBoyPlugin,
+    util::{strcpy, wstrcpy},
+};
 
 #[VST3(implements(IPluginFactory3))]
 pub struct GameBoyPluginFactory {}

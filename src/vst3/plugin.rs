@@ -19,7 +19,7 @@ use vst3_sys::{
 };
 
 use crate::constant;
-use crate::util::wstrcpy;
+use crate::vst3::util::wstrcpy;
 
 struct Phase(f64);
 
