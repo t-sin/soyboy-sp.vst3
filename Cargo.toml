@@ -3,16 +3,10 @@ name = "gbi"
 version = "0.1.0"
 authors = ["t-sin <shinichi.tanaka45@gmail.com>"]
 edition = "2018"
+description = "A VST3 instrument to do GameBoy"
 
-# [lib]
-# name = "gbi"
-# path = "src/lib.rs"
-
-[[bin]]
-name = "gbi"
-path = "main.rs"
+[lib]
+crate-type = ["cdylib"]
 
 [dependencies]
-# gbi_apu = { path = "crates/apu" }
-# gbi_gui = { path = "crates/gui" }
-# gbi_vst3 = { path = "crates/vst3" }
+vst3-sys = { version = "0.1.0", git = "https://github.com/RustAudio/vst3-sys" }
