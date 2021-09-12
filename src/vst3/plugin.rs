@@ -2,14 +2,13 @@ use log::*;
 
 use std::cell::RefCell;
 use std::os::raw::c_void;
-use std::ptr::{copy_nonoverlapping, null_mut};
+use std::ptr::null_mut;
 
 use vst3_com::{sys::GUID, IID};
 use vst3_sys::{
     base::{
-        kInvalidArgument, kInvalidArgument, kResultFalse, kResultFalse, kResultOk, kResultOk,
-        kResultTrue, tresult, tresult, FIDString, IPluginBase, IPluginFactory, IPluginFactory2,
-        IPluginFactory3, PClassInfo, PClassInfo2, PClassInfoW, PFactoryInfo, TBool,
+        kInvalidArgument, kResultFalse, kResultOk, kResultTrue, tresult, FIDString, IPluginBase,
+        TBool,
     },
     vst::{
         AudioBusBuffers, BusDirections, BusFlags, BusInfo, IAudioProcessor, IComponent,
@@ -19,8 +18,7 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::constant;
-use crate::util::{strcpy, wstrcpy};
+use crate::util::wstrcpy;
 
 struct Phase(f64);
 
@@ -290,116 +288,5 @@ impl IEditController for GameBoyPlugin {
     unsafe fn create_view(&self, _name: FIDString) -> *mut c_void {
         info!("Called: AGainController::create_view()");
         null_mut()
-    }
-}
-
-#[VST3(implements(IPluginFactory3))]
-pub struct GameBoyPluginFactory {}
-
-impl GameBoyPluginFactory {
-    fn new() -> Box<Self> {
-        Self::allocate()
-    }
-}
-
-impl IPluginFactory for GameBoyPluginFactory {
-    unsafe fn get_factory_info(&self, info: *mut PFactoryInfo) -> tresult {
-        let info = &mut *info;
-
-        // set information
-        strcpy(constant::PLUGIN_VENDOR, info.vendor.as_mut_ptr());
-        strcpy(constant::PLUGIN_URL, info.url.as_mut_ptr());
-        strcpy(constant::PLUGIN_EMAIL, info.email.as_mut_ptr());
-
-        kResultOk
-    }
-
-    unsafe fn count_classes(&self) -> i32 {
-        1
-    }
-
-    unsafe fn get_class_info(&self, idx: i32, info: *mut PClassInfo) -> tresult {
-        match idx {
-            0 => {
-                let info = &mut *info;
-
-                info.cardinality = 0x7FFF_FFFF;
-                info.cid = GameBoyPlugin::CID;
-
-                strcpy(constant::PLUGIN_CLASS_NAME, info.name.as_mut_ptr());
-                strcpy(constant::PLUGIN_CLASS_CATEGORY, info.category.as_mut_ptr());
-                strcpy(constant::PLUGIN_CLASS_NAME, info.name.as_mut_ptr());
-            }
-            _ => {
-                return kInvalidArgument;
-            }
-        }
-
-        kResultOk
-    }
-
-    unsafe fn create_instance(
-        &self,
-        cid: *const GUID,
-        _riid: *const GUID,
-        obj: *mut *mut core::ffi::c_void,
-    ) -> i32 {
-        let iid = *cid;
-        match iid {
-            GameBoyPlugin::CID => {
-                let ptr = Box::into_raw(GameBoyPlugin::new()) as *mut c_void;
-                *obj = ptr;
-                kResultOk
-            }
-            _ => kResultFalse,
-        }
-    }
-}
-
-impl IPluginFactory2 for GameBoyPluginFactory {
-    unsafe fn get_class_info2(&self, idx: i32, info: *mut PClassInfo2) -> tresult {
-        match idx {
-            0 => {
-                let info = &mut *info;
-
-                strcpy(constant::PLUGIN_CLASS_NAME, info.name.as_mut_ptr());
-                strcpy(constant::PLUGIN_VENDOR, info.vendor.as_mut_ptr());
-                strcpy(constant::PLUGIN_CLASS_VERSION, info.version.as_mut_ptr());
-                strcpy(constant::PLUGIN_CLASS_CATEGORY, info.category.as_mut_ptr());
-                strcpy(
-                    constant::PLUGIN_CLASS_SUBCATEGORIES,
-                    info.subcategories.as_mut_ptr(),
-                );
-
-                kResultOk
-            }
-            _ => return kInvalidArgument,
-        }
-    }
-}
-
-impl IPluginFactory3 for GameBoyPluginFactory {
-    unsafe fn get_class_info_unicode(&self, idx: i32, info: *mut PClassInfoW) -> tresult {
-        match idx {
-            0 => {
-                let info = &mut *info;
-
-                wstrcpy(constant::PLUGIN_CLASS_NAME, info.name.as_mut_ptr());
-                wstrcpy(constant::PLUGIN_VENDOR, info.vendor.as_mut_ptr());
-                wstrcpy(constant::PLUGIN_CLASS_VERSION, info.version.as_mut_ptr());
-                strcpy(constant::PLUGIN_CLASS_CATEGORY, info.category.as_mut_ptr());
-                strcpy(
-                    constant::PLUGIN_CLASS_SUBCATEGORIES,
-                    info.subcategories.as_mut_ptr(),
-                );
-
-                kResultOk
-            }
-            _ => return kInvalidArgument,
-        }
-    }
-
-    unsafe fn set_host_context(&self, _context: *mut c_void) -> tresult {
-        kResultOk
     }
 }
