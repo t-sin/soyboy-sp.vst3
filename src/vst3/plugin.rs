@@ -21,7 +21,7 @@ use vst3_sys::{
 use crate::constant;
 use crate::vst3::util::wstrcpy;
 
-use crate::gbi::GameBoyInstrument;
+use crate::gbi::{AudioProcessor, GameBoyInstrument};
 
 #[VST3(implements(IComponent, IAudioProcessor, IEditController))]
 pub struct GameBoyPlugin {
