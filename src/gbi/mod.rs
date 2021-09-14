@@ -1,6 +1,7 @@
 mod types;
 
 use types::u4;
+pub use types::AudioProcessor;
 
 fn pulse(phase: f64, duty: f64) -> u4 {
     let ph = phase % 1.0;
@@ -9,10 +10,6 @@ fn pulse(phase: f64, duty: f64) -> u4 {
     } else {
         u4::MAX
     }
-}
-
-pub trait AudioProcessor<T> {
-    fn process(&mut self, sample_rate: f64) -> T;
 }
 
 pub struct SquareWaveOscillator {
