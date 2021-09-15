@@ -18,7 +18,7 @@ impl AudioProcessor<Signal> for GameBoyInstrument {
         let osc = self.square_osc.process(sample_rate).to_f64();
         let env = self.envelope_gen.process(sample_rate);
 
-        let signal = osc * env;
+        let signal = osc * env * 0.5;
         (signal, signal)
     }
 }
