@@ -141,6 +141,9 @@ impl IComponent for GameBoyPlugin {
     }
 }
 
+const K_NOTE_ON_EVENT: u16 = EventTypes::kNoteOnEvent as u16;
+const K_NOTE_OFF_EVENT: u16 = EventTypes::kNoteOffEvent as u16;
+
 impl IAudioProcessor for GameBoyPlugin {
     unsafe fn set_bus_arrangements(
         &self,
@@ -189,11 +192,46 @@ impl IAudioProcessor for GameBoyPlugin {
     unsafe fn process(&self, data: *mut ProcessData) -> tresult {
         let data = &*data;
 
-        let num_samples = data.num_samples as usize;
-        if data.inputs.is_null() || data.outputs.is_null() {
+        if data.input_events.is_null() || data.outputs.is_null() {
             return kResultOk;
         }
-        // let inputs: &mut AudioBusBuffers = &mut *data.inputs;
+
+        // process event inputs
+        if !data.input_events.is_null() {
+            let input_events = data.input_events.upgrade().unwrap();
+            let count = input_events.get_event_count();
+
+            for c in 0..count {
+                let bytes = [0];
+                let mut event: Event = Event {
+                    bus_index: 0,
+                    sample_offset: 0,
+                    ppq_position: 0.0,
+                    flags: 0,
+                    type_: 0,
+                    event: EventData {
+                        data: DataEvent {
+                            size: 0,
+                            type_: 0,
+                            bytes: bytes.as_ptr(),
+                        },
+                    },
+                };
+
+                if input_events.get_event(c, &mut event) == kResultOk {
+                    println!("process_event");
+                    let mut gbi = self.gbi.borrow_mut();
+                    match event.type_ {
+                        K_NOTE_ON_EVENT => gbi.note_on(),
+                        K_NOTE_OFF_EVENT => gbi.note_off(),
+                        _ => (),
+                    }
+                }
+            }
+        }
+
+        // process audio outputs
+        let num_samples = data.num_samples as usize;
         let outputs: &mut AudioBusBuffers = &mut *data.outputs;
         let num_output_channels = outputs.num_channels as usize;
 
