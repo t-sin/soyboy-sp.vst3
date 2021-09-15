@@ -11,15 +11,15 @@ use vst3_sys::{
         TBool,
     },
     vst::{
-        AudioBusBuffers, BusDirections, BusFlags, BusInfo, BusTypes, DataEvent, Event, EventData,
-        EventTypes, IAudioProcessor, IComponent, IEditController, IEventList, MediaTypes,
-        ParameterInfo, ProcessData, ProcessSetup, RoutingInfo, TChar, K_SAMPLE32, K_SAMPLE64,
+        AudioBusBuffers, BusDirections, BusFlags, BusInfo, BusTypes, EventTypes, IAudioProcessor,
+        IComponent, IEditController, IEventList, MediaTypes, ParameterInfo, ProcessData,
+        ProcessSetup, RoutingInfo, TChar, K_SAMPLE32, K_SAMPLE64,
     },
     VST3,
 };
 
 use crate::constant;
-use crate::vst3::util::{as_bus_dir, as_media_type, wstrcpy};
+use crate::vst3::util;
 
 use crate::gbi::{AudioProcessor, GameBoyInstrument};
 
@@ -119,8 +119,8 @@ impl IComponent for GameBoyPlugin {
     }
 
     unsafe fn get_bus_count(&self, media_type: i32, dir: i32) -> i32 {
-        if let Some(media_type) = as_media_type(media_type) {
-            if let Some(dir) = as_bus_dir(dir) {
+        if let Some(media_type) = util::as_media_type(media_type) {
+            if let Some(dir) = util::as_bus_dir(dir) {
                 return self.bus_count(media_type, dir);
             }
         }
@@ -136,14 +136,14 @@ impl IComponent for GameBoyPlugin {
     ) -> tresult {
         let info = &mut *info;
 
-        if let Some(media_type) = as_media_type(media_type) {
-            if let Some(dir) = as_bus_dir(dir) {
+        if let Some(media_type) = util::as_media_type(media_type) {
+            if let Some(dir) = util::as_bus_dir(dir) {
                 if let Some((name, bus_info)) = self.bus_info(media_type, dir, idx) {
                     info.direction = bus_info.direction as i32;
                     info.bus_type = bus_info.bus_type as i32;
                     info.channel_count = bus_info.channel_count;
                     info.flags = bus_info.flags as u32;
-                    wstrcpy(name, info.name.as_mut_ptr());
+                    util::wstrcpy(name, info.name.as_mut_ptr());
 
                     return kResultOk;
                 }
@@ -177,9 +177,6 @@ impl IComponent for GameBoyPlugin {
         kResultOk
     }
 }
-
-const K_NOTE_ON_EVENT: u16 = EventTypes::kNoteOnEvent as u16;
-const K_NOTE_OFF_EVENT: u16 = EventTypes::kNoteOffEvent as u16;
 
 impl IAudioProcessor for GameBoyPlugin {
     unsafe fn set_bus_arrangements(
@@ -239,27 +236,14 @@ impl IAudioProcessor for GameBoyPlugin {
             let count = input_events.get_event_count();
 
             for c in 0..count {
-                let bytes = [0];
-                let mut event: Event = Event {
-                    bus_index: 0,
-                    sample_offset: 0,
-                    ppq_position: 0.0,
-                    flags: 0,
-                    type_: 0,
-                    event: EventData {
-                        data: DataEvent {
-                            size: 0,
-                            type_: 0,
-                            bytes: bytes.as_ptr(),
-                        },
-                    },
-                };
+                let mut event = util::make_empty_event();
 
                 if input_events.get_event(c, &mut event) == kResultOk {
                     let mut gbi = self.gbi.borrow_mut();
-                    match event.type_ {
-                        K_NOTE_ON_EVENT => gbi.note_on(),
-                        K_NOTE_OFF_EVENT => gbi.note_off(),
+                    match util::as_event_type(event.type_) {
+                        Some(EventTypes::kNoteOnEvent) => gbi.note_on(),
+                        Some(EventTypes::kNoteOffEvent) => gbi.note_off(),
+                        Some(_) => (),
                         _ => (),
                     }
                 }

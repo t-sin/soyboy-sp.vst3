@@ -4,7 +4,7 @@ use std::{
 };
 use widestring::U16CString;
 
-use vst3_sys::vst::{BusDirections, MediaTypes};
+use vst3_sys::vst::{BusDirections, DataEvent, Event, EventData, EventTypes, MediaTypes};
 
 pub unsafe fn strcpy(src: &str, dst: *mut c_char) {
     copy_nonoverlapping(src.as_ptr() as *const c_void as *const _, dst, src.len());
@@ -38,5 +38,34 @@ pub fn as_bus_dir(n: i32) -> Option<BusDirections> {
         K_INPUT => Some(BusDirections::kInput),
         K_OUTPUT => Some(BusDirections::kOutput),
         _ => None,
+    }
+}
+
+const K_NOTE_ON_EVENT: u16 = EventTypes::kNoteOnEvent as u16;
+const K_NOTE_OFF_EVENT: u16 = EventTypes::kNoteOffEvent as u16;
+
+pub fn as_event_type(n: u16) -> Option<EventTypes> {
+    match n {
+        K_NOTE_ON_EVENT => Some(EventTypes::kNoteOnEvent),
+        K_NOTE_OFF_EVENT => Some(EventTypes::kNoteOffEvent),
+        _ => None,
+    }
+}
+
+pub fn make_empty_event() -> Event {
+    let bytes = [0];
+    Event {
+        bus_index: 0,
+        sample_offset: 0,
+        ppq_position: 0.0,
+        flags: 0,
+        type_: 0,
+        event: EventData {
+            data: DataEvent {
+                size: 0,
+                type_: 0,
+                bytes: bytes.as_ptr(),
+            },
+        },
     }
 }
