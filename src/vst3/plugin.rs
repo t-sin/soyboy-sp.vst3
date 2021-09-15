@@ -219,7 +219,6 @@ impl IAudioProcessor for GameBoyPlugin {
                 };
 
                 if input_events.get_event(c, &mut event) == kResultOk {
-                    println!("process_event");
                     let mut gbi = self.gbi.borrow_mut();
                     match event.type_ {
                         K_NOTE_ON_EVENT => gbi.note_on(),
