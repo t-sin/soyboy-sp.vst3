@@ -1,30 +1,32 @@
 #[allow(non_camel_case_types)]
-pub struct u4(u8);
+pub struct i4(i8);
 
-impl u4 {
-    pub const MIN_U8: u8 = 0x0;
-    pub const MAX_U8: u8 = 0xf;
-    pub const ZERO_U8: u8 = 0x8;
-    pub const MIN: u4 = u4(u4::MIN_U8);
-    pub const MAX: u4 = u4(u4::MAX_U8);
-    pub const ZERO: u4 = u4(u4::ZERO_U8);
+impl i4 {
+    pub const MIN_I8: i8 = -0x08;
+    pub const MAX_I8: i8 = 0x07;
+    pub const ZERO_I8: i8 = 0x00;
+    pub const MIN: i4 = i4(i4::MIN_I8);
+    pub const MAX: i4 = i4(i4::MAX_I8);
+    pub const ZERO: i4 = i4(i4::ZERO_I8);
 
-    pub fn new(v: u8) -> u4 {
-        u4(v)
+    pub fn new(v: i8) -> i4 {
+        i4(v)
     }
 
     pub fn to_f64(&self) -> f64 {
-        let v = self.0 as f64 / u4::MAX.0 as f64 * 2.0 - 1.0;
+        let v = self.0 as f64 / i4::MAX.0 as f64 * 2.0 - 1.0;
         v
     }
 }
 
-impl From<u8> for u4 {
-    fn from(v: u8) -> u4 {
-        if v > u4::MAX_U8 {
-            u4::MAX
+impl From<i8> for i4 {
+    fn from(v: i8) -> i4 {
+        if v < i4::MIN_I8 {
+            i4::MIN
+        } else if v > i4::MAX_I8 {
+            i4::MAX
         } else {
-            u4::new(v)
+            i4::new(v)
         }
     }
 }

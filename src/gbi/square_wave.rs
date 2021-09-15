@@ -1,11 +1,11 @@
-use crate::gbi::types::{u4, AudioProcessor};
+use crate::gbi::types::{i4, AudioProcessor};
 
-fn pulse(phase: f64, duty: f64) -> u4 {
+fn pulse(phase: f64, duty: f64) -> i4 {
     let ph = phase % 1.0;
     if ph < duty {
-        u4::MIN
+        i4::MIN
     } else {
-        u4::MAX
+        i4::MAX
     }
 }
 
@@ -19,8 +19,8 @@ impl SquareWaveOscillator {
     }
 }
 
-impl AudioProcessor<u4> for SquareWaveOscillator {
-    fn process(&mut self, sample_rate: f64) -> u4 {
+impl AudioProcessor<i4> for SquareWaveOscillator {
+    fn process(&mut self, sample_rate: f64) -> i4 {
         let freq = 440.0;
         let phase_diff = (freq / sample_rate) / 2.0;
 
