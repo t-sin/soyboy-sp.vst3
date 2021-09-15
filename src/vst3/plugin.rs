@@ -174,7 +174,7 @@ impl IAudioProcessor for GameBoyPlugin {
         }
         // let inputs: &mut AudioBusBuffers = &mut *data.inputs;
         let outputs: &mut AudioBusBuffers = &mut *data.outputs;
-        let num_channels = outputs.num_channels as usize;
+        let num_output_channels = outputs.num_channels as usize;
 
         let sample_rate = (*(data.context)).sample_rate;
 
@@ -185,7 +185,7 @@ impl IAudioProcessor for GameBoyPlugin {
                 for n in 0..num_samples as isize {
                     let s = self.gbi.borrow_mut().process(sample_rate);
 
-                    for i in 0..num_channels as isize {
+                    for i in 0..num_output_channels as isize {
                         let ch_out = *out.offset(i) as *mut f32;
                         *ch_out.offset(n) = s.0 as f32;
                     }
@@ -197,7 +197,7 @@ impl IAudioProcessor for GameBoyPlugin {
                 for n in 0..num_samples as isize {
                     let s = self.gbi.borrow_mut().process(sample_rate);
 
-                    for i in 0..num_channels as isize {
+                    for i in 0..num_output_channels as isize {
                         let ch_out = *out.offset(i) as *mut f64;
                         *ch_out.offset(n) = s.0;
                     }
