@@ -236,12 +236,12 @@ impl IAudioProcessor for GameBoyPlugin {
             let count = input_events.get_event_count();
 
             for c in 0..count {
-                let mut event = util::make_empty_event();
+                let mut e = util::make_empty_event();
 
-                if input_events.get_event(c, &mut event) == kResultOk {
+                if input_events.get_event(c, &mut e) == kResultOk {
                     let mut gbi = self.gbi.borrow_mut();
-                    match util::as_event_type(event.type_) {
-                        Some(EventTypes::kNoteOnEvent) => gbi.note_on(),
+                    match util::as_event_type(e.type_) {
+                        Some(EventTypes::kNoteOnEvent) => gbi.note_on(e.event.note_on.pitch),
                         Some(EventTypes::kNoteOffEvent) => gbi.note_off(),
                         Some(_) => (),
                         _ => (),

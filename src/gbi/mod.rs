@@ -4,7 +4,7 @@ mod types;
 
 use envelope_generator::{EnvelopeGenerator, EnvelopeState};
 use square_wave::SquareWaveOscillator;
-pub use types::AudioProcessor;
+pub use types::{AudioProcessor, Oscillator};
 
 pub type Signal = (f64, f64);
 
@@ -31,7 +31,8 @@ impl GameBoyInstrument {
         }
     }
 
-    pub fn note_on(&mut self) {
+    pub fn note_on(&mut self, pitch: i16) {
+        self.square_osc.set_pitch(pitch);
         self.envelope_gen.state = EnvelopeState::On;
     }
 
