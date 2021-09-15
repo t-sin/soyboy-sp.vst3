@@ -11,15 +11,15 @@ use vst3_sys::{
         TBool,
     },
     vst::{
-        AudioBusBuffers, BusDirections, BusFlags, BusInfo, DataEvent, Event, EventData, EventTypes,
-        IAudioProcessor, IComponent, IEditController, IEventList, MediaTypes, ParameterInfo,
-        ProcessData, ProcessSetup, RoutingInfo, TChar, K_SAMPLE32, K_SAMPLE64,
+        AudioBusBuffers, BusDirections, BusFlags, BusInfo, BusTypes, DataEvent, Event, EventData,
+        EventTypes, IAudioProcessor, IComponent, IEditController, IEventList, MediaTypes,
+        ParameterInfo, ProcessData, ProcessSetup, RoutingInfo, TChar, K_SAMPLE32, K_SAMPLE64,
     },
     VST3,
 };
 
 use crate::constant;
-use crate::vst3::util::wstrcpy;
+use crate::vst3::util::{as_bus_dir, as_media_type, wstrcpy};
 
 use crate::gbi::{AudioProcessor, GameBoyInstrument};
 
@@ -38,6 +38,65 @@ impl GameBoyPlugin {
         let gb = GameBoyPlugin::allocate(gbi);
         gb
     }
+
+    pub fn bus_count(&self, media_type: MediaTypes, dir: BusDirections) -> i32 {
+        match media_type {
+            MediaTypes::kAudio => match dir {
+                BusDirections::kInput => 0,
+                BusDirections::kOutput => 1,
+            },
+            MediaTypes::kEvent => match dir {
+                BusDirections::kInput => 1,
+                BusDirections::kOutput => 0,
+            },
+            _ => 0,
+        }
+    }
+
+    pub fn bus_info(
+        &self,
+        media_type: MediaTypes,
+        dir: BusDirections,
+        idx: i32,
+    ) -> Option<(&str, BusInfo)> {
+        match media_type {
+            MediaTypes::kAudio => match dir {
+                BusDirections::kInput => None,
+                BusDirections::kOutput => match idx {
+                    0 => Some((
+                        "Audio Out",
+                        BusInfo {
+                            media_type: media_type as i32,
+                            direction: dir as i32,
+                            channel_count: 2, // stereo out
+                            name: [0; 128],
+                            bus_type: BusTypes::kMain as i32,
+                            flags: BusFlags::kDefaultActive as u32,
+                        },
+                    )),
+                    _ => None,
+                },
+            },
+            MediaTypes::kEvent => match dir {
+                BusDirections::kInput => match idx {
+                    0 => Some((
+                        "Event In",
+                        BusInfo {
+                            media_type: media_type as i32,
+                            direction: dir as i32,
+                            channel_count: 1,
+                            name: [0; 128],
+                            bus_type: BusTypes::kMain as i32,
+                            flags: BusFlags::kDefaultActive as u32,
+                        },
+                    )),
+                    _ => None,
+                },
+                BusDirections::kOutput => None,
+            },
+            _ => None,
+        }
+    }
 }
 
 impl IPluginBase for GameBoyPlugin {
@@ -50,9 +109,6 @@ impl IPluginBase for GameBoyPlugin {
     }
 }
 
-const K_AUDIO: i32 = MediaTypes::kAudio as i32;
-const K_EVENT: i32 = MediaTypes::kEvent as i32;
-
 impl IComponent for GameBoyPlugin {
     unsafe fn get_controller_class_id(&self, _tuid: *mut IID) -> tresult {
         kResultOk
@@ -62,58 +118,39 @@ impl IComponent for GameBoyPlugin {
         kResultOk
     }
 
-    unsafe fn get_bus_count(&self, type_: i32, dir: i32) -> i32 {
-        if type_ == MediaTypes::kAudio as i32 {
-            if dir == BusDirections::kOutput as i32 {
-                1
-            } else {
-                0
+    unsafe fn get_bus_count(&self, media_type: i32, dir: i32) -> i32 {
+        if let Some(media_type) = as_media_type(media_type) {
+            if let Some(dir) = as_bus_dir(dir) {
+                return self.bus_count(media_type, dir);
             }
-        } else if type_ == MediaTypes::kEvent as i32 {
-            if dir == BusDirections::kInput as i32 {
-                1
-            } else {
-                0
-            }
-        } else {
-            0
         }
+        0
     }
 
-    unsafe fn get_bus_info(&self, type_: i32, dir: i32, _idx: i32, info: *mut BusInfo) -> tresult {
+    unsafe fn get_bus_info(
+        &self,
+        media_type: i32,
+        dir: i32,
+        idx: i32,
+        info: *mut BusInfo,
+    ) -> tresult {
         let info = &mut *info;
 
-        match type_ {
-            K_AUDIO => {
-                if dir == BusDirections::kInput as i32 {
-                    kInvalidArgument
-                } else if dir == BusDirections::kOutput as i32 {
-                    info.direction = dir;
-                    info.bus_type = MediaTypes::kAudio as i32;
-                    info.channel_count = 2;
-                    info.flags = BusFlags::kDefaultActive as u32;
-                    wstrcpy("Audio Output", info.name.as_mut_ptr());
+        if let Some(media_type) = as_media_type(media_type) {
+            if let Some(dir) = as_bus_dir(dir) {
+                if let Some((name, bus_info)) = self.bus_info(media_type, dir, idx) {
+                    info.direction = bus_info.direction as i32;
+                    info.bus_type = bus_info.bus_type as i32;
+                    info.channel_count = bus_info.channel_count;
+                    info.flags = bus_info.flags as u32;
+                    wstrcpy(name, info.name.as_mut_ptr());
 
-                    kResultOk
-                } else {
-                    kInvalidArgument
+                    return kResultOk;
                 }
             }
-            K_EVENT => {
-                if dir == BusDirections::kInput as i32 {
-                    info.direction = dir;
-                    info.bus_type = MediaTypes::kEvent as i32;
-                    info.channel_count = 1;
-                    info.flags = BusFlags::kDefaultActive as u32;
-                    wstrcpy("Event Input", info.name.as_mut_ptr());
-
-                    kResultOk
-                } else {
-                    kInvalidArgument
-                }
-            }
-            _ => kInvalidArgument,
         }
+
+        kInvalidArgument
     }
 
     unsafe fn get_routing_info(
