@@ -11,9 +11,9 @@ use vst3_sys::{
         TBool,
     },
     vst::{
-        AudioBusBuffers, BusDirections, BusFlags, BusInfo, IAudioProcessor, IComponent,
-        IEditController, MediaTypes, ParameterInfo, ProcessData, ProcessSetup, RoutingInfo, TChar,
-        K_SAMPLE32, K_SAMPLE64,
+        AudioBusBuffers, BusDirections, BusFlags, BusInfo, DataEvent, Event, EventData, EventTypes,
+        IAudioProcessor, IComponent, IEditController, IEventList, MediaTypes, ParameterInfo,
+        ProcessData, ProcessSetup, RoutingInfo, TChar, K_SAMPLE32, K_SAMPLE64,
     },
     VST3,
 };
@@ -50,6 +50,9 @@ impl IPluginBase for GameBoyPlugin {
     }
 }
 
+const K_AUDIO: i32 = MediaTypes::kAudio as i32;
+const K_EVENT: i32 = MediaTypes::kEvent as i32;
+
 impl IComponent for GameBoyPlugin {
     unsafe fn get_controller_class_id(&self, _tuid: *mut IID) -> tresult {
         kResultOk
@@ -59,39 +62,57 @@ impl IComponent for GameBoyPlugin {
         kResultOk
     }
 
-    unsafe fn get_bus_count(&self, type_: i32, _dir: i32) -> i32 {
+    unsafe fn get_bus_count(&self, type_: i32, dir: i32) -> i32 {
         if type_ == MediaTypes::kAudio as i32 {
-            1
+            if dir == BusDirections::kOutput as i32 {
+                1
+            } else {
+                0
+            }
+        } else if type_ == MediaTypes::kEvent as i32 {
+            if dir == BusDirections::kInput as i32 {
+                1
+            } else {
+                0
+            }
         } else {
             0
         }
     }
 
     unsafe fn get_bus_info(&self, type_: i32, dir: i32, _idx: i32, info: *mut BusInfo) -> tresult {
-        if type_ == MediaTypes::kAudio as i32 {
-            let info = &mut *info;
+        let info = &mut *info;
 
-            if dir == BusDirections::kInput as i32 {
-                info.direction = dir;
-                info.bus_type = MediaTypes::kEvent as i32;
-                info.channel_count = 1;
-                info.flags = BusFlags::kDefaultActive as u32;
-                wstrcpy("Event Input", info.name.as_mut_ptr());
+        match type_ {
+            K_AUDIO => {
+                if dir == BusDirections::kInput as i32 {
+                    kInvalidArgument
+                } else if dir == BusDirections::kOutput as i32 {
+                    info.direction = dir;
+                    info.bus_type = MediaTypes::kAudio as i32;
+                    info.channel_count = 2;
+                    info.flags = BusFlags::kDefaultActive as u32;
+                    wstrcpy("Audio Output", info.name.as_mut_ptr());
 
-                kResultOk
-            } else if dir == BusDirections::kOutput as i32 {
-                info.direction = dir;
-                info.bus_type = MediaTypes::kAudio as i32;
-                info.channel_count = 2;
-                info.flags = BusFlags::kDefaultActive as u32;
-                wstrcpy("Audio Output", info.name.as_mut_ptr());
-
-                kResultOk
-            } else {
-                kInvalidArgument
+                    kResultOk
+                } else {
+                    kInvalidArgument
+                }
             }
-        } else {
-            kInvalidArgument
+            K_EVENT => {
+                if dir == BusDirections::kInput as i32 {
+                    info.direction = dir;
+                    info.bus_type = MediaTypes::kEvent as i32;
+                    info.channel_count = 1;
+                    info.flags = BusFlags::kDefaultActive as u32;
+                    wstrcpy("Event Input", info.name.as_mut_ptr());
+
+                    kResultOk
+                } else {
+                    kInvalidArgument
+                }
+            }
+            _ => kInvalidArgument,
         }
     }
 
