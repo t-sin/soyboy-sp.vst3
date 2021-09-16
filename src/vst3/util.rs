@@ -4,7 +4,10 @@ use std::{
 };
 use widestring::U16CString;
 
-use vst3_sys::vst::{BusDirections, DataEvent, Event, EventData, EventTypes, MediaTypes};
+use vst3_sys::vst::{
+    BusDirections, BusFlags, BusInfo, BusTypes, DataEvent, Event, EventData, EventTypes,
+    MediaTypes, ParameterInfo, String128,
+};
 
 pub unsafe fn strcpy(src: &str, dst: *mut c_char) {
     copy_nonoverlapping(src.as_ptr() as *const c_void as *const _, dst, src.len());
@@ -15,6 +18,12 @@ pub unsafe fn wstrcpy(src: &str, dst: *mut c_short) {
     let mut src = src.into_vec();
     src.push(0);
     copy_nonoverlapping(src.as_ptr() as *const c_void as *const _, dst, src.len());
+}
+
+pub fn str128cpy(src: &String128, dest: &mut String128) {
+    for idx in 0..src.len() {
+        dest[idx] = src[idx];
+    }
 }
 
 const K_AUDIO: i32 = MediaTypes::kAudio as i32;
@@ -67,5 +76,29 @@ pub fn make_empty_event() -> Event {
                 bytes: bytes.as_ptr(),
             },
         },
+    }
+}
+
+pub fn make_empty_bus_info() -> BusInfo {
+    BusInfo {
+        name: [0; 128],
+        media_type: MediaTypes::kAudio as i32,
+        direction: BusDirections::kInput as i32,
+        channel_count: 0,
+        bus_type: BusTypes::kMain as i32,
+        flags: BusFlags::kDefaultActive as u32,
+    }
+}
+
+pub fn make_empty_param_info() -> ParameterInfo {
+    ParameterInfo {
+        id: 0,
+        title: [0; 128],
+        short_title: [0; 128],
+        units: [0; 128],
+        step_count: 1,
+        default_normalized_value: 0.0,
+        unit_id: 0,
+        flags: 0,
     }
 }
