@@ -90,7 +90,9 @@ impl IPluginBase for GameBoyPlugin {
 }
 
 impl IComponent for GameBoyPlugin {
-    unsafe fn get_controller_class_id(&self, _tuid: *mut IID) -> tresult {
+    unsafe fn get_controller_class_id(&self, tuid: *mut IID) -> tresult {
+        *tuid = GameBoyController::CID;
+
         kResultOk
     }
 

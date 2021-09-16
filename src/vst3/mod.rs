@@ -1,5 +1,7 @@
+mod controller;
 mod factory;
 mod plugin;
+mod plugin_data;
 mod util;
 
 use log::*;
