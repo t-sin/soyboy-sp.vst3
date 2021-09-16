@@ -1,6 +1,7 @@
 mod envelope_generator;
 mod square_wave;
 mod types;
+mod util;
 
 use envelope_generator::{EnvelopeGenerator, EnvelopeState};
 use square_wave::SquareWaveOscillator;

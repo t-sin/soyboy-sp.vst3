@@ -1,4 +1,7 @@
-use crate::gbi::types::{i4, AudioProcessor, Oscillator};
+use crate::gbi::{
+    types::{i4, AudioProcessor, Oscillator},
+    util,
+};
 
 fn pulse(phase: f64, duty: f64) -> i4 {
     let ph = phase % 1.0;
@@ -55,9 +58,11 @@ impl AudioProcessor<i4> for SquareWaveOscillator {
     }
 }
 
+const NOTE_NUMBER_OF_440_HZ: u16 = 69;
+
 impl Oscillator for SquareWaveOscillator {
     /// https://steinbergmedia.github.io/vst3_doc/vstinterfaces/structSteinberg_1_1Vst_1_1NoteOnEvent.html の pitch の項目
     fn set_pitch(&mut self, note: i16) {
-        self.freq = 440.0 * 2.0_f64.powf((note - 69) as f64 / 12.0);
+        self.freq = util::frequency_from_note_number(note as u16, NOTE_NUMBER_OF_440_HZ);
     }
 }
