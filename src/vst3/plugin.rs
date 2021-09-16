@@ -238,6 +238,12 @@ impl IAudioProcessor for GameBoyPlugin {
             return kResultOk;
         }
 
+        // process parameters
+        if !data.input_param_changes.is_null() {
+            let param_changes = data.input_param_changes.upgrade().unwrap();
+            let count = param_changes.get_parameter_count();
+        }
+
         // process event inputs
         if !data.input_events.is_null() {
             let input_events = data.input_events.upgrade().unwrap();
