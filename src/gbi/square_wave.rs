@@ -9,9 +9,26 @@ fn pulse(phase: f64, duty: f64) -> i4 {
     }
 }
 
+pub enum SquareWaveDuty {
+    Ratio12_5,
+    Ratio25,
+    Ratio50,
+}
+
+impl SquareWaveDuty {
+    fn to_ratio(&self) -> f64 {
+        match self {
+            SquareWaveDuty::Ratio12_5 => 0.125,
+            SquareWaveDuty::Ratio25 => 0.25,
+            SquareWaveDuty::Ratio50 => 0.5,
+        }
+    }
+}
+
 pub struct SquareWaveOscillator {
-    pub phase: f64,
+    phase: f64,
     pub freq: f64,
+    pub duty: SquareWaveDuty,
 }
 
 impl SquareWaveOscillator {
@@ -19,15 +36,20 @@ impl SquareWaveOscillator {
         SquareWaveOscillator {
             phase: 0.0,
             freq: 440.0,
+            duty: SquareWaveDuty::Ratio50,
         }
+    }
+
+    pub fn set_duty(&mut self, duty: SquareWaveDuty) {
+        self.duty = duty;
     }
 }
 
 impl AudioProcessor<i4> for SquareWaveOscillator {
     fn process(&mut self, sample_rate: f64) -> i4 {
         let phase_diff = (self.freq / sample_rate) / 2.0;
+        let v = pulse(self.phase, self.duty.to_ratio());
 
-        let v = pulse(self.phase, 0.5);
         self.phase += phase_diff;
         v
     }
