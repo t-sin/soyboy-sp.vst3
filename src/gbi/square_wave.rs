@@ -1,16 +1,7 @@
 use crate::gbi::{
+    sound_processing::{frequency_from_note_number, pulse},
     types::{i4, AudioProcessor, Oscillator},
-    util,
 };
-
-fn pulse(phase: f64, duty: f64) -> i4 {
-    let ph = phase % 1.0;
-    if ph < duty {
-        i4::MIN
-    } else {
-        i4::MAX
-    }
-}
 
 pub enum SquareWaveDuty {
     Ratio12_5,
@@ -63,6 +54,6 @@ const NOTE_NUMBER_OF_440_HZ: u16 = 69;
 impl Oscillator for SquareWaveOscillator {
     /// https://steinbergmedia.github.io/vst3_doc/vstinterfaces/structSteinberg_1_1Vst_1_1NoteOnEvent.html の pitch の項目
     fn set_pitch(&mut self, note: i16) {
-        self.freq = util::frequency_from_note_number(note as u16, NOTE_NUMBER_OF_440_HZ);
+        self.freq = frequency_from_note_number(note as u16, NOTE_NUMBER_OF_440_HZ);
     }
 }
