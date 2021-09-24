@@ -41,7 +41,7 @@ impl SquareWaveOscillator {
 
 impl AudioProcessor<i4> for SquareWaveOscillator {
     fn process(&mut self, sample_rate: f64) -> i4 {
-        let phase_diff = (self.freq / sample_rate) / 2.0;
+        let phase_diff = (self.freq / sample_rate);
         let v = pulse(self.phase, self.duty.to_ratio());
 
         self.phase += phase_diff;
