@@ -37,6 +37,8 @@ This may be one oscillation unit for polyphonic synths.
     - wavetable entry (#0 ~ #31)
 - noise oscillator
     - WIP...
+- note stutter
+- arpeggiator
 
 ### Parameter details
 
