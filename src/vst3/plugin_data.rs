@@ -20,19 +20,3 @@ pub const VST3_CONTROLLER_CLASS_SUBCATEGORIES: &str = "";
 pub const VST3_CONTROLLER_CID: [u8; 16] = [
     0x81, 0x24, 0x78, 0x8a, 0x16, 0x37, 0x41, 0xf8, 0x8b, 0xc3, 0x71, 0x07, 0x10, 0x4a, 0x0b, 0x8d,
 ];
-
-pub enum PluginParameter {
-    Param1 = 0,
-}
-
-impl TryFrom<u32> for PluginParameter {
-    type Error = ();
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        if value == PluginParameter::Param1 as u32 {
-            Ok(PluginParameter::Param1)
-        } else {
-            Err(())
-        }
-    }
-}

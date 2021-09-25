@@ -21,7 +21,7 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::vst3::{plugin_data, plugin_data::PluginParameter, util};
+use crate::vst3::{parameter::PluginParameter, plugin_data, util};
 
 #[VST3(implements(IEditController, IUnitInfo))]
 pub struct GameBoyController {

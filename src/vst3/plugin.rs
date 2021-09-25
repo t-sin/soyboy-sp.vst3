@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::convert::TryFrom;
 
 use std::os::raw::c_void;
 
@@ -7,13 +8,13 @@ use vst3_sys::{
     base::{kInvalidArgument, kResultFalse, kResultOk, kResultTrue, tresult, IPluginBase, TBool},
     vst::{
         AudioBusBuffers, BusDirections, BusFlags, BusInfo, BusTypes, EventTypes, IAudioProcessor,
-        IComponent, IEventList, IParameterChanges, MediaTypes, ProcessData, ProcessSetup,
-        RoutingInfo, K_SAMPLE32, K_SAMPLE64,
+        IComponent, IEventList, IParamValueQueue, IParameterChanges, MediaTypes, ProcessData,
+        ProcessSetup, RoutingInfo, K_SAMPLE32, K_SAMPLE64,
     },
     VST3,
 };
 
-use crate::vst3::{controller::GameBoyController, plugin_data, util};
+use crate::vst3::{controller::GameBoyController, parameter::PluginParameter, plugin_data, util};
 
 use crate::gbi::{AudioProcessor, GameBoyInstrument};
 
@@ -242,6 +243,28 @@ impl IAudioProcessor for GameBoyPlugin {
         if !data.input_param_changes.is_null() {
             let param_changes = data.input_param_changes.upgrade().unwrap();
             let count = param_changes.get_parameter_count();
+
+            for i in 0..count {
+                let param_queue = param_changes.get_parameter_data(i);
+                if let Some(param_queue) = param_queue.upgrade() {
+                    let mut value = 0.0;
+                    let mut sample_offset = 0;
+                    let num_points = param_queue.get_point_count();
+                    match PluginParameter::try_from(param_queue.get_parameter_id()) {
+                        Ok(PluginParameter::Param1) => {
+                            if param_queue.get_point(
+                                num_points - 1,
+                                &mut sample_offset as *mut _,
+                                &mut value as *mut _,
+                            ) == kResultTrue
+                            {
+                                self.gbi.borrow_mut().set_volume(value);
+                            }
+                        }
+                        Err(_) => (),
+                    }
+                }
+            }
         }
 
         // process event inputs
