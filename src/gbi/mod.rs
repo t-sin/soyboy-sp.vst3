@@ -3,6 +3,8 @@ mod sound_processing;
 mod square_wave;
 mod types;
 
+use std::convert::TryFrom;
+
 use envelope_generator::{EnvelopeGenerator, EnvelopeState};
 use square_wave::SquareWaveOscillator;
 pub use types::{AudioProcessor, Oscillator};
@@ -13,6 +15,28 @@ pub struct GameBoyInstrument {
     square_osc: SquareWaveOscillator,
     envelope_gen: EnvelopeGenerator,
     master_volume: f64,
+}
+
+#[derive(Copy, Clone)]
+pub enum Parameter {
+    MasterVolume = 0,
+}
+
+impl TryFrom<u32> for Parameter {
+    type Error = ();
+
+    fn try_from(id: u32) -> Result<Self, Self::Error> {
+        if id == Parameter::MasterVolume as u32 {
+            Ok(Parameter::MasterVolume)
+        } else {
+            Err(())
+        }
+    }
+}
+
+pub trait Parametric<Parameter> {
+    fn set_param(&mut self, param: &Parameter, value: f64);
+    fn get_param(&self, param: &Parameter) -> f64;
 }
 
 impl AudioProcessor<Signal> for GameBoyInstrument {
@@ -34,10 +58,6 @@ impl GameBoyInstrument {
         }
     }
 
-    pub fn set_volume(&mut self, volume: f64) {
-        self.master_volume = volume;
-    }
-
     pub fn note_on(&mut self, pitch: i16) {
         self.square_osc.set_pitch(pitch);
         self.envelope_gen.state = EnvelopeState::On;
@@ -45,5 +65,19 @@ impl GameBoyInstrument {
 
     pub fn note_off(&mut self) {
         self.envelope_gen.state = EnvelopeState::Off;
+    }
+}
+
+impl Parametric<Parameter> for GameBoyInstrument {
+    fn set_param(&mut self, param: &Parameter, value: f64) {
+        match param {
+            Parameter::MasterVolume => self.master_volume = value,
+        }
+    }
+
+    fn get_param(&self, param: &Parameter) -> f64 {
+        match param {
+            Parameter::MasterVolume => self.master_volume,
+        }
     }
 }

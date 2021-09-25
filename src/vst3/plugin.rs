@@ -14,9 +14,9 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::vst3::{controller::GameBoyController, parameter::PluginParameter, plugin_data, util};
+use crate::vst3::{controller::GameBoyController, plugin_data, util};
 
-use crate::gbi::{AudioProcessor, GameBoyInstrument};
+use crate::gbi::{AudioProcessor, GameBoyInstrument, Parameter, Parametric};
 
 #[VST3(implements(IComponent, IAudioProcessor))]
 pub struct GameBoyPlugin {
@@ -250,15 +250,17 @@ impl IAudioProcessor for GameBoyPlugin {
                     let mut value = 0.0;
                     let mut sample_offset = 0;
                     let num_points = param_queue.get_point_count();
-                    match PluginParameter::try_from(param_queue.get_parameter_id()) {
-                        Ok(PluginParameter::Param1) => {
+                    match Parameter::try_from(param_queue.get_parameter_id()) {
+                        Ok(Parameter::MasterVolume) => {
                             if param_queue.get_point(
                                 num_points - 1,
                                 &mut sample_offset as *mut _,
                                 &mut value as *mut _,
                             ) == kResultTrue
                             {
-                                self.gbi.borrow_mut().set_volume(value);
+                                self.gbi
+                                    .borrow_mut()
+                                    .set_param(&Parameter::MasterVolume, value);
                             }
                         }
                         Err(_) => (),

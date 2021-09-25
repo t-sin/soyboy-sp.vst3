@@ -21,7 +21,8 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::vst3::{parameter::PluginParameter, plugin_data, util};
+use crate::gbi::{Parameter, Parametric};
+use crate::vst3::{plugin_data, util};
 
 #[VST3(implements(IEditController, IUnitInfo))]
 pub struct GameBoyController {
@@ -68,12 +69,12 @@ impl GameBoyController {
         let mut controller = GameBoyController::allocate(param_info, param_vals);
 
         controller.add_parameter(
-            PluginParameter::Param1 as u32,
-            "Test Parameter",
-            "Test",
+            Parameter::MasterVolume as u32,
+            "Volume",
+            "Vol",
             "",
             0,
-            0.0,
+            1.0,
             ParameterFlags::kCanAutomate as i32,
         );
 
