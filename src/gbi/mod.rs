@@ -60,11 +60,11 @@ impl GameBoyInstrument {
 
     pub fn note_on(&mut self, pitch: i16) {
         self.square_osc.set_pitch(pitch);
-        self.envelope_gen.state = EnvelopeState::On;
+        self.envelope_gen.set_state(EnvelopeState::Attack);
     }
 
     pub fn note_off(&mut self) {
-        self.envelope_gen.state = EnvelopeState::Off;
+        self.envelope_gen.set_state(EnvelopeState::Release);
     }
 }
 
