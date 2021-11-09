@@ -1,4 +1,5 @@
 use crate::gbi::types::AudioProcessor;
+use crate::gbi::utils::linear;
 
 #[derive(Debug)]
 pub enum EnvelopeState {
@@ -48,25 +49,22 @@ impl EnvelopeGenerator {
     }
 
     fn update_state(&mut self, sample_rate: f64) {
-        let s = self.elapsed_samples as f64;
+        let s = self.elapsed_samples as f64 / sample_rate;
 
         match self.state {
             EnvelopeState::Attack => {
-                let attack_samples = self.attack_time * sample_rate;
-                if s > attack_samples {
+                if s > self.attack_time {
                     self.set_state(EnvelopeState::Decay);
                 }
             }
             EnvelopeState::Decay => {
-                let decay_samples = self.decay_time * sample_rate;
-                if s > decay_samples {
+                if s > self.decay_time {
                     self.set_state(EnvelopeState::Sustain);
                 }
             }
             EnvelopeState::Sustain => (),
             EnvelopeState::Release => {
-                let release_samples = self.release_time * sample_rate;
-                if s > release_samples {
+                if s > self.release_time {
                     self.set_state(EnvelopeState::Off);
                 }
             }
@@ -75,27 +73,24 @@ impl EnvelopeGenerator {
     }
 
     fn calculate(&mut self, sample_rate: f64) -> f64 {
-        let s = self.elapsed_samples as f64;
+        let s = self.elapsed_samples as f64 / sample_rate;
 
         match self.state {
             EnvelopeState::Attack => {
-                let attack_samples = self.attack_time * sample_rate;
-                let v = s / attack_samples;
+                let v = linear(s, 1.0 / self.attack_time);
 
                 v
             }
             EnvelopeState::Decay => {
-                let decay_samples = self.decay_time * sample_rate;
                 let max = self.last_state_value - self.sustain_val;
-                let v = self.last_state_value - max * (s / decay_samples);
+                let v = self.last_state_value - max * linear(s, 1.0 / self.decay_time);
 
                 v
             }
             EnvelopeState::Sustain => self.sustain_val,
             EnvelopeState::Release => {
-                let release_samples = self.release_time * sample_rate;
                 let max = self.last_state_value;
-                let v = max - max * (s / release_samples);
+                let v = max - max * linear(s, 1.0 / self.release_time);
 
                 v
             }
