@@ -263,6 +263,53 @@ impl IAudioProcessor for GameBoyPlugin {
                                     .set_param(&Parameter::MasterVolume, value);
                             }
                         }
+                        // ここすっきりさせたいなー
+                        Ok(Parameter::AttackTime) => {
+                            if param_queue.get_point(
+                                num_points - 1,
+                                &mut sample_offset as *mut _,
+                                &mut value as *mut _,
+                            ) == kResultTrue
+                            {
+                                self.gbi
+                                    .borrow_mut()
+                                    .set_param(&Parameter::AttackTime, value);
+                            }
+                        }
+                        Ok(Parameter::DecayTime) => {
+                            if param_queue.get_point(
+                                num_points - 1,
+                                &mut sample_offset as *mut _,
+                                &mut value as *mut _,
+                            ) == kResultTrue
+                            {
+                                self.gbi
+                                    .borrow_mut()
+                                    .set_param(&Parameter::DecayTime, value);
+                            }
+                        }
+                        Ok(Parameter::Sustain) => {
+                            if param_queue.get_point(
+                                num_points - 1,
+                                &mut sample_offset as *mut _,
+                                &mut value as *mut _,
+                            ) == kResultTrue
+                            {
+                                self.gbi.borrow_mut().set_param(&Parameter::Sustain, value);
+                            }
+                        }
+                        Ok(Parameter::ReleaseTime) => {
+                            if param_queue.get_point(
+                                num_points - 1,
+                                &mut sample_offset as *mut _,
+                                &mut value as *mut _,
+                            ) == kResultTrue
+                            {
+                                self.gbi
+                                    .borrow_mut()
+                                    .set_param(&Parameter::ReleaseTime, value);
+                            }
+                        }
                         Err(_) => (),
                     }
                 }

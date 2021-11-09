@@ -20,6 +20,10 @@ pub struct GameBoyInstrument {
 #[derive(Copy, Clone)]
 pub enum Parameter {
     MasterVolume = 0,
+    AttackTime,
+    DecayTime,
+    Sustain,
+    ReleaseTime,
 }
 
 impl TryFrom<u32> for Parameter {
@@ -28,6 +32,14 @@ impl TryFrom<u32> for Parameter {
     fn try_from(id: u32) -> Result<Self, Self::Error> {
         if id == Parameter::MasterVolume as u32 {
             Ok(Parameter::MasterVolume)
+        } else if id == Parameter::AttackTime as u32 {
+            Ok(Parameter::AttackTime)
+        } else if id == Parameter::DecayTime as u32 {
+            Ok(Parameter::DecayTime)
+        } else if id == Parameter::Sustain as u32 {
+            Ok(Parameter::Sustain)
+        } else if id == Parameter::ReleaseTime as u32 {
+            Ok(Parameter::ReleaseTime)
         } else {
             Err(())
         }
@@ -72,12 +84,20 @@ impl Parametric<Parameter> for GameBoyInstrument {
     fn set_param(&mut self, param: &Parameter, value: f64) {
         match param {
             Parameter::MasterVolume => self.master_volume = value,
+            Parameter::AttackTime => self.envelope_gen.attack_time = value,
+            Parameter::DecayTime => self.envelope_gen.decay_time = value,
+            Parameter::Sustain => self.envelope_gen.sustain_val = value,
+            Parameter::ReleaseTime => self.envelope_gen.release_time = value,
         }
     }
 
     fn get_param(&self, param: &Parameter) -> f64 {
         match param {
             Parameter::MasterVolume => self.master_volume,
+            Parameter::AttackTime => self.envelope_gen.attack_time,
+            Parameter::DecayTime => self.envelope_gen.decay_time,
+            Parameter::Sustain => self.envelope_gen.sustain_val,
+            Parameter::ReleaseTime => self.envelope_gen.release_time,
         }
     }
 }

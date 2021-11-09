@@ -78,6 +78,44 @@ impl GameBoyController {
             ParameterFlags::kCanAutomate as i32,
         );
 
+        // envelope generator params
+        controller.add_parameter(
+            Parameter::AttackTime as u32,
+            "EG: Attack",
+            "Attack",
+            "s",
+            0,
+            0.05,
+            ParameterFlags::kCanAutomate as i32,
+        );
+        controller.add_parameter(
+            Parameter::DecayTime as u32,
+            "EG: Decay",
+            "Decay",
+            "s",
+            0,
+            0.025,
+            ParameterFlags::kCanAutomate as i32,
+        );
+        controller.add_parameter(
+            Parameter::Sustain as u32,
+            "EG: Sustain",
+            "Sustain",
+            "",
+            0,
+            0.8,
+            ParameterFlags::kCanAutomate as i32,
+        );
+        controller.add_parameter(
+            Parameter::ReleaseTime as u32,
+            "EG: Release",
+            "Release",
+            "s",
+            0,
+            0.1,
+            ParameterFlags::kCanAutomate as i32,
+        );
+
         controller
     }
 }
