@@ -1,6 +1,6 @@
 use crate::gbi::{
-    sound_processing::{frequency_from_note_number, pulse},
     types::{i4, AudioProcessor, Oscillator},
+    utils::{frequency_from_note_number, pulse},
 };
 
 pub enum SquareWaveDuty {

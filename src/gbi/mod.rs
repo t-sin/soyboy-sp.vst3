@@ -1,7 +1,7 @@
 mod envelope_generator;
-mod sound_processing;
 mod square_wave;
 mod types;
+mod utils;
 
 use std::convert::TryFrom;
 

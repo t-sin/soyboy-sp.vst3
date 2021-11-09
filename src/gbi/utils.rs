@@ -1,5 +1,14 @@
 use crate::gbi::types::i4;
 
+pub fn linear(x: f64, slope: f64) -> f64 {
+    x * slope
+}
+
+// TODO: 非線形なエンベロープ変化。いつかやる。
+pub fn expt(x: f64, slope: f64, strength: f64) -> f64 {
+    x * slope
+}
+
 pub fn pulse(phase: f64, duty: f64) -> i4 {
     let ph = phase % 1.0;
     if ph < duty {
