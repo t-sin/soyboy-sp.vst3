@@ -9,6 +9,13 @@ pub fn expt(x: f64, slope: f64, strength: f64) -> f64 {
     x * slope
 }
 
+/// This maps from continuous value `x` to discrete value.
+/// This is for getting rough 4bit envelope signals.
+pub fn discrete_loudness(x: f64) -> f64 {
+    let v = ((x * 16.0) as u32) as f64 / 16.0;
+    v
+}
+
 pub fn pulse(phase: f64, duty: f64) -> i4 {
     let ph = phase % 1.0;
     if ph < duty {

@@ -1,5 +1,5 @@
 use crate::gbi::types::AudioProcessor;
-use crate::gbi::utils::linear;
+use crate::gbi::utils::{discrete_loudness, linear};
 
 #[derive(Debug)]
 pub enum EnvelopeState {
@@ -106,6 +106,6 @@ impl AudioProcessor<f64> for EnvelopeGenerator {
         self.last_value = v;
         self.elapsed_samples += 1;
 
-        v
+        discrete_loudness(v)
     }
 }
