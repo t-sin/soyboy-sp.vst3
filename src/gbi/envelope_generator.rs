@@ -48,9 +48,7 @@ impl EnvelopeGenerator {
         self.elapsed_samples = 0;
     }
 
-    fn update_state(&mut self, sample_rate: f64) {
-        let s = self.elapsed_samples as f64 / sample_rate;
-
+    fn update_state(&mut self, s: f64) {
         match self.state {
             EnvelopeState::Attack => {
                 if s > self.attack_time {
@@ -72,9 +70,7 @@ impl EnvelopeGenerator {
         };
     }
 
-    fn calculate(&mut self, sample_rate: f64) -> f64 {
-        let s = self.elapsed_samples as f64 / sample_rate;
-
+    fn calculate(&mut self, s: f64) -> f64 {
         match self.state {
             EnvelopeState::Attack => {
                 let v = linear(s, 1.0 / self.attack_time);
@@ -101,8 +97,10 @@ impl EnvelopeGenerator {
 
 impl AudioProcessor<f64> for EnvelopeGenerator {
     fn process(&mut self, sample_rate: f64) -> f64 {
-        self.update_state(sample_rate);
-        let v = self.calculate(sample_rate);
+        let s = self.elapsed_samples as f64 / sample_rate;
+
+        self.update_state(s);
+        let v = self.calculate(s);
         self.last_value = v;
         self.elapsed_samples += 1;
 
