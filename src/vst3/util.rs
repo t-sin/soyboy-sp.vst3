@@ -111,3 +111,52 @@ pub fn make_empty_param_info() -> ParameterInfo {
         flags: 0,
     }
 }
+
+pub fn normalized_value_to_exponential_plain(
+    v: f64,
+    zero: f64,
+    one: f64,
+    min: f64,
+    max: f64,
+    factor: f64,
+    negate: bool,
+) -> f64 {
+    if v == 0.0 {
+        zero
+    } else if v == 1.0 {
+        one
+    } else {
+        let range = max - min;
+        let v = if negate {
+            (v - 1.0).powf(factor) + 1.0
+        } else {
+            v.powf(factor)
+        };
+        range * v + min
+    }
+}
+
+pub fn exponential_plain_to_normalized_value(
+    v: f64,
+    zero: f64,
+    one: f64,
+    min: f64,
+    max: f64,
+    factor: f64,
+    negate: bool,
+) -> f64 {
+    if v == zero {
+        0.0
+    } else if v == one {
+        1.0
+    } else {
+        let range = max - min;
+        let v = (v - min) / range;
+
+        if negate {
+            (v + 1.0).powf(1.0 / factor) - 1.0
+        } else {
+            v.powf(1.0 / factor)
+        }
+    }
+}

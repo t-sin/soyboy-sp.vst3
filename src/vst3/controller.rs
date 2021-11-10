@@ -173,7 +173,8 @@ impl IEditController for SoyBoyController {
     ) -> tresult {
         match Parameter::try_from(id) {
             Ok(Parameter::MasterVolume) => {
-                util::tcharcpy(&format!("{:.2} dB", value_normalized), string);
+                let value_plain = self.normalized_param_to_plain(id, value_normalized);
+                util::tcharcpy(&format!("{:.2} dB", value_plain), string);
             }
             _ => (),
         }
@@ -191,14 +192,34 @@ impl IEditController for SoyBoyController {
         kResultFalse
     }
 
-    unsafe fn normalized_param_to_plain(&self, _id: u32, _value_normalized: f64) -> f64 {
-        info!("normalized_param_to_plain");
-        0.0
+    unsafe fn normalized_param_to_plain(&self, id: u32, value_normalized: f64) -> f64 {
+        match Parameter::try_from(id) {
+            Ok(Parameter::MasterVolume) => util::normalized_value_to_exponential_plain(
+                value_normalized,
+                -f64::INFINITY,
+                8.0,
+                -90.0,
+                8.0,
+                3.0,
+                true,
+            ),
+            _ => 0.0,
+        }
     }
 
-    unsafe fn plain_param_to_normalized(&self, _id: u32, _plain_value: f64) -> f64 {
-        info!("plain_param_to_normalized");
-        0.0
+    unsafe fn plain_param_to_normalized(&self, id: u32, value_plain: f64) -> f64 {
+        match Parameter::try_from(id) {
+            Ok(Parameter::MasterVolume) => util::exponential_plain_to_normalized_value(
+                value_plain,
+                -f64::INFINITY,
+                8.0,
+                -90.0,
+                8.0,
+                3.0,
+                true,
+            ),
+            _ => 0.0,
+        }
     }
 
     unsafe fn get_param_normalized(&self, id: u32) -> f64 {
