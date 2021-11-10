@@ -11,7 +11,7 @@ pub use types::{AudioProcessor, Oscillator};
 
 pub type Signal = (f64, f64);
 
-pub struct GameBoyInstrument {
+pub struct SoyBoy {
     square_osc: SquareWaveOscillator,
     envelope_gen: EnvelopeGenerator,
     master_volume: f64,
@@ -51,7 +51,7 @@ pub trait Parametric<Parameter> {
     fn get_param(&self, param: &Parameter) -> f64;
 }
 
-impl AudioProcessor<Signal> for GameBoyInstrument {
+impl AudioProcessor<Signal> for SoyBoy {
     fn process(&mut self, sample_rate: f64) -> Signal {
         let osc = self.square_osc.process(sample_rate).to_f64();
         let env = self.envelope_gen.process(sample_rate);
@@ -61,9 +61,9 @@ impl AudioProcessor<Signal> for GameBoyInstrument {
     }
 }
 
-impl GameBoyInstrument {
-    pub fn new() -> GameBoyInstrument {
-        GameBoyInstrument {
+impl SoyBoy {
+    pub fn new() -> SoyBoy {
+        SoyBoy {
             square_osc: SquareWaveOscillator::new(),
             envelope_gen: EnvelopeGenerator::new(),
             master_volume: 1.0,
@@ -80,7 +80,7 @@ impl GameBoyInstrument {
     }
 }
 
-impl Parametric<Parameter> for GameBoyInstrument {
+impl Parametric<Parameter> for SoyBoy {
     fn set_param(&mut self, param: &Parameter, value: f64) {
         match param {
             Parameter::MasterVolume => self.master_volume = value,

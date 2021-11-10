@@ -1,4 +1,4 @@
-use crate::gbi::{
+use crate::soyboy::{
     types::{i4, AudioProcessor, Oscillator},
     utils::{frequency_from_note_number, pulse},
 };

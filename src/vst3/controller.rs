@@ -21,16 +21,16 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::gbi::{Parameter, Parametric};
+use crate::soyboy::{Parameter, Parametric};
 use crate::vst3::{plugin_data, util};
 
 #[VST3(implements(IEditController, IUnitInfo))]
-pub struct GameBoyController {
+pub struct SoyBoyController {
     param_info: RefCell<HashMap<u32, ParameterInfo>>,
     param_values: RefCell<HashMap<u32, f64>>,
 }
 
-impl GameBoyController {
+impl SoyBoyController {
     pub const CID: GUID = GUID {
         data: plugin_data::VST3_CONTROLLER_CID,
     };
@@ -62,11 +62,11 @@ impl GameBoyController {
         (*param_vals).insert(id, param.default_normalized_value);
     }
 
-    pub unsafe fn new() -> Box<GameBoyController> {
+    pub unsafe fn new() -> Box<SoyBoyController> {
         let param_info = RefCell::new(HashMap::new());
         let param_vals = RefCell::new(HashMap::new());
 
-        let mut controller = GameBoyController::allocate(param_info, param_vals);
+        let mut controller = SoyBoyController::allocate(param_info, param_vals);
 
         controller.add_parameter(
             Parameter::MasterVolume as u32,
@@ -120,7 +120,7 @@ impl GameBoyController {
     }
 }
 
-impl IPluginBase for GameBoyController {
+impl IPluginBase for SoyBoyController {
     unsafe fn initialize(&self, _host_context: *mut c_void) -> tresult {
         kResultOk
     }
@@ -130,7 +130,7 @@ impl IPluginBase for GameBoyController {
     }
 }
 
-impl IEditController for GameBoyController {
+impl IEditController for SoyBoyController {
     unsafe fn set_component_state(&self, _state: *mut c_void) -> tresult {
         info!("set_component_state");
         kResultOk
@@ -228,7 +228,7 @@ impl IEditController for GameBoyController {
     }
 }
 
-impl IUnitInfo for GameBoyController {
+impl IUnitInfo for SoyBoyController {
     unsafe fn get_unit_count(&self) -> i32 {
         info!("Called: AGainController::get_unit_count()");
 

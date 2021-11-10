@@ -1,9 +1,9 @@
 [package]
-name = "gbi"
+name = "soyboy-sp"
 version = "0.1.0"
 authors = ["t-sin <shinichi.tanaka45@gmail.com>"]
 edition = "2018"
-description = "A VST3 instrument to do GameBoy"
+description = "A VST3 instrument to do some chiptunes"
 
 [lib]
 crate-type = ["cdylib"]

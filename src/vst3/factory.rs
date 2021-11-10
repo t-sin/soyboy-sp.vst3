@@ -9,24 +9,24 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::gbi::GameBoyInstrument;
+use crate::soyboy::SoyBoy;
 use crate::vst3::{
-    controller::GameBoyController,
-    plugin::GameBoyPlugin,
+    controller::SoyBoyController,
+    plugin::SoyBoyPlugin,
     plugin_data,
     util::{strcpy, wstrcpy},
 };
 
 #[VST3(implements(IPluginFactory3))]
-pub struct GameBoyPluginFactory {}
+pub struct SoyBoyPluginFactory {}
 
-impl GameBoyPluginFactory {
+impl SoyBoyPluginFactory {
     pub fn new() -> Box<Self> {
         Self::allocate()
     }
 }
 
-impl IPluginFactory for GameBoyPluginFactory {
+impl IPluginFactory for SoyBoyPluginFactory {
     unsafe fn get_factory_info(&self, info: *mut PFactoryInfo) -> tresult {
         let info = &mut *info;
 
@@ -49,7 +49,7 @@ impl IPluginFactory for GameBoyPluginFactory {
                 let info = &mut *info;
 
                 info.cardinality = 0x7FFF_FFFF;
-                info.cid = GameBoyPlugin::CID;
+                info.cid = SoyBoyPlugin::CID;
 
                 strcpy(plugin_data::VST3_CLASS_NAME, info.name.as_mut_ptr());
                 strcpy(plugin_data::VST3_CLASS_CATEGORY, info.category.as_mut_ptr());
@@ -61,7 +61,7 @@ impl IPluginFactory for GameBoyPluginFactory {
                 let info = &mut *info;
 
                 info.cardinality = 0x7FFF_FFFF;
-                info.cid = GameBoyController::CID;
+                info.cid = SoyBoyController::CID;
 
                 strcpy(
                     plugin_data::VST3_CONTROLLER_CLASS_NAME,
@@ -90,15 +90,14 @@ impl IPluginFactory for GameBoyPluginFactory {
     ) -> i32 {
         let iid = *cid;
         match iid {
-            GameBoyPlugin::CID => {
-                let ptr =
-                    Box::into_raw(GameBoyPlugin::new(GameBoyInstrument::new())) as *mut c_void;
+            SoyBoyPlugin::CID => {
+                let ptr = Box::into_raw(SoyBoyPlugin::new(SoyBoy::new())) as *mut c_void;
                 *obj = ptr;
 
                 kResultOk
             }
-            GameBoyController::CID => {
-                let ptr = Box::into_raw(GameBoyController::new()) as *mut c_void;
+            SoyBoyController::CID => {
+                let ptr = Box::into_raw(SoyBoyController::new()) as *mut c_void;
                 *obj = ptr;
 
                 kResultOk
@@ -108,7 +107,7 @@ impl IPluginFactory for GameBoyPluginFactory {
     }
 }
 
-impl IPluginFactory2 for GameBoyPluginFactory {
+impl IPluginFactory2 for SoyBoyPluginFactory {
     unsafe fn get_class_info2(&self, idx: i32, info: *mut PClassInfo2) -> tresult {
         match idx {
             0 => {
@@ -152,7 +151,7 @@ impl IPluginFactory2 for GameBoyPluginFactory {
     }
 }
 
-impl IPluginFactory3 for GameBoyPluginFactory {
+impl IPluginFactory3 for SoyBoyPluginFactory {
     unsafe fn get_class_info_unicode(&self, idx: i32, info: *mut PClassInfoW) -> tresult {
         match idx {
             0 => {

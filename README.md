@@ -1,6 +1,6 @@
-# gbi - A GameBoy instrument
+# SoyBoy SP - A GameBoy instrument
 
-I want to do chiptune on GNU/Linux.
+I want to do some chiptunes on GNU/Linux.
 
 ## References
 

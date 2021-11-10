@@ -14,18 +14,18 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::vst3::{controller::GameBoyController, plugin_data, util};
+use crate::vst3::{controller::SoyBoyController, plugin_data, util};
 
-use crate::gbi::{AudioProcessor, GameBoyInstrument, Parameter, Parametric};
+use crate::soyboy::{AudioProcessor, Parameter, Parametric, SoyBoy};
 
 #[VST3(implements(IComponent, IAudioProcessor))]
-pub struct GameBoyPlugin {
-    gbi: RefCell<GameBoyInstrument>,
+pub struct SoyBoyPlugin {
+    soyboy: RefCell<SoyBoy>,
     audio_out: RefCell<BusInfo>,
     event_in: RefCell<BusInfo>,
 }
 
-impl GameBoyPlugin {
+impl SoyBoyPlugin {
     pub const CID: GUID = GUID {
         data: plugin_data::VST3_CID,
     };
@@ -52,12 +52,12 @@ impl GameBoyPlugin {
         bus.flags = BusFlags::kDefaultActive as u32;
     }
 
-    pub unsafe fn new(gbi: GameBoyInstrument) -> Box<Self> {
-        let gbi = RefCell::new(gbi);
+    pub unsafe fn new(soyboy: SoyBoy) -> Box<Self> {
+        let soyboy = RefCell::new(soyboy);
         let audio_out = RefCell::new(util::make_empty_bus_info());
         let event_in = RefCell::new(util::make_empty_bus_info());
 
-        let mut gb = GameBoyPlugin::allocate(gbi, audio_out, event_in);
+        let mut gb = SoyBoyPlugin::allocate(soyboy, audio_out, event_in);
 
         gb.init_event_in();
         gb.init_audio_out();
@@ -80,7 +80,7 @@ impl GameBoyPlugin {
     }
 }
 
-impl IPluginBase for GameBoyPlugin {
+impl IPluginBase for SoyBoyPlugin {
     unsafe fn initialize(&self, _host_context: *mut c_void) -> tresult {
         kResultOk
     }
@@ -90,9 +90,9 @@ impl IPluginBase for GameBoyPlugin {
     }
 }
 
-impl IComponent for GameBoyPlugin {
+impl IComponent for SoyBoyPlugin {
     unsafe fn get_controller_class_id(&self, tuid: *mut IID) -> tresult {
-        *tuid = GameBoyController::CID;
+        *tuid = SoyBoyController::CID;
 
         kResultOk
     }
@@ -187,7 +187,7 @@ impl IComponent for GameBoyPlugin {
     }
 }
 
-impl IAudioProcessor for GameBoyPlugin {
+impl IAudioProcessor for SoyBoyPlugin {
     unsafe fn set_bus_arrangements(
         &self,
         _inputs: *mut u64,
@@ -258,7 +258,7 @@ impl IAudioProcessor for GameBoyPlugin {
                                 &mut value as *mut _,
                             ) == kResultTrue
                             {
-                                self.gbi
+                                self.soyboy
                                     .borrow_mut()
                                     .set_param(&Parameter::MasterVolume, value);
                             }
@@ -271,7 +271,7 @@ impl IAudioProcessor for GameBoyPlugin {
                                 &mut value as *mut _,
                             ) == kResultTrue
                             {
-                                self.gbi
+                                self.soyboy
                                     .borrow_mut()
                                     .set_param(&Parameter::AttackTime, value);
                             }
@@ -283,7 +283,7 @@ impl IAudioProcessor for GameBoyPlugin {
                                 &mut value as *mut _,
                             ) == kResultTrue
                             {
-                                self.gbi
+                                self.soyboy
                                     .borrow_mut()
                                     .set_param(&Parameter::DecayTime, value);
                             }
@@ -295,7 +295,9 @@ impl IAudioProcessor for GameBoyPlugin {
                                 &mut value as *mut _,
                             ) == kResultTrue
                             {
-                                self.gbi.borrow_mut().set_param(&Parameter::Sustain, value);
+                                self.soyboy
+                                    .borrow_mut()
+                                    .set_param(&Parameter::Sustain, value);
                             }
                         }
                         Ok(Parameter::ReleaseTime) => {
@@ -305,7 +307,7 @@ impl IAudioProcessor for GameBoyPlugin {
                                 &mut value as *mut _,
                             ) == kResultTrue
                             {
-                                self.gbi
+                                self.soyboy
                                     .borrow_mut()
                                     .set_param(&Parameter::ReleaseTime, value);
                             }
@@ -325,10 +327,10 @@ impl IAudioProcessor for GameBoyPlugin {
                 let mut e = util::make_empty_event();
 
                 if input_events.get_event(c, &mut e) == kResultOk {
-                    let mut gbi = self.gbi.borrow_mut();
+                    let mut soyboy = self.soyboy.borrow_mut();
                     match util::as_event_type(e.type_) {
-                        Some(EventTypes::kNoteOnEvent) => gbi.note_on(e.event.note_on.pitch),
-                        Some(EventTypes::kNoteOffEvent) => gbi.note_off(),
+                        Some(EventTypes::kNoteOnEvent) => soyboy.note_on(e.event.note_on.pitch),
+                        Some(EventTypes::kNoteOffEvent) => soyboy.note_off(),
                         Some(_) => (),
                         _ => (),
                     }
@@ -348,7 +350,7 @@ impl IAudioProcessor for GameBoyPlugin {
         match data.symbolic_sample_size {
             K_SAMPLE32 => {
                 for n in 0..num_samples as isize {
-                    let s = self.gbi.borrow_mut().process(sample_rate);
+                    let s = self.soyboy.borrow_mut().process(sample_rate);
 
                     for i in 0..num_output_channels as isize {
                         let ch_out = *out.offset(i) as *mut f32;
@@ -360,7 +362,7 @@ impl IAudioProcessor for GameBoyPlugin {
             }
             K_SAMPLE64 => {
                 for n in 0..num_samples as isize {
-                    let s = self.gbi.borrow_mut().process(sample_rate);
+                    let s = self.soyboy.borrow_mut().process(sample_rate);
 
                     for i in 0..num_output_channels as isize {
                         let ch_out = *out.offset(i) as *mut f64;

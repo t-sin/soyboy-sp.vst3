@@ -1,4 +1,4 @@
-use crate::gbi::types::i4;
+use crate::soyboy::types::i4;
 
 pub fn linear(x: f64, slope: f64) -> f64 {
     x * slope

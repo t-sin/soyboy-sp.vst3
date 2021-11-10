@@ -1,5 +1,5 @@
-use crate::gbi::types::AudioProcessor;
-use crate::gbi::utils::{discrete_loudness, linear};
+use crate::soyboy::types::AudioProcessor;
+use crate::soyboy::utils::{discrete_loudness, linear};
 
 #[derive(Debug)]
 pub enum EnvelopeState {
