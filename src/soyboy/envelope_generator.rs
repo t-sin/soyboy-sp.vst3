@@ -53,6 +53,7 @@ impl EnvelopeGenerator {
             EnvelopeState::Attack => {
                 if s > self.attack_time {
                     self.set_state(EnvelopeState::Decay);
+                    self.last_state_value = 1.0;
                 }
             }
             EnvelopeState::Decay => {
