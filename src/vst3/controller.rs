@@ -21,7 +21,7 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::soyboy::{Parameter, Parametric};
+use crate::soyboy::Parameter;
 use crate::vst3::{plugin_data, util};
 
 #[VST3(implements(IEditController, IUnitInfo))]
@@ -256,7 +256,7 @@ impl IUnitInfo for SoyBoyController {
         1
     }
 
-    unsafe fn get_unit_info(&self, unit_index: i32, info: *mut UnitInfo) -> i32 {
+    unsafe fn get_unit_info(&self, _unit_index: i32, _info: *mut UnitInfo) -> i32 {
         info!("Called: AGainController::get_unit_info()");
 
         kResultFalse

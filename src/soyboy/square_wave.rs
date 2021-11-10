@@ -3,6 +3,7 @@ use crate::soyboy::{
     utils::{frequency_from_note_number, pulse},
 };
 
+#[allow(dead_code)]
 pub enum SquareWaveDuty {
     Ratio12_5,
     Ratio25,
@@ -34,6 +35,7 @@ impl SquareWaveOscillator {
         }
     }
 
+    #[allow(dead_code)]
     pub fn set_duty(&mut self, duty: SquareWaveDuty) {
         self.duty = duty;
     }
@@ -41,7 +43,7 @@ impl SquareWaveOscillator {
 
 impl AudioProcessor<i4> for SquareWaveOscillator {
     fn process(&mut self, sample_rate: f64) -> i4 {
-        let phase_diff = (self.freq / sample_rate);
+        let phase_diff = self.freq / sample_rate;
         let v = pulse(self.phase, self.duty.to_ratio());
 
         self.phase += phase_diff;

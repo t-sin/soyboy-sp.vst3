@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 pub const VST3_VENDOR: &str = "t-sin";
 pub const VST3_VERSION: &str = "0.1.0";
 pub const VST3_URL: &str = "https://github.com/t-sin/soyboy-sp.vst3/";

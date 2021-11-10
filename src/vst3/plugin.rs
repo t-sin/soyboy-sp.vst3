@@ -3,7 +3,7 @@ use std::convert::TryFrom;
 
 use std::os::raw::c_void;
 
-use vst3_com::{sys::GUID, ComPtr, IID};
+use vst3_com::{sys::GUID, IID};
 use vst3_sys::{
     base::{kInvalidArgument, kResultFalse, kResultOk, kResultTrue, tresult, IPluginBase, TBool},
     vst::{

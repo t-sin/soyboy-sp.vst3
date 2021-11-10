@@ -4,15 +4,18 @@ pub struct i4(i8);
 impl i4 {
     pub const MIN_I8: i8 = -0x08;
     pub const MAX_I8: i8 = 0x07;
+    #[allow(dead_code)]
     pub const ZERO_I8: i8 = 0x00;
     pub const MIN: i4 = i4(i4::MIN_I8);
     pub const MAX: i4 = i4(i4::MAX_I8);
+    #[allow(dead_code)]
     pub const ZERO: i4 = i4(i4::ZERO_I8);
 
     pub fn new(v: i8) -> i4 {
         i4(v)
     }
 
+    #[allow(dead_code)]
     pub fn to_i8(&self) -> i8 {
         self.0
     }
