@@ -52,14 +52,4 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::ReleaseTime => self.envelope_gen.release_time = value,
         }
     }
-
-    fn get_param(&self, param: &Parameter) -> f64 {
-        match param {
-            Parameter::MasterVolume => self.master_volume,
-            Parameter::AttackTime => self.envelope_gen.attack_time,
-            Parameter::DecayTime => self.envelope_gen.decay_time,
-            Parameter::Sustain => self.envelope_gen.sustain_val,
-            Parameter::ReleaseTime => self.envelope_gen.release_time,
-        }
-    }
 }

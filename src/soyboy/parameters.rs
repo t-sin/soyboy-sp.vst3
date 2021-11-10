@@ -31,5 +31,4 @@ impl TryFrom<u32> for Parameter {
 
 pub trait Parametric<Parameter> {
     fn set_param(&mut self, param: &Parameter, value: f64);
-    fn get_param(&self, param: &Parameter) -> f64;
 }
