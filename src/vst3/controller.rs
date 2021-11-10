@@ -173,7 +173,7 @@ impl IEditController for SoyBoyController {
     ) -> tresult {
         match Parameter::try_from(id) {
             Ok(Parameter::MasterVolume) => {
-                util::tcharcpy(&format!("{:.2} db", value_normalized), string);
+                util::tcharcpy(&format!("{:.2} dB", value_normalized), string);
             }
             _ => (),
         }
