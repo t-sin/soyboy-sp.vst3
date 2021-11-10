@@ -6,7 +6,7 @@ use widestring::U16CString;
 
 use vst3_sys::vst::{
     BusDirections, BusFlags, BusInfo, BusTypes, DataEvent, Event, EventData, EventTypes,
-    MediaTypes, ParameterInfo, String128,
+    MediaTypes, ParameterInfo, String128, TChar,
 };
 
 pub unsafe fn strcpy(src: &str, dst: *mut c_char) {
@@ -24,6 +24,15 @@ pub fn str128cpy(src: &String128, dest: &mut String128) {
     for idx in 0..src.len() {
         dest[idx] = src[idx];
     }
+}
+
+pub unsafe fn tcharcpy(src: &str, dst: *mut TChar) {
+    let mut ptr = dst;
+    for c in src.chars() {
+        *ptr = c as i16;
+        ptr = ptr.add(1);
+    }
+    *ptr = 0;
 }
 
 const K_AUDIO: i32 = MediaTypes::kAudio as i32;

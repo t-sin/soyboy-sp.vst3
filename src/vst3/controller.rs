@@ -167,11 +167,16 @@ impl IEditController for GameBoyController {
 
     unsafe fn get_param_string_by_value(
         &self,
-        _id: u32,
-        _value_normalized: f64,
-        _string: *mut TChar,
+        id: u32,
+        value_normalized: f64,
+        string: *mut TChar,
     ) -> tresult {
-        info!("get_param_string_by_value");
+        match Parameter::try_from(id) {
+            Ok(Parameter::MasterVolume) => {
+                util::tcharcpy(&format!("{:.2} db", value_normalized), string);
+            }
+            _ => (),
+        }
 
         kResultOk
     }
