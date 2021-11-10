@@ -1,6 +1,7 @@
+use std::cmp::{Eq, PartialEq};
 use std::convert::TryFrom;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Parameter {
     MasterVolume = 0,
     AttackTime,

@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::convert::TryFrom;
 
 use std::os::raw::c_void;
@@ -14,13 +15,14 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::vst3::{controller::SoyBoyController, plugin_data, util};
+use crate::vst3::{controller::SoyBoyController, parameters::SoyBoyParameter, plugin_data, util};
 
 use crate::soyboy::{AudioProcessor, Parameter, Parametric, SoyBoy};
 
 #[VST3(implements(IComponent, IAudioProcessor))]
 pub struct SoyBoyPlugin {
     soyboy: RefCell<SoyBoy>,
+    params: HashMap<Parameter, SoyBoyParameter>,
     audio_out: RefCell<BusInfo>,
     event_in: RefCell<BusInfo>,
 }
@@ -52,12 +54,12 @@ impl SoyBoyPlugin {
         bus.flags = BusFlags::kDefaultActive as u32;
     }
 
-    pub unsafe fn new(soyboy: SoyBoy) -> Box<Self> {
+    pub unsafe fn new(soyboy: SoyBoy, params: HashMap<Parameter, SoyBoyParameter>) -> Box<Self> {
         let soyboy = RefCell::new(soyboy);
         let audio_out = RefCell::new(util::make_empty_bus_info());
         let event_in = RefCell::new(util::make_empty_bus_info());
 
-        let mut gb = SoyBoyPlugin::allocate(soyboy, audio_out, event_in);
+        let mut gb = SoyBoyPlugin::allocate(soyboy, params, audio_out, event_in);
 
         gb.init_event_in();
         gb.init_audio_out();

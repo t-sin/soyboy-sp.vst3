@@ -22,11 +22,15 @@ use vst3_sys::{
 };
 
 use crate::soyboy::Parameter;
-use crate::vst3::{plugin_data, util};
+use crate::vst3::{
+    parameters::{Normalizable, SoyBoyParameter},
+    plugin_data, util,
+};
 
 #[VST3(implements(IEditController, IUnitInfo))]
 pub struct SoyBoyController {
-    param_info: RefCell<HashMap<u32, ParameterInfo>>,
+    soyboy_params: HashMap<Parameter, SoyBoyParameter>,
+    vst3_params: RefCell<HashMap<u32, ParameterInfo>>,
     param_values: RefCell<HashMap<u32, f64>>,
 }
 
@@ -45,7 +49,7 @@ impl SoyBoyController {
         default_value: f64,
         flags: i32,
     ) {
-        let mut param_info = self.param_info.borrow_mut();
+        let mut vst3_params = self.vst3_params.borrow_mut();
         let mut param_vals = self.param_values.borrow_mut();
 
         let mut param = util::make_empty_param_info();
@@ -58,64 +62,66 @@ impl SoyBoyController {
         param.unit_id = kRootUnitId;
         param.flags = flags;
 
-        (*param_info).insert(id, param);
+        (*vst3_params).insert(id, param);
         (*param_vals).insert(id, param.default_normalized_value);
     }
 
-    pub unsafe fn new() -> Box<SoyBoyController> {
-        let param_info = RefCell::new(HashMap::new());
+    pub unsafe fn new(soyboy_params: HashMap<Parameter, SoyBoyParameter>) -> Box<SoyBoyController> {
+        let vst3_params = RefCell::new(HashMap::new());
         let param_vals = RefCell::new(HashMap::new());
 
-        let mut controller = SoyBoyController::allocate(param_info, param_vals);
+        let mut controller = SoyBoyController::allocate(soyboy_params, vst3_params, param_vals);
 
-        controller.add_parameter(
-            Parameter::MasterVolume as u32,
-            "Volume",
-            "Vol",
-            "",
-            0,
-            0.6,
-            ParameterFlags::kCanAutomate as i32,
-        );
+        let soyboy_params = controller.soyboy_params.clone();
+        for (param, soyboy_param) in soyboy_params.iter() {
+            controller.add_parameter(
+                *param as u32,
+                &soyboy_param.title,
+                &soyboy_param.short_title,
+                &soyboy_param.unit_name,
+                soyboy_param.step_count,
+                soyboy_param.default_value,
+                ParameterFlags::kCanAutomate as i32,
+            );
+        }
 
-        // envelope generator params
-        controller.add_parameter(
-            Parameter::AttackTime as u32,
-            "EG: Attack",
-            "Attack",
-            "s",
-            0,
-            0.05,
-            ParameterFlags::kCanAutomate as i32,
-        );
-        controller.add_parameter(
-            Parameter::DecayTime as u32,
-            "EG: Decay",
-            "Decay",
-            "s",
-            0,
-            0.025,
-            ParameterFlags::kCanAutomate as i32,
-        );
-        controller.add_parameter(
-            Parameter::Sustain as u32,
-            "EG: Sustain",
-            "Sustain",
-            "",
-            0,
-            0.8,
-            ParameterFlags::kCanAutomate as i32,
-        );
-        controller.add_parameter(
-            Parameter::ReleaseTime as u32,
-            "EG: Release",
-            "Release",
-            "s",
-            0,
-            0.1,
-            ParameterFlags::kCanAutomate as i32,
-        );
-
+        // // envelope generator params
+        // controller.add_parameter(
+        //     Parameter::AttackTime as u32,
+        //     "EG: Attack",
+        //     "Attack",
+        //     "s",
+        //     0,
+        //     0.05,
+        //     ParameterFlags::kCanAutomate as i32,
+        // );
+        // controller.add_parameter(
+        //     Parameter::DecayTime as u32,
+        //     "EG: Decay",
+        //     "Decay",
+        //     "s",
+        //     0,
+        //     0.025,
+        //     ParameterFlags::kCanAutomate as i32,
+        // );
+        // controller.add_parameter(
+        //     Parameter::Sustain as u32,
+        //     "EG: Sustain",
+        //     "Sustain",
+        //     "",
+        //     0,
+        //     0.8,
+        //     ParameterFlags::kCanAutomate as i32,
+        // );
+        // controller.add_parameter(
+        //     Parameter::ReleaseTime as u32,
+        //     "EG: Release",
+        //     "Release",
+        //     "s",
+        //     0,
+        //     0.1,
+        //     ParameterFlags::kCanAutomate as i32,
+        // );
         controller
     }
 }
@@ -148,16 +154,16 @@ impl IEditController for SoyBoyController {
 
     unsafe fn get_parameter_count(&self) -> i32 {
         info!("get_parameter_count");
-        self.param_info.borrow().len() as i32
+        self.vst3_params.borrow().len() as i32
     }
 
-    unsafe fn get_parameter_info(&self, id: i32, param_info: *mut ParameterInfo) -> tresult {
+    unsafe fn get_parameter_info(&self, id: i32, vst3_params: *mut ParameterInfo) -> tresult {
         info!("get_parameter_info");
 
         let id = id as u32;
 
-        if let Some(param) = self.param_info.borrow().get(&id) {
-            *param_info = *param;
+        if let Some(param) = self.vst3_params.borrow().get(&id) {
+            *vst3_params = *param;
 
             kResultOk
         } else {
@@ -194,30 +200,32 @@ impl IEditController for SoyBoyController {
 
     unsafe fn normalized_param_to_plain(&self, id: u32, value_normalized: f64) -> f64 {
         match Parameter::try_from(id) {
-            Ok(Parameter::MasterVolume) => util::normalized_value_to_exponential_plain(
-                value_normalized,
-                -f64::INFINITY,
-                8.0,
-                -90.0,
-                8.0,
-                3.0,
-                true,
-            ),
+            Ok(param) => {
+                if let Some(p) = self.soyboy_params.get(&param) {
+                    println!(
+                        "norm = {}, denorm = {}, norm(denorm(v)) = {}",
+                        value_normalized,
+                        p.denormalize(value_normalized),
+                        p.normalize(p.denormalize(value_normalized))
+                    );
+                    p.denormalize(value_normalized)
+                } else {
+                    0.0
+                }
+            }
             _ => 0.0,
         }
     }
 
     unsafe fn plain_param_to_normalized(&self, id: u32, value_plain: f64) -> f64 {
         match Parameter::try_from(id) {
-            Ok(Parameter::MasterVolume) => util::exponential_plain_to_normalized_value(
-                value_plain,
-                -f64::INFINITY,
-                8.0,
-                -90.0,
-                8.0,
-                3.0,
-                true,
-            ),
+            Ok(param) => {
+                if let Some(p) = self.soyboy_params.get(&param) {
+                    p.normalize(value_plain)
+                } else {
+                    0.0
+                }
+            }
             _ => 0.0,
         }
     }
