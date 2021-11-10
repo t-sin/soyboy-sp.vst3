@@ -4,11 +4,6 @@ pub fn linear(x: f64, slope: f64) -> f64 {
     x * slope
 }
 
-// TODO: 非線形なエンベロープ変化。いつかやる。
-pub fn expt(x: f64, slope: f64, strength: f64) -> f64 {
-    x * slope
-}
-
 /// This maps from continuous value `x` to discrete value.
 /// This is for getting rough 4bit envelope signals.
 pub fn discrete_loudness(x: f64) -> f64 {
