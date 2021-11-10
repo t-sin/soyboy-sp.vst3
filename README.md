@@ -1,6 +1,9 @@
 # SoyBoy SP - A GameBoy instrument
 
+**(NICE PENGUIN LOGO HERE)**
+
 I want to do some chiptunes on GNU/Linux.
+
 
 ## References
 
