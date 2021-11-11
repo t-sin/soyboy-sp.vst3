@@ -156,12 +156,25 @@ impl IEditController for SoyBoyController {
 
     unsafe fn get_param_value_by_string(
         &self,
-        _id: u32,
-        _string: *const TChar,
-        _value_normalized: *mut f64,
+        id: u32,
+        string: *const TChar,
+        value_normalized: *mut f64,
     ) -> tresult {
-        info!("get_param_value_by_string");
-        kResultFalse
+        match Parameter::try_from(id) {
+            Ok(param) => {
+                if let Some(p) = self.soyboy_params.get(&param) {
+                    if let Some(v) = p.parse(&util::tchar_to_string(string)) {
+                        *value_normalized = v;
+                    } else {
+                        return kResultFalse;
+                    }
+                } else {
+                    return kResultFalse;
+                }
+            }
+            _ => (),
+        }
+        kResultOk
     }
 
     unsafe fn normalized_param_to_plain(&self, id: u32, value_normalized: f64) -> f64 {

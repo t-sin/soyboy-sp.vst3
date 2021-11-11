@@ -62,8 +62,12 @@ impl Normalizable<f64> for NonLinearParameter {
     }
 
     fn parse(&self, string: &str) -> Option<f64> {
-        if let Ok(v) = string.parse() {
-            Some(v)
+        if let Some(vs) = string.split(' ').nth(0) {
+            if let Ok(v) = vs.parse() {
+                Some(self.normalize(v))
+            } else {
+                None
+            }
         } else {
             None
         }
@@ -90,8 +94,12 @@ impl Normalizable<f64> for LinearParameter {
     }
 
     fn parse(&self, string: &str) -> Option<f64> {
-        if let Ok(v) = string.parse() {
-            Some(v)
+        if let Some(vs) = string.split(' ').nth(0) {
+            if let Ok(v) = vs.parse() {
+                Some(self.normalize(v))
+            } else {
+                None
+            }
         } else {
             None
         }

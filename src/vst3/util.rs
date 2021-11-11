@@ -35,6 +35,24 @@ pub unsafe fn tcharcpy(src: &str, dst: *mut TChar) {
     *ptr = 0;
 }
 
+pub fn tchar_to_string(src: *const TChar) -> String {
+    let mut ptr = src;
+    let mut chars = Vec::new();
+
+    unsafe {
+        while *ptr != 0 {
+            chars.push(*ptr as u16);
+            ptr = ptr.add(1);
+        }
+    }
+
+    if let Ok(s) = String::from_utf16(&chars) {
+        s
+    } else {
+        "".to_string()
+    }
+}
+
 const K_AUDIO: i32 = MediaTypes::kAudio as i32;
 const K_EVENT: i32 = MediaTypes::kEvent as i32;
 const K_NUM_MEDIA_TYPES: i32 = MediaTypes::kNumMediaTypes as i32;
