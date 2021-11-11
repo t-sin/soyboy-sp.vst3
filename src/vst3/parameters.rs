@@ -63,17 +63,17 @@ impl Normalizable<f64> for NonLinearParameter {
 
 #[derive(Clone, Copy, Debug)]
 pub struct LinearParameter {
-    min_sec: f64,
-    max_sec: f64,
+    min: f64,
+    max: f64,
 }
 
 impl Normalizable<f64> for LinearParameter {
     fn denormalize(&self, normalized: f64) -> f64 {
-        util::linear_denormalize(normalized, self.min_sec, self.max_sec)
+        util::linear_denormalize(normalized, self.min, self.max)
     }
 
     fn normalize(&self, plain: f64) -> f64 {
-        util::linear_normalize(plain, self.min_sec, self.max_sec)
+        util::linear_normalize(plain, self.min, self.max)
     }
 
     fn format(&self, normalized: f64) -> String {
@@ -213,10 +213,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             default_value: param.normalize(0.1),
         },
     );
-    let param = LinearParameter {
-        min_sec: 0.0,
-        max_sec: 1.0,
-    };
+    let param = LinearParameter { min: 0.0, max: 1.0 };
     params.insert(
         Parameter::Sustain,
         SoyBoyParameter {
