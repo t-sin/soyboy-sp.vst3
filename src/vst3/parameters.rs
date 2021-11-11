@@ -6,7 +6,7 @@ use crate::vst3::util;
 #[derive(Clone, Copy, Debug)]
 pub enum ParameterType {
     Decibel,
-    Time,
+    Linear,
 }
 
 pub trait Normalizable<T> {
@@ -62,12 +62,12 @@ impl Normalizable<f64> for DecibelParameter {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct TimeParameter {
+pub struct LinearParameter {
     min_sec: f64,
     max_sec: f64,
 }
 
-impl Normalizable<f64> for TimeParameter {
+impl Normalizable<f64> for LinearParameter {
     fn denormalize(&self, normalized: f64) -> f64 {
         util::linear_denormalize(normalized, self.min_sec, self.max_sec)
     }
@@ -77,7 +77,7 @@ impl Normalizable<f64> for TimeParameter {
     }
 
     fn format(&self, normalized: f64) -> String {
-        format!("{:.2} s", self.denormalize(normalized))
+        format!("{:.2}", self.denormalize(normalized))
     }
 
     fn parse(&self, string: &str) -> Option<f64> {
@@ -92,7 +92,7 @@ impl Normalizable<f64> for TimeParameter {
 #[derive(Copy, Clone)]
 pub union ParameterInfo {
     pub decibel: DecibelParameter,
-    pub time: TimeParameter,
+    pub linear: LinearParameter,
 }
 
 #[derive(Clone)]
@@ -110,28 +110,31 @@ impl Normalizable<f64> for SoyBoyParameter {
     fn denormalize(&self, normalized: f64) -> f64 {
         match self.r#type {
             ParameterType::Decibel => unsafe { self.parameter.decibel.denormalize(normalized) },
-            ParameterType::Time => unsafe { self.parameter.time.denormalize(normalized) },
+            ParameterType::Linear => unsafe { self.parameter.linear.denormalize(normalized) },
         }
     }
 
     fn normalize(&self, plain: f64) -> f64 {
         match self.r#type {
             ParameterType::Decibel => unsafe { self.parameter.decibel.normalize(plain) },
-            ParameterType::Time => unsafe { self.parameter.time.normalize(plain) },
+            ParameterType::Linear => unsafe { self.parameter.linear.normalize(plain) },
         }
     }
 
     fn format(&self, normalized: f64) -> String {
         match self.r#type {
             ParameterType::Decibel => unsafe { self.parameter.decibel.format(normalized) },
-            ParameterType::Time => unsafe { self.parameter.time.format(normalized) },
+            ParameterType::Linear => {
+                let s = unsafe { self.parameter.linear.format(normalized) };
+                format!("{} {}", s, self.unit_name)
+            }
         }
     }
 
     fn parse(&self, string: &str) -> Option<f64> {
         match self.r#type {
             ParameterType::Decibel => unsafe { self.parameter.decibel.parse(string) },
-            ParameterType::Time => unsafe { self.parameter.time.parse(string) },
+            ParameterType::Linear => unsafe { self.parameter.linear.parse(string) },
         }
     }
 }
@@ -161,15 +164,15 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
     );
 
     // envelope generator parameters
-    let param = TimeParameter {
+    let param = LinearParameter {
         min_sec: 0.01,
         max_sec: 4.0,
     };
     params.insert(
         Parameter::AttackTime,
         SoyBoyParameter {
-            r#type: ParameterType::Time,
-            parameter: ParameterInfo { time: param },
+            r#type: ParameterType::Linear,
+            parameter: ParameterInfo { linear: param },
             title: "EG: Attack".to_string(),
             short_title: "Attack".to_string(),
             unit_name: "s".to_string(),
@@ -177,15 +180,15 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             default_value: param.normalize(0.05),
         },
     );
-    let param = TimeParameter {
+    let param = LinearParameter {
         min_sec: 0.01,
         max_sec: 4.0,
     };
     params.insert(
         Parameter::DecayTime,
         SoyBoyParameter {
-            r#type: ParameterType::Time,
-            parameter: ParameterInfo { time: param },
+            r#type: ParameterType::Linear,
+            parameter: ParameterInfo { linear: param },
             title: "EG: Decay".to_string(),
             short_title: "Decay".to_string(),
             unit_name: "s".to_string(),
@@ -193,34 +196,31 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             default_value: param.normalize(0.05),
         },
     );
-    let param = DecibelParameter {
-        plain_zero: -f64::INFINITY,
-        plain_min: -110.0,
-        plain_max: 6.0,
-        plain_one: 6.0,
-        factor: 3.0,
+    let param = LinearParameter {
+        min_sec: 0.0,
+        max_sec: 1.0,
     };
     params.insert(
         Parameter::Sustain,
         SoyBoyParameter {
-            r#type: ParameterType::Decibel,
-            parameter: ParameterInfo { decibel: param },
+            r#type: ParameterType::Linear,
+            parameter: ParameterInfo { linear: param },
             title: "EG: Sustain".to_string(),
             short_title: "Sustain".to_string(),
-            unit_name: "dB".to_string(),
+            unit_name: "".to_string(),
             step_count: 0,
             default_value: param.normalize(0.3),
         },
     );
-    let param = TimeParameter {
+    let param = LinearParameter {
         min_sec: 0.01,
         max_sec: 4.0,
     };
     params.insert(
         Parameter::ReleaseTime,
         SoyBoyParameter {
-            r#type: ParameterType::Time,
-            parameter: ParameterInfo { time: param },
+            r#type: ParameterType::Linear,
+            parameter: ParameterInfo { linear: param },
             title: "EG: Release".to_string(),
             short_title: "Release".to_string(),
             unit_name: "s".to_string(),
