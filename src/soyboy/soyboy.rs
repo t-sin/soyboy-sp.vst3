@@ -1,7 +1,9 @@
+use std::convert::TryFrom;
+
 use crate::soyboy::{
     envelope_generator::{EnvelopeGenerator, EnvelopeState},
     parameters::{Parameter, Parametric},
-    square_wave::SquareWaveOscillator,
+    square_wave::{SquareWaveDuty, SquareWaveOscillator},
     types::{AudioProcessor, Oscillator},
     utils::level,
 };
@@ -51,6 +53,12 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::DecayTime => self.envelope_gen.decay_time = value,
             Parameter::Sustain => self.envelope_gen.sustain_val = value,
             Parameter::ReleaseTime => self.envelope_gen.release_time = value,
+            Parameter::Duty => {
+                if let Ok(ratio) = SquareWaveDuty::try_from(value as u32) {
+                    self.square_osc.set_duty(ratio);
+                } else {
+                }
+            }
         }
     }
 }

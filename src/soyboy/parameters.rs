@@ -10,6 +10,8 @@ pub enum Parameter {
     DecayTime,
     Sustain,
     ReleaseTime,
+    // square wave oscilllator
+    Duty,
 }
 
 impl TryFrom<u32> for Parameter {
@@ -26,6 +28,8 @@ impl TryFrom<u32> for Parameter {
             Ok(Parameter::Sustain)
         } else if id == Parameter::ReleaseTime as u32 {
             Ok(Parameter::ReleaseTime)
+        } else if id == Parameter::Duty as u32 {
+            Ok(Parameter::Duty)
         } else {
             Err(())
         }

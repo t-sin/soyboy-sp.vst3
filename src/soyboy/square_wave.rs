@@ -1,13 +1,31 @@
+use std::convert::TryFrom;
+
 use crate::soyboy::{
     types::{i4, AudioProcessor, Oscillator},
     utils::{frequency_from_note_number, pulse},
 };
 
-#[allow(dead_code)]
+#[derive(Debug)]
 pub enum SquareWaveDuty {
-    Ratio12_5,
+    Ratio12_5 = 0,
     Ratio25,
     Ratio50,
+}
+
+impl TryFrom<u32> for SquareWaveDuty {
+    type Error = ();
+
+    fn try_from(id: u32) -> Result<Self, Self::Error> {
+        if id == SquareWaveDuty::Ratio12_5 as u32 {
+            Ok(SquareWaveDuty::Ratio12_5)
+        } else if id == SquareWaveDuty::Ratio25 as u32 {
+            Ok(SquareWaveDuty::Ratio25)
+        } else if id == SquareWaveDuty::Ratio50 as u32 {
+            Ok(SquareWaveDuty::Ratio50)
+        } else {
+            Err(())
+        }
+    }
 }
 
 impl SquareWaveDuty {
@@ -35,7 +53,6 @@ impl SquareWaveOscillator {
         }
     }
 
-    #[allow(dead_code)]
     pub fn set_duty(&mut self, duty: SquareWaveDuty) {
         self.duty = duty;
     }

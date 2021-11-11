@@ -218,6 +218,24 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
         },
     );
 
+    // square wave osciilator parameters
+    static SQUARE_OSCILATOR_DUTY_LIST: [&str; 3] = ["12.5%", "25%", "50%"];
+    let param = ListParameter {
+        elements: &SQUARE_OSCILATOR_DUTY_LIST,
+    };
+    params.insert(
+        Parameter::Duty,
+        SoyBoyParameter {
+            r#type: ParameterType::List,
+            parameter: ParameterInfo { list: param },
+            title: "SqOsc: Duty".to_string(),
+            short_title: "Duty".to_string(),
+            unit_name: "".to_string(),
+            step_count: (param.elements.len() - 1) as i32,
+            default_value: param.normalize(0.0),
+        },
+    );
+
     // envelope generator parameters
     let param = NonLinearParameter {
         plain_zero: 0.00,
