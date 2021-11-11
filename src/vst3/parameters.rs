@@ -228,7 +228,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
         SoyBoyParameter {
             r#type: ParameterType::List,
             parameter: ParameterInfo { list: param },
-            title: "SqOsc: Duty".to_string(),
+            title: "OscSq: Duty".to_string(),
             short_title: "Duty".to_string(),
             unit_name: "".to_string(),
             step_count: (param.elements.len() - 1) as i32,
@@ -252,7 +252,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             parameter: ParameterInfo {
                 non_linear: param.clone(),
             },
-            title: "EG: Attack".to_string(),
+            title: "Eg: Attack".to_string(),
             short_title: "Attack".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
@@ -266,7 +266,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             parameter: ParameterInfo {
                 non_linear: param.clone(),
             },
-            title: "EG: Decay".to_string(),
+            title: "Eg: Decay".to_string(),
             short_title: "Decay".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
@@ -280,7 +280,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             parameter: ParameterInfo {
                 non_linear: param.clone(),
             },
-            title: "EG: Release".to_string(),
+            title: "Eg: Release".to_string(),
             short_title: "Release".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
@@ -293,7 +293,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
         SoyBoyParameter {
             r#type: ParameterType::Linear,
             parameter: ParameterInfo { linear: param },
-            title: "EG: Sustain".to_string(),
+            title: "Eg: Sustain".to_string(),
             short_title: "Sustain".to_string(),
             unit_name: "".to_string(),
             step_count: 0,
