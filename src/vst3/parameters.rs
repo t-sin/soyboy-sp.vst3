@@ -16,36 +16,45 @@ pub trait Normalizable<T> {
     fn parse(&self, string: &str) -> Option<f64>;
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 pub struct NonLinearParameter {
     plain_zero: f64,
     plain_min: f64,
     plain_max: f64,
     plain_one: f64,
     factor: f64,
+    diverge: bool,
 }
 
 impl Normalizable<f64> for NonLinearParameter {
     fn denormalize(&self, normalized: f64) -> f64 {
-        util::non_linear_denormalize(
-            normalized,
-            self.plain_zero,
-            self.plain_one,
-            self.plain_min,
-            self.plain_max,
-            self.factor,
-        )
+        if normalized == 0.0 {
+            self.plain_zero
+        } else if normalized == 1.0 {
+            self.plain_one
+        } else {
+            let denormalizer = if self.diverge {
+                util::divergent_denormalize
+            } else {
+                util::convergent_denormalize
+            };
+            denormalizer(normalized, self.plain_min, self.plain_max, self.factor)
+        }
     }
 
     fn normalize(&self, plain: f64) -> f64 {
-        util::non_linear_normalize(
-            plain,
-            self.plain_zero,
-            self.plain_one,
-            self.plain_min,
-            self.plain_max,
-            self.factor,
-        )
+        if plain == self.plain_zero {
+            0.0
+        } else if plain == self.plain_one {
+            1.0
+        } else {
+            let normalizer = if self.diverge {
+                util::divergent_normalize
+            } else {
+                util::convergent_normalize
+            };
+            normalizer(plain, self.plain_min, self.plain_max, self.factor)
+        }
     }
 
     fn format(&self, normalized: f64) -> String {
@@ -61,7 +70,7 @@ impl Normalizable<f64> for NonLinearParameter {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 pub struct LinearParameter {
     min: f64,
     max: f64,
@@ -148,7 +157,8 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
         plain_min: -110.0,
         plain_max: 6.0,
         plain_one: 6.0,
-        factor: 3.0,
+        factor: 8.0,
+        diverge: false,
     };
     params.insert(
         Parameter::MasterVolume,
@@ -170,6 +180,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
         plain_max: 2.0,
         plain_one: 2.0,
         factor: 1.4,
+        diverge: true,
     };
     params.insert(
         Parameter::AttackTime,
