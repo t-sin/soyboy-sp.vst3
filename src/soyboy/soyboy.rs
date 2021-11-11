@@ -49,11 +49,11 @@ impl Parametric<Parameter> for SoyBoy {
     fn set_param(&mut self, param: &Parameter, value: f64) {
         match param {
             Parameter::MasterVolume => self.master_volume = value,
-            Parameter::AttackTime => self.envelope_gen.attack_time = value,
-            Parameter::DecayTime => self.envelope_gen.decay_time = value,
-            Parameter::Sustain => self.envelope_gen.sustain_val = value,
-            Parameter::ReleaseTime => self.envelope_gen.release_time = value,
-            Parameter::Duty => {
+            Parameter::EgAttack => self.envelope_gen.attack_time = value,
+            Parameter::EgDecay => self.envelope_gen.decay_time = value,
+            Parameter::EgSustain => self.envelope_gen.sustain_val = value,
+            Parameter::EgRelease => self.envelope_gen.release_time = value,
+            Parameter::OscSqDuty => {
                 if let Ok(ratio) = SquareWaveDuty::try_from(value as u32) {
                     self.square_osc.set_duty(ratio);
                 } else {

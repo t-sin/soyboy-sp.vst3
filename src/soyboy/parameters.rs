@@ -6,12 +6,12 @@ pub enum Parameter {
     // global parameter
     MasterVolume = 0,
     // envelope generator
-    AttackTime,
-    DecayTime,
-    Sustain,
-    ReleaseTime,
+    EgAttack,
+    EgDecay,
+    EgSustain,
+    EgRelease,
     // square wave oscilllator
-    Duty,
+    OscSqDuty,
 }
 
 impl TryFrom<u32> for Parameter {
@@ -20,16 +20,16 @@ impl TryFrom<u32> for Parameter {
     fn try_from(id: u32) -> Result<Self, Self::Error> {
         if id == Parameter::MasterVolume as u32 {
             Ok(Parameter::MasterVolume)
-        } else if id == Parameter::AttackTime as u32 {
-            Ok(Parameter::AttackTime)
-        } else if id == Parameter::DecayTime as u32 {
-            Ok(Parameter::DecayTime)
-        } else if id == Parameter::Sustain as u32 {
-            Ok(Parameter::Sustain)
-        } else if id == Parameter::ReleaseTime as u32 {
-            Ok(Parameter::ReleaseTime)
-        } else if id == Parameter::Duty as u32 {
-            Ok(Parameter::Duty)
+        } else if id == Parameter::EgAttack as u32 {
+            Ok(Parameter::EgAttack)
+        } else if id == Parameter::EgDecay as u32 {
+            Ok(Parameter::EgDecay)
+        } else if id == Parameter::EgSustain as u32 {
+            Ok(Parameter::EgSustain)
+        } else if id == Parameter::EgRelease as u32 {
+            Ok(Parameter::EgRelease)
+        } else if id == Parameter::OscSqDuty as u32 {
+            Ok(Parameter::OscSqDuty)
         } else {
             Err(())
         }

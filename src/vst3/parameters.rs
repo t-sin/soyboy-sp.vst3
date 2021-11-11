@@ -224,7 +224,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
         elements: &SQUARE_OSCILATOR_DUTY_LIST,
     };
     params.insert(
-        Parameter::Duty,
+        Parameter::OscSqDuty,
         SoyBoyParameter {
             r#type: ParameterType::List,
             parameter: ParameterInfo { list: param },
@@ -246,7 +246,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
         diverge: true,
     };
     params.insert(
-        Parameter::AttackTime,
+        Parameter::EgAttack,
         SoyBoyParameter {
             r#type: ParameterType::NonLinear,
             parameter: ParameterInfo {
@@ -260,7 +260,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
         },
     );
     params.insert(
-        Parameter::DecayTime,
+        Parameter::EgDecay,
         SoyBoyParameter {
             r#type: ParameterType::NonLinear,
             parameter: ParameterInfo {
@@ -274,7 +274,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
         },
     );
     params.insert(
-        Parameter::ReleaseTime,
+        Parameter::EgRelease,
         SoyBoyParameter {
             r#type: ParameterType::NonLinear,
             parameter: ParameterInfo {
@@ -289,7 +289,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
     );
     let param = LinearParameter { min: 0.0, max: 1.0 };
     params.insert(
-        Parameter::Sustain,
+        Parameter::EgSustain,
         SoyBoyParameter {
             r#type: ParameterType::Linear,
             parameter: ParameterInfo { linear: param },
