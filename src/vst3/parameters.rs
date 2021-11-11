@@ -232,7 +232,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             short_title: "Duty".to_string(),
             unit_name: "".to_string(),
             step_count: (param.elements.len() - 1) as i32,
-            default_value: param.normalize(0.0),
+            default_value: param.normalize(2.0),
         },
     );
 
