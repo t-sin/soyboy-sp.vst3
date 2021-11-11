@@ -165,10 +165,10 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
 
     // envelope generator parameters
     let param = NonLinearParameter {
-        plain_zero: 0.01,
+        plain_zero: 0.00,
         plain_min: 0.01,
-        plain_max: 3.0,
-        plain_one: 3.0,
+        plain_max: 2.0,
+        plain_one: 2.0,
         factor: 1.4,
     };
     params.insert(
