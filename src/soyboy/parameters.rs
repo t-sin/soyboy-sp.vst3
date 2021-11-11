@@ -3,7 +3,9 @@ use std::convert::TryFrom;
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Parameter {
+    // global parameter
     MasterVolume = 0,
+    // envelope generator
     AttackTime,
     DecayTime,
     Sustain,
