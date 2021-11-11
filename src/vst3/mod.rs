@@ -19,10 +19,48 @@ pub fn init() {
     info!("plugin library loaded");
 }
 
+//// for GNU/Linux
+
 #[cfg(target_os = "linux")]
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "system" fn ModuleEntry(_: *mut c_void) -> bool {
     init();
+    true
+}
+
+#[cfg(target_os = "linux")]
+#[no_mangle]
+#[allow(non_snake_case)]
+pub extern "system" fn ModuleExit() -> bool {
+    info!("Module exited");
+    true
+}
+
+//// for Windows, maybe
+#[no_mangle]
+#[allow(non_snake_case)]
+pub extern "system" fn InitDll() -> bool {
+    true
+}
+
+#[no_mangle]
+#[allow(non_snake_case)]
+pub extern "system" fn ExitDll() -> bool {
+    true
+}
+
+//// for mac, maybe
+
+#[no_mangle]
+#[allow(non_snake_case)]
+pub extern "system" fn bundleEntry(_: *mut c_void) -> bool {
+    true
+}
+
+#[no_mangle]
+#[allow(non_snake_case)]
+pub extern "system" fn bundleExit() -> bool {
+    info!("Module exited");
     true
 }
