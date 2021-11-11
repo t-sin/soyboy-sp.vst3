@@ -5,7 +5,7 @@ use crate::vst3::util;
 
 #[derive(Clone, Copy, Debug)]
 pub enum ParameterType {
-    Decibel,
+    NonLinear,
     Linear,
 }
 
@@ -17,7 +17,7 @@ pub trait Normalizable<T> {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct DecibelParameter {
+pub struct NonLinearParameter {
     plain_zero: f64,
     plain_min: f64,
     plain_max: f64,
@@ -25,7 +25,7 @@ pub struct DecibelParameter {
     factor: f64,
 }
 
-impl Normalizable<f64> for DecibelParameter {
+impl Normalizable<f64> for NonLinearParameter {
     fn denormalize(&self, normalized: f64) -> f64 {
         util::non_linear_denormalize(
             normalized,
@@ -91,7 +91,7 @@ impl Normalizable<f64> for LinearParameter {
 
 #[derive(Copy, Clone)]
 pub union ParameterInfo {
-    pub decibel: DecibelParameter,
+    pub non_linear: NonLinearParameter,
     pub linear: LinearParameter,
 }
 
@@ -109,31 +109,31 @@ pub struct SoyBoyParameter {
 impl Normalizable<f64> for SoyBoyParameter {
     fn denormalize(&self, normalized: f64) -> f64 {
         match self.r#type {
-            ParameterType::Decibel => unsafe { self.parameter.decibel.denormalize(normalized) },
+            ParameterType::NonLinear => unsafe {
+                self.parameter.non_linear.denormalize(normalized)
+            },
             ParameterType::Linear => unsafe { self.parameter.linear.denormalize(normalized) },
         }
     }
 
     fn normalize(&self, plain: f64) -> f64 {
         match self.r#type {
-            ParameterType::Decibel => unsafe { self.parameter.decibel.normalize(plain) },
+            ParameterType::NonLinear => unsafe { self.parameter.non_linear.normalize(plain) },
             ParameterType::Linear => unsafe { self.parameter.linear.normalize(plain) },
         }
     }
 
     fn format(&self, normalized: f64) -> String {
-        match self.r#type {
-            ParameterType::Decibel => unsafe { self.parameter.decibel.format(normalized) },
-            ParameterType::Linear => {
-                let s = unsafe { self.parameter.linear.format(normalized) };
-                format!("{} {}", s, self.unit_name)
-            }
-        }
+        let s = match self.r#type {
+            ParameterType::NonLinear => unsafe { self.parameter.non_linear.format(normalized) },
+            ParameterType::Linear => unsafe { self.parameter.linear.format(normalized) },
+        };
+        format!("{} {}", s, self.unit_name)
     }
 
     fn parse(&self, string: &str) -> Option<f64> {
         match self.r#type {
-            ParameterType::Decibel => unsafe { self.parameter.decibel.parse(string) },
+            ParameterType::NonLinear => unsafe { self.parameter.non_linear.parse(string) },
             ParameterType::Linear => unsafe { self.parameter.linear.parse(string) },
         }
     }
@@ -143,7 +143,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
     let mut params = HashMap::new();
 
     // global parameters
-    let param = DecibelParameter {
+    let param = NonLinearParameter {
         plain_zero: -f64::INFINITY,
         plain_min: -110.0,
         plain_max: 6.0,
@@ -153,8 +153,8 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
     params.insert(
         Parameter::MasterVolume,
         SoyBoyParameter {
-            r#type: ParameterType::Decibel,
-            parameter: ParameterInfo { decibel: param },
+            r#type: ParameterType::NonLinear,
+            parameter: ParameterInfo { non_linear: param },
             title: "Master Volume".to_string(),
             short_title: "Volume".to_string(),
             unit_name: "dB".to_string(),
