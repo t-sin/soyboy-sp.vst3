@@ -3,6 +3,7 @@ use crate::soyboy::{
     parameters::{Parameter, Parametric},
     square_wave::SquareWaveOscillator,
     types::{AudioProcessor, Oscillator},
+    utils::level,
 };
 
 pub type Signal = (f64, f64);
@@ -18,7 +19,7 @@ impl AudioProcessor<Signal> for SoyBoy {
         let osc = self.square_osc.process(sample_rate).to_f64();
         let env = self.envelope_gen.process(sample_rate);
 
-        let signal = osc * env * self.master_volume;
+        let signal = osc * env * 0.4 * level(self.master_volume);
         (signal, signal)
     }
 }
