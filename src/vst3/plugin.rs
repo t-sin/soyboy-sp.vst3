@@ -267,7 +267,7 @@ impl IAudioProcessor for SoyBoyPlugin {
                                 if let Some(p) = self.params.get(&param) {
                                     self.soyboy
                                         .borrow_mut()
-                                        .set_param(&Parameter::MasterVolume, p.denormalize(value));
+                                        .set_param(&param, p.denormalize(value));
                                 }
                             }
                         }
