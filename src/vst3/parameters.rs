@@ -49,7 +49,7 @@ impl Normalizable<f64> for NonLinearParameter {
     }
 
     fn format(&self, normalized: f64) -> String {
-        format!("{:.2} dB", self.denormalize(normalized))
+        format!("{:.2}", self.denormalize(normalized))
     }
 
     fn parse(&self, string: &str) -> Option<f64> {
@@ -164,15 +164,20 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
     );
 
     // envelope generator parameters
-    let param = LinearParameter {
-        min_sec: 0.01,
-        max_sec: 4.0,
+    let param = NonLinearParameter {
+        plain_zero: 0.01,
+        plain_min: 0.01,
+        plain_max: 5.0,
+        plain_one: 5.0,
+        factor: 2.0,
     };
     params.insert(
         Parameter::AttackTime,
         SoyBoyParameter {
-            r#type: ParameterType::Linear,
-            parameter: ParameterInfo { linear: param },
+            r#type: ParameterType::NonLinear,
+            parameter: ParameterInfo {
+                non_linear: param.clone(),
+            },
             title: "EG: Attack".to_string(),
             short_title: "Attack".to_string(),
             unit_name: "s".to_string(),
@@ -180,17 +185,29 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             default_value: param.normalize(0.05),
         },
     );
-    let param = LinearParameter {
-        min_sec: 0.01,
-        max_sec: 4.0,
-    };
     params.insert(
         Parameter::DecayTime,
         SoyBoyParameter {
-            r#type: ParameterType::Linear,
-            parameter: ParameterInfo { linear: param },
+            r#type: ParameterType::NonLinear,
+            parameter: ParameterInfo {
+                non_linear: param.clone(),
+            },
             title: "EG: Decay".to_string(),
             short_title: "Decay".to_string(),
+            unit_name: "s".to_string(),
+            step_count: 0,
+            default_value: param.normalize(0.05),
+        },
+    );
+    params.insert(
+        Parameter::ReleaseTime,
+        SoyBoyParameter {
+            r#type: ParameterType::NonLinear,
+            parameter: ParameterInfo {
+                non_linear: param.clone(),
+            },
+            title: "EG: Release".to_string(),
+            short_title: "Release".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
             default_value: param.normalize(0.05),
@@ -210,22 +227,6 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             unit_name: "".to_string(),
             step_count: 0,
             default_value: param.normalize(0.3),
-        },
-    );
-    let param = LinearParameter {
-        min_sec: 0.01,
-        max_sec: 4.0,
-    };
-    params.insert(
-        Parameter::ReleaseTime,
-        SoyBoyParameter {
-            r#type: ParameterType::Linear,
-            parameter: ParameterInfo { linear: param },
-            title: "EG: Release".to_string(),
-            short_title: "Release".to_string(),
-            unit_name: "s".to_string(),
-            step_count: 0,
-            default_value: param.normalize(0.05),
         },
     );
 
