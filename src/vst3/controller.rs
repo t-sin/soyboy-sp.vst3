@@ -202,12 +202,6 @@ impl IEditController for SoyBoyController {
         match Parameter::try_from(id) {
             Ok(param) => {
                 if let Some(p) = self.soyboy_params.get(&param) {
-                    println!(
-                        "norm = {}, denorm = {}, norm(denorm(v)) = {}",
-                        value_normalized,
-                        p.denormalize(value_normalized),
-                        p.normalize(p.denormalize(value_normalized))
-                    );
                     p.denormalize(value_normalized)
                 } else {
                     0.0

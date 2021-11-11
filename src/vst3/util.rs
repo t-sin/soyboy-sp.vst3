@@ -112,73 +112,26 @@ pub fn make_empty_param_info() -> ParameterInfo {
     }
 }
 
-pub fn denormalize(v: f64, zero: f64, one: f64, min: f64, max: f64) -> f64 {
+pub fn non_linear_denormalize(v: f64, zero: f64, one: f64, min: f64, max: f64, factor: f64) -> f64 {
     if v == 0.0 {
         zero
     } else if v == 1.0 {
         one
     } else {
         let range = max - min;
-        range * v + min
+        let y = -range * (1.0 - v).powf(factor) + max;
+        y
     }
 }
 
-pub fn normalize(v: f64, zero: f64, one: f64, min: f64, max: f64) -> f64 {
-    if v == zero {
+pub fn non_linear_normalize(x: f64, zero: f64, one: f64, min: f64, max: f64, factor: f64) -> f64 {
+    if x == zero {
         0.0
-    } else if v == one {
+    } else if x == one {
         1.0
     } else {
         let range = max - min;
-        (v - min) / range
-    }
-}
-
-pub fn exponential_denormalize(
-    v: f64,
-    zero: f64,
-    one: f64,
-    min: f64,
-    max: f64,
-    factor: f64,
-    negate: bool,
-) -> f64 {
-    if v == 0.0 {
-        zero
-    } else if v == 1.0 {
-        one
-    } else {
-        let range = max - min;
-        let v = if negate {
-            (v - 1.0).powf(factor) + 1.0
-        } else {
-            v.powf(factor)
-        };
-        range * v + min
-    }
-}
-
-pub fn exponential_normalize(
-    v: f64,
-    zero: f64,
-    one: f64,
-    min: f64,
-    max: f64,
-    factor: f64,
-    negate: bool,
-) -> f64 {
-    if v == zero {
-        0.0
-    } else if v == one {
-        1.0
-    } else {
-        let range = max - min;
-        let v = (v - min) / range;
-        println!("v = {}, fac = {}, range = {}", v, factor, range);
-        if negate {
-            (v + 1.0).powf(1.0 / factor) - 1.0
-        } else {
-            v.powf(1.0 / factor)
-        }
+        let v = 1.0 - ((max - x) / range).powf(1.0 / factor);
+        v
     }
 }
