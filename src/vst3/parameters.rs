@@ -167,9 +167,9 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
     let param = NonLinearParameter {
         plain_zero: 0.01,
         plain_min: 0.01,
-        plain_max: 5.0,
-        plain_one: 5.0,
-        factor: 2.0,
+        plain_max: 3.0,
+        plain_one: 3.0,
+        factor: 1.4,
     };
     params.insert(
         Parameter::AttackTime,
@@ -182,7 +182,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             short_title: "Attack".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
-            default_value: param.normalize(0.05),
+            default_value: param.normalize(0.08),
         },
     );
     params.insert(
@@ -196,7 +196,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             short_title: "Decay".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
-            default_value: param.normalize(0.05),
+            default_value: param.normalize(0.1),
         },
     );
     params.insert(
@@ -210,7 +210,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             short_title: "Release".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
-            default_value: param.normalize(0.05),
+            default_value: param.normalize(0.1),
         },
     );
     let param = LinearParameter {
