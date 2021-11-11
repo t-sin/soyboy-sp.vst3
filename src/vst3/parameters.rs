@@ -7,6 +7,7 @@ use crate::vst3::util;
 pub enum ParameterType {
     NonLinear,
     Linear,
+    List,
 }
 
 pub trait Normalizable<T> {
@@ -107,9 +108,41 @@ impl Normalizable<f64> for LinearParameter {
 }
 
 #[derive(Copy, Clone)]
+pub struct ListParameter {
+    elements: &'static [&'static str],
+}
+
+impl Normalizable<f64> for ListParameter {
+    fn denormalize(&self, normalized: f64) -> f64 {
+        (normalized * (self.elements.len() - 1) as f64) as f64
+    }
+
+    fn normalize(&self, plain: f64) -> f64 {
+        plain / (self.elements.len() - 1) as f64
+    }
+
+    fn format(&self, normalized: f64) -> String {
+        if let Some(s) = self.elements.get(self.denormalize(normalized) as usize) {
+            format!("{}", s)
+        } else {
+            "".to_string()
+        }
+    }
+
+    fn parse(&self, string: &str) -> Option<f64> {
+        if let Ok(v) = self.elements.binary_search(&string) {
+            Some(self.normalize(v as f64))
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
 pub union ParameterInfo {
     pub non_linear: NonLinearParameter,
     pub linear: LinearParameter,
+    pub list: ListParameter,
 }
 
 #[derive(Clone)]
@@ -130,6 +163,7 @@ impl Normalizable<f64> for SoyBoyParameter {
                 self.parameter.non_linear.denormalize(normalized)
             },
             ParameterType::Linear => unsafe { self.parameter.linear.denormalize(normalized) },
+            ParameterType::List => unsafe { self.parameter.list.denormalize(normalized) },
         }
     }
 
@@ -137,6 +171,7 @@ impl Normalizable<f64> for SoyBoyParameter {
         match self.r#type {
             ParameterType::NonLinear => unsafe { self.parameter.non_linear.normalize(plain) },
             ParameterType::Linear => unsafe { self.parameter.linear.normalize(plain) },
+            ParameterType::List => unsafe { self.parameter.list.normalize(plain) },
         }
     }
 
@@ -144,6 +179,7 @@ impl Normalizable<f64> for SoyBoyParameter {
         let s = match self.r#type {
             ParameterType::NonLinear => unsafe { self.parameter.non_linear.format(normalized) },
             ParameterType::Linear => unsafe { self.parameter.linear.format(normalized) },
+            ParameterType::List => unsafe { self.parameter.list.format(normalized) },
         };
         format!("{} {}", s, self.unit_name)
     }
@@ -152,6 +188,7 @@ impl Normalizable<f64> for SoyBoyParameter {
         match self.r#type {
             ParameterType::NonLinear => unsafe { self.parameter.non_linear.parse(string) },
             ParameterType::Linear => unsafe { self.parameter.linear.parse(string) },
+            ParameterType::List => unsafe { self.parameter.list.parse(string) },
         }
     }
 }
