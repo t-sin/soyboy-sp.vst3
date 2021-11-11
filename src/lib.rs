@@ -1,4 +1,3 @@
-extern crate env_logger;
 extern crate vst3_com;
 extern crate vst3_sys;
 

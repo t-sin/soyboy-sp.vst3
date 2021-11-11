@@ -1,5 +1,3 @@
-use log::*;
-
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -101,28 +99,22 @@ impl IPluginBase for SoyBoyController {
 
 impl IEditController for SoyBoyController {
     unsafe fn set_component_state(&self, _state: *mut c_void) -> tresult {
-        info!("set_component_state");
         kResultOk
     }
 
     unsafe fn set_state(&self, _state: *mut c_void) -> tresult {
-        info!("set_state");
         kResultOk
     }
 
     unsafe fn get_state(&self, _state: *mut c_void) -> tresult {
-        info!("get_state");
         kResultOk
     }
 
     unsafe fn get_parameter_count(&self) -> i32 {
-        info!("get_parameter_count");
         self.vst3_params.borrow().len() as i32
     }
 
     unsafe fn get_parameter_info(&self, id: i32, vst3_params: *mut ParameterInfo) -> tresult {
-        info!("get_parameter_info");
-
         let id = id as u32;
 
         if let Some(param) = self.vst3_params.borrow().get(&id) {
@@ -204,7 +196,6 @@ impl IEditController for SoyBoyController {
     }
 
     unsafe fn get_param_normalized(&self, id: u32) -> f64 {
-        info!("get_param_normalized");
         match self.param_values.borrow().get(&id) {
             Some(val) => *val,
             _ => 0.0,
@@ -212,7 +203,6 @@ impl IEditController for SoyBoyController {
     }
 
     unsafe fn set_param_normalized(&self, id: u32, value: f64) -> tresult {
-        info!("set_param_normalized");
         match self.param_values.borrow_mut().insert(id, value) {
             Some(_) => kResultTrue,
             _ => kResultFalse,
@@ -220,44 +210,32 @@ impl IEditController for SoyBoyController {
     }
 
     unsafe fn set_component_handler(&self, _handler: *mut c_void) -> tresult {
-        info!("set_component_handler");
         kResultOk
     }
 
     unsafe fn create_view(&self, _name: FIDString) -> *mut c_void {
-        info!("Called: AGainController::create_view()");
         null_mut()
     }
 }
 
 impl IUnitInfo for SoyBoyController {
     unsafe fn get_unit_count(&self) -> i32 {
-        info!("Called: AGainController::get_unit_count()");
-
         1
     }
 
     unsafe fn get_unit_info(&self, _unit_index: i32, _info: *mut UnitInfo) -> i32 {
-        info!("Called: AGainController::get_unit_info()");
-
         kResultFalse
     }
 
     unsafe fn get_program_list_count(&self) -> i32 {
-        info!("Called: AGainController::get_program_list_count()");
-
         0
     }
 
     unsafe fn get_program_list_info(&self, _list_index: i32, _info: *mut ProgramListInfo) -> i32 {
-        info!("Called: AGainController::get_program_list_info()");
-
         kResultFalse
     }
 
     unsafe fn get_program_name(&self, _list_id: i32, _program_index: i32, _name: *mut u16) -> i32 {
-        info!("Called: AGainController::get_program_name()");
-
         kResultFalse
     }
 
@@ -268,14 +246,10 @@ impl IUnitInfo for SoyBoyController {
         _attribute_id: *const u8,
         _attribute_value: *mut u16,
     ) -> i32 {
-        info!("Called: AGainController::get_program_info()");
-
         kResultFalse
     }
 
     unsafe fn has_program_pitch_names(&self, _id: i32, _index: i32) -> i32 {
-        info!("Called: AGainController::has_program_pitch_names()");
-
         kResultFalse
     }
 
@@ -286,19 +260,14 @@ impl IUnitInfo for SoyBoyController {
         _pitch: i16,
         _name: *mut u16,
     ) -> i32 {
-        info!("Called: AGainController::get_program_pitch_name()");
-
         kResultFalse
     }
 
     unsafe fn get_selected_unit(&self) -> i32 {
-        info!("Called: AGainController::get_selected_unit()");
         0
     }
 
     unsafe fn select_unit(&self, _id: i32) -> i32 {
-        info!("Called: AGainController::select_unit()");
-
         kResultFalse
     }
 
@@ -310,8 +279,6 @@ impl IUnitInfo for SoyBoyController {
         _channel: i32,
         _unit_id: *mut i32,
     ) -> i32 {
-        info!("Called: AGainController::set_unit_by_bus()");
-
         kResultFalse
     }
 
@@ -321,8 +288,6 @@ impl IUnitInfo for SoyBoyController {
         _program_index: i32,
         _data: VstPtr<dyn IBStream>,
     ) -> i32 {
-        info!("Called: AGainController::set_unit_program_data()");
-
         kResultFalse
     }
 }
