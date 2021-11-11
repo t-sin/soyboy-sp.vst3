@@ -165,7 +165,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
         plain_min: -110.0,
         plain_max: 6.0,
         plain_one: 6.0,
-        factor: 8.0,
+        factor: 10.0,
         diverge: false,
     };
     params.insert(
