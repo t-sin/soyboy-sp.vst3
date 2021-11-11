@@ -15,7 +15,11 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::vst3::{controller::SoyBoyController, parameters::SoyBoyParameter, plugin_data, util};
+use crate::vst3::{
+    controller::SoyBoyController,
+    parameters::{Normalizable, SoyBoyParameter},
+    plugin_data, util,
+};
 
 use crate::soyboy::{AudioProcessor, Parameter, Parametric, SoyBoy};
 
@@ -253,65 +257,18 @@ impl IAudioProcessor for SoyBoyPlugin {
                     let mut sample_offset = 0;
                     let num_points = param_queue.get_point_count();
                     match Parameter::try_from(param_queue.get_parameter_id()) {
-                        Ok(Parameter::MasterVolume) => {
+                        Ok(param) => {
                             if param_queue.get_point(
                                 num_points - 1,
                                 &mut sample_offset as *mut _,
                                 &mut value as *mut _,
                             ) == kResultTrue
                             {
-                                self.soyboy
-                                    .borrow_mut()
-                                    .set_param(&Parameter::MasterVolume, value);
-                            }
-                        }
-                        // ここすっきりさせたいなー
-                        Ok(Parameter::AttackTime) => {
-                            if param_queue.get_point(
-                                num_points - 1,
-                                &mut sample_offset as *mut _,
-                                &mut value as *mut _,
-                            ) == kResultTrue
-                            {
-                                self.soyboy
-                                    .borrow_mut()
-                                    .set_param(&Parameter::AttackTime, value);
-                            }
-                        }
-                        Ok(Parameter::DecayTime) => {
-                            if param_queue.get_point(
-                                num_points - 1,
-                                &mut sample_offset as *mut _,
-                                &mut value as *mut _,
-                            ) == kResultTrue
-                            {
-                                self.soyboy
-                                    .borrow_mut()
-                                    .set_param(&Parameter::DecayTime, value);
-                            }
-                        }
-                        Ok(Parameter::Sustain) => {
-                            if param_queue.get_point(
-                                num_points - 1,
-                                &mut sample_offset as *mut _,
-                                &mut value as *mut _,
-                            ) == kResultTrue
-                            {
-                                self.soyboy
-                                    .borrow_mut()
-                                    .set_param(&Parameter::Sustain, value);
-                            }
-                        }
-                        Ok(Parameter::ReleaseTime) => {
-                            if param_queue.get_point(
-                                num_points - 1,
-                                &mut sample_offset as *mut _,
-                                &mut value as *mut _,
-                            ) == kResultTrue
-                            {
-                                self.soyboy
-                                    .borrow_mut()
-                                    .set_param(&Parameter::ReleaseTime, value);
+                                if let Some(p) = self.params.get(&param) {
+                                    self.soyboy
+                                        .borrow_mut()
+                                        .set_param(&Parameter::MasterVolume, p.denormalize(value));
+                                }
                             }
                         }
                         Err(_) => (),
