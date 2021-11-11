@@ -85,43 +85,6 @@ impl SoyBoyController {
             );
         }
 
-        // // envelope generator params
-        // controller.add_parameter(
-        //     Parameter::AttackTime as u32,
-        //     "EG: Attack",
-        //     "Attack",
-        //     "s",
-        //     0,
-        //     0.05,
-        //     ParameterFlags::kCanAutomate as i32,
-        // );
-        // controller.add_parameter(
-        //     Parameter::DecayTime as u32,
-        //     "EG: Decay",
-        //     "Decay",
-        //     "s",
-        //     0,
-        //     0.025,
-        //     ParameterFlags::kCanAutomate as i32,
-        // );
-        // controller.add_parameter(
-        //     Parameter::Sustain as u32,
-        //     "EG: Sustain",
-        //     "Sustain",
-        //     "",
-        //     0,
-        //     0.8,
-        //     ParameterFlags::kCanAutomate as i32,
-        // );
-        // controller.add_parameter(
-        //     Parameter::ReleaseTime as u32,
-        //     "EG: Release",
-        //     "Release",
-        //     "s",
-        //     0,
-        //     0.1,
-        //     ParameterFlags::kCanAutomate as i32,
-        // );
         controller
     }
 }
@@ -178,9 +141,12 @@ impl IEditController for SoyBoyController {
         string: *mut TChar,
     ) -> tresult {
         match Parameter::try_from(id) {
-            Ok(Parameter::MasterVolume) => {
-                let value_plain = self.normalized_param_to_plain(id, value_normalized);
-                util::tcharcpy(&format!("{:.2} dB", value_plain), string);
+            Ok(param) => {
+                if let Some(p) = self.soyboy_params.get(&param) {
+                    util::tcharcpy(&p.format(value_normalized), string)
+                } else {
+                    return kResultFalse;
+                }
             }
             _ => (),
         }
