@@ -14,8 +14,10 @@ pub enum Parameter {
     EgDecay,
     EgSustain,
     EgRelease,
-    // square wave oscilllator
+    // square wave oscillator
     OscSqDuty,
+    // noise oscillator
+    OscNsInterval,
 }
 
 impl TryFrom<u32> for Parameter {
@@ -36,6 +38,8 @@ impl TryFrom<u32> for Parameter {
             Ok(Parameter::EgRelease)
         } else if id == Parameter::OscSqDuty as u32 {
             Ok(Parameter::OscSqDuty)
+        } else if id == Parameter::OscNsInterval as u32 {
+            Ok(Parameter::OscNsInterval)
         } else {
             Err(())
         }
@@ -102,7 +106,7 @@ impl Normalizable<f64> for NonLinearParameter {
     }
 
     fn format(&self, normalized: f64) -> String {
-        format!("{:.2}", self.denormalize(normalized))
+        format!("{:.3}", self.denormalize(normalized))
     }
 
     fn parse(&self, string: &str) -> Option<f64> {
@@ -294,6 +298,30 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             unit_name: "".to_string(),
             step_count: (OSC_SQ_DUTY.elements.len() - 1) as i32,
             default_value: OSC_SQ_DUTY.normalize(2.0),
+        },
+    );
+
+    // noise oscillator parameters
+    static OSC_NS_INTERVAL: NonLinearParameter = NonLinearParameter {
+        plain_zero: 0.00,
+        plain_min: 0.00001,
+        plain_max: 0.001,
+        plain_one: 0.001,
+        factor: 1.4,
+        diverge: true,
+    };
+    params.insert(
+        Parameter::OscNsInterval,
+        SoyBoyParameter {
+            r#type: ParameterType::NonLinear,
+            parameter: ParameterInfo {
+                non_linear: OSC_NS_INTERVAL,
+            },
+            title: "OscNs: Noise interval".to_string(),
+            short_title: "Noise int".to_string(),
+            unit_name: "s".to_string(),
+            step_count: 0,
+            default_value: OSC_NS_INTERVAL.normalize(0.0005),
         },
     );
 

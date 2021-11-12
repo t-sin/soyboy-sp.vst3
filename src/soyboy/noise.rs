@@ -38,9 +38,9 @@ impl AudioProcessor<i4> for NoiseOscillator {
 }
 
 impl Parametric<Parameter> for NoiseOscillator {
-    fn set_param(&mut self, param: &Parameter, _value: f64) {
+    fn set_param(&mut self, param: &Parameter, value: f64) {
         match param {
-            Parameter::OscSqDuty => {}
+            Parameter::OscNsInterval => self.interval_sec = value,
             _ => (),
         }
     }
