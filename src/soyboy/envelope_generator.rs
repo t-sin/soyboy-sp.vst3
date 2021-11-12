@@ -14,10 +14,10 @@ pub enum EnvelopeState {
 }
 
 pub struct EnvelopeGenerator {
-    pub attack_time: f64,
-    pub decay_time: f64,
-    pub sustain_val: f64,
-    pub release_time: f64,
+    pub attack: f64,
+    pub decay: f64,
+    pub sustain: f64,
+    pub release: f64,
 
     state: EnvelopeState,
     elapsed_samples: u64,
@@ -28,10 +28,10 @@ pub struct EnvelopeGenerator {
 impl EnvelopeGenerator {
     pub fn new() -> EnvelopeGenerator {
         EnvelopeGenerator {
-            attack_time: 0.05,
-            decay_time: 0.05,
-            sustain_val: 0.3,
-            release_time: 0.1,
+            attack: 0.05,
+            decay: 0.05,
+            sustain: 0.3,
+            release: 0.1,
 
             state: EnvelopeState::Off,
             elapsed_samples: 1,
@@ -54,19 +54,19 @@ impl EnvelopeGenerator {
     fn update_state(&mut self, s: f64) {
         match self.state {
             EnvelopeState::Attack => {
-                if s > self.attack_time {
+                if s > self.attack {
                     self.set_state(EnvelopeState::Decay);
                     self.last_state_value = 1.0;
                 }
             }
             EnvelopeState::Decay => {
-                if s > self.decay_time {
+                if s > self.decay {
                     self.set_state(EnvelopeState::Sustain);
                 }
             }
             EnvelopeState::Sustain => (),
             EnvelopeState::Release => {
-                if s > self.release_time {
+                if s > self.release {
                     self.set_state(EnvelopeState::Off);
                 }
             }
@@ -77,20 +77,20 @@ impl EnvelopeGenerator {
     fn calculate(&mut self, s: f64) -> f64 {
         match self.state {
             EnvelopeState::Attack => {
-                let v = linear(s, 1.0 / self.attack_time);
+                let v = linear(s, 1.0 / self.attack);
 
                 v
             }
             EnvelopeState::Decay => {
-                let max = self.last_state_value - self.sustain_val;
-                let v = self.last_state_value - max * linear(s, 1.0 / self.decay_time);
+                let max = self.last_state_value - self.sustain;
+                let v = self.last_state_value - max * linear(s, 1.0 / self.decay);
 
                 v
             }
-            EnvelopeState::Sustain => self.sustain_val,
+            EnvelopeState::Sustain => self.sustain,
             EnvelopeState::Release => {
                 let max = self.last_state_value;
-                let v = max - max * linear(s, 1.0 / self.release_time);
+                let v = max - max * linear(s, 1.0 / self.release);
 
                 v
             }
@@ -115,10 +115,10 @@ impl AudioProcessor<f64> for EnvelopeGenerator {
 impl Parametric<Parameter> for EnvelopeGenerator {
     fn set_param(&mut self, param: &Parameter, value: f64) {
         match param {
-            Parameter::EgAttack => self.attack_time = value,
-            Parameter::EgDecay => self.decay_time = value,
-            Parameter::EgSustain => self.sustain_val = value,
-            Parameter::EgRelease => self.release_time = value,
+            Parameter::EgAttack => self.attack = value,
+            Parameter::EgDecay => self.decay = value,
+            Parameter::EgSustain => self.sustain = value,
+            Parameter::EgRelease => self.release = value,
             _ => (),
         }
     }
