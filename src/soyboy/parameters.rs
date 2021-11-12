@@ -256,7 +256,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             short_title: "Volume".to_string(),
             unit_name: "dB".to_string(),
             step_count: 0,
-            default_value: GLOBAL_MASTER_VOLUME.normalize(1.0),
+            default_value: GLOBAL_MASTER_VOLUME.normalize(0.0),
         },
     );
 
