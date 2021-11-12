@@ -286,7 +286,9 @@ impl IAudioProcessor for SoyBoyPlugin {
                 if input_events.get_event(c, &mut e) == kResultOk {
                     let mut soyboy = self.soyboy.borrow_mut();
                     match utils::as_event_type(e.type_) {
-                        Some(EventTypes::kNoteOnEvent) => soyboy.note_on(e.event.note_on.pitch),
+                        Some(EventTypes::kNoteOnEvent) => {
+                            soyboy.note_on(e.event.note_on.pitch, e.event.note_on.velocity)
+                        }
                         Some(EventTypes::kNoteOffEvent) => soyboy.note_off(),
                         Some(_) => (),
                         _ => (),

@@ -49,7 +49,7 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 [[package]]
 name = "vst3-com"
 version = "0.1.0"
-source = "git+https://github.com/RustAudio/vst3-sys#425f386d1f012479fe111b17b6203eab55e5e1db"
+source = "git+https://github.com/t-sin/vst3-sys?branch=fix-wrong-type-of-note-velocity#90d4b3968923f7a929c99f3054ea4104bfe3d743"
 dependencies = [
  "vst3-com-macros",
 ]
@@ -57,7 +57,7 @@ dependencies = [
 [[package]]
 name = "vst3-com-macros"
 version = "0.2.0"
-source = "git+https://github.com/RustAudio/vst3-sys#425f386d1f012479fe111b17b6203eab55e5e1db"
+source = "git+https://github.com/t-sin/vst3-sys?branch=fix-wrong-type-of-note-velocity#90d4b3968923f7a929c99f3054ea4104bfe3d743"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -68,7 +68,7 @@ dependencies = [
 [[package]]
 name = "vst3-com-macros-support"
 version = "0.2.0"
-source = "git+https://github.com/RustAudio/vst3-sys#425f386d1f012479fe111b17b6203eab55e5e1db"
+source = "git+https://github.com/t-sin/vst3-sys?branch=fix-wrong-type-of-note-velocity#90d4b3968923f7a929c99f3054ea4104bfe3d743"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -78,7 +78,7 @@ dependencies = [
 [[package]]
 name = "vst3-sys"
 version = "0.1.0"
-source = "git+https://github.com/RustAudio/vst3-sys#425f386d1f012479fe111b17b6203eab55e5e1db"
+source = "git+https://github.com/t-sin/vst3-sys?branch=fix-wrong-type-of-note-velocity#90d4b3968923f7a929c99f3054ea4104bfe3d743"
 dependencies = [
  "vst3-com",
 ]

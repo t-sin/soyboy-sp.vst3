@@ -33,8 +33,9 @@ impl SoyBoy {
         }
     }
 
-    pub fn note_on(&mut self, pitch: i16) {
+    pub fn note_on(&mut self, pitch: i16, velocity: f32) {
         self.square_osc.set_pitch(pitch);
+        self.square_osc.set_velocity(velocity);
         self.envelope_gen.set_state(EnvelopeState::Attack);
     }
 

@@ -41,14 +41,16 @@ impl SquareWaveDuty {
 
 pub struct SquareWaveOscillator {
     phase: f64,
-    pub freq: f64,
-    pub duty: SquareWaveDuty,
+    velocity: f32,
+    freq: f64,
+    duty: SquareWaveDuty,
 }
 
 impl SquareWaveOscillator {
     pub fn new() -> Self {
         SquareWaveOscillator {
             phase: 0.0,
+            velocity: 0.0,
             freq: 440.0,
             duty: SquareWaveDuty::Ratio50,
         }
@@ -65,7 +67,7 @@ impl AudioProcessor<i4> for SquareWaveOscillator {
         let v = pulse(self.phase, self.duty.to_ratio());
 
         self.phase += phase_diff;
-        v
+        i4::from((v.to_f64() * self.velocity as f64) as i8)
     }
 }
 
@@ -90,5 +92,9 @@ impl Oscillator for SquareWaveOscillator {
     /// https://steinbergmedia.github.io/vst3_doc/vstinterfaces/structSteinberg_1_1Vst_1_1NoteOnEvent.html の pitch の項目
     fn set_pitch(&mut self, note: i16) {
         self.freq = frequency_from_note_number(note as u16, NOTE_NUMBER_OF_440_HZ);
+    }
+
+    fn set_velocity(&mut self, velocity: f32) {
+        self.velocity = velocity;
     }
 }
