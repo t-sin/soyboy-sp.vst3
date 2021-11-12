@@ -14,7 +14,7 @@ use crate::vst3::{
     controller::SoyBoyController,
     plugin::SoyBoyPlugin,
     plugin_data,
-    util::{strcpy, wstrcpy},
+    utils::{strcpy, wstrcpy},
 };
 
 #[VST3(implements(IPluginFactory3))]

@@ -20,7 +20,7 @@ use vst3_sys::{
 };
 
 use crate::soyboy::parameters::{Normalizable, Parameter, SoyBoyParameter};
-use crate::vst3::{plugin_data, util};
+use crate::vst3::{plugin_data, utils};
 
 #[VST3(implements(IEditController, IUnitInfo))]
 pub struct SoyBoyController {
@@ -47,11 +47,11 @@ impl SoyBoyController {
         let mut vst3_params = self.vst3_params.borrow_mut();
         let mut param_vals = self.param_values.borrow_mut();
 
-        let mut param = util::make_empty_param_info();
+        let mut param = utils::make_empty_param_info();
         param.id = id;
-        util::wstrcpy(title, param.title.as_mut_ptr());
-        util::wstrcpy(short_title, param.short_title.as_mut_ptr());
-        util::wstrcpy(units, param.units.as_mut_ptr());
+        utils::wstrcpy(title, param.title.as_mut_ptr());
+        utils::wstrcpy(short_title, param.short_title.as_mut_ptr());
+        utils::wstrcpy(units, param.units.as_mut_ptr());
         param.step_count = step_count;
         param.default_normalized_value = default_value;
         param.unit_id = kRootUnitId;
@@ -132,7 +132,7 @@ impl IEditController for SoyBoyController {
         match Parameter::try_from(id) {
             Ok(param) => {
                 if let Some(p) = self.soyboy_params.get(&param) {
-                    util::tcharcpy(&p.format(value_normalized), string)
+                    utils::tcharcpy(&p.format(value_normalized), string)
                 } else {
                     return kResultFalse;
                 }
@@ -152,7 +152,7 @@ impl IEditController for SoyBoyController {
         match Parameter::try_from(id) {
             Ok(param) => {
                 if let Some(p) = self.soyboy_params.get(&param) {
-                    if let Some(v) = p.parse(&util::tchar_to_string(string)) {
+                    if let Some(v) = p.parse(&utils::tchar_to_string(string)) {
                         *value_normalized = v;
                     } else {
                         return kResultFalse;

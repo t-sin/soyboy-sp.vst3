@@ -2,7 +2,7 @@ mod controller;
 mod factory;
 mod plugin;
 mod plugin_data;
-mod util;
+mod utils;
 
 use std::os::raw::c_void;
 
