@@ -1,4 +1,5 @@
 mod envelope_generator;
+mod noise;
 pub mod parameters;
 mod soyboy;
 mod square_wave;

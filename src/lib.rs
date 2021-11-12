@@ -1,3 +1,4 @@
+extern crate rand;
 extern crate vst3_com;
 extern crate vst3_sys;
 

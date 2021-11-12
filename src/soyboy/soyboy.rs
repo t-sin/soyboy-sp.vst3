@@ -1,5 +1,6 @@
 use crate::soyboy::{
     envelope_generator::{EnvelopeGenerator, EnvelopeState},
+    noise::NoiseOscillator,
     parameters::{Parameter, Parametric},
     square_wave::SquareWaveOscillator,
     types::{AudioProcessor, Oscillator},
@@ -10,13 +11,21 @@ pub type Signal = (f64, f64);
 
 pub struct SoyBoy {
     square_osc: SquareWaveOscillator,
+    noise_osc: NoiseOscillator,
     envelope_gen: EnvelopeGenerator,
     master_volume: f64,
 }
 
 impl AudioProcessor<Signal> for SoyBoy {
     fn process(&mut self, sample_rate: f64) -> Signal {
-        let osc = self.square_osc.process(sample_rate).to_f64();
+        let sq_osc = self.square_osc.process(sample_rate).to_f64();
+        let n_osc = self.noise_osc.process(sample_rate).to_f64();
+        let osc = match 1.0 {
+            0.0 => sq_osc,
+            1.0 => n_osc,
+            _ => 0.0,
+        };
+
         let env = self.envelope_gen.process(sample_rate);
 
         let signal = osc * env * 0.4 * level(self.master_volume);
@@ -28,6 +37,7 @@ impl SoyBoy {
     pub fn new() -> SoyBoy {
         SoyBoy {
             square_osc: SquareWaveOscillator::new(),
+            noise_osc: NoiseOscillator::new(),
             envelope_gen: EnvelopeGenerator::new(),
             master_volume: 1.0,
         }
@@ -36,6 +46,9 @@ impl SoyBoy {
     pub fn note_on(&mut self, pitch: i16, velocity: f32) {
         self.square_osc.set_pitch(pitch);
         self.square_osc.set_velocity(velocity);
+
+        self.noise_osc.set_velocity(velocity);
+
         self.envelope_gen.set_state(EnvelopeState::Attack);
     }
 
