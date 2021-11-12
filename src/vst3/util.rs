@@ -129,37 +129,3 @@ pub fn make_empty_param_info() -> ParameterInfo {
         flags: 0,
     }
 }
-
-pub fn linear_denormalize(v: f64, min: f64, max: f64) -> f64 {
-    let range = max.abs() - min.abs();
-    v * range + min
-}
-
-pub fn linear_normalize(x: f64, min: f64, max: f64) -> f64 {
-    let range = max.abs() - min.abs();
-    (x - min) / range
-}
-
-pub fn divergent_denormalize(v: f64, min: f64, max: f64, factor: f64) -> f64 {
-    let range = max.abs() + min.abs();
-    let x = range * v.powf(factor) + min;
-    x
-}
-
-pub fn divergent_normalize(x: f64, min: f64, max: f64, factor: f64) -> f64 {
-    let range = max.abs() + min.abs();
-    let v = ((x - min) / range).powf(1.0 / factor);
-    v
-}
-
-pub fn convergent_denormalize(v: f64, min: f64, max: f64, factor: f64) -> f64 {
-    let range = max.abs() + min.abs();
-    let x = range * v.powf(1.0 / factor) + min;
-    x
-}
-
-pub fn convergent_normalize(x: f64, min: f64, max: f64, factor: f64) -> f64 {
-    let range = max.abs() + min.abs();
-    let v = ((x - min) / range).powf(factor);
-    v
-}

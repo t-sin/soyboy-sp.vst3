@@ -15,13 +15,12 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::vst3::{
-    controller::SoyBoyController,
-    parameters::{Normalizable, SoyBoyParameter},
-    plugin_data, util,
-};
+use crate::vst3::{controller::SoyBoyController, plugin_data, util};
 
-use crate::soyboy::{AudioProcessor, Parameter, Parametric, SoyBoy};
+use crate::soyboy::{
+    parameters::{Normalizable, Parameter, Parametric, SoyBoyParameter},
+    AudioProcessor, SoyBoy,
+};
 
 #[VST3(implements(IComponent, IAudioProcessor))]
 pub struct SoyBoyPlugin {

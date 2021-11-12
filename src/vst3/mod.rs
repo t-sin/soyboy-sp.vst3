@@ -1,6 +1,5 @@
 mod controller;
 mod factory;
-mod parameters;
 mod plugin;
 mod plugin_data;
 mod util;

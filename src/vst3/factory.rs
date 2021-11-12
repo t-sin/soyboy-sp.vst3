@@ -9,10 +9,9 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::soyboy::SoyBoy;
+use crate::soyboy::{parameters, SoyBoy};
 use crate::vst3::{
     controller::SoyBoyController,
-    parameters,
     plugin::SoyBoyPlugin,
     plugin_data,
     util::{strcpy, wstrcpy},

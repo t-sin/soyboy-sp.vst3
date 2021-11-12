@@ -19,11 +19,8 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::soyboy::Parameter;
-use crate::vst3::{
-    parameters::{Normalizable, SoyBoyParameter},
-    plugin_data, util,
-};
+use crate::soyboy::parameters::{Normalizable, Parameter, SoyBoyParameter};
+use crate::vst3::{plugin_data, util};
 
 #[VST3(implements(IEditController, IUnitInfo))]
 pub struct SoyBoyController {
