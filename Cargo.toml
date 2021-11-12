@@ -17,4 +17,5 @@ crate-type = ["cdylib"]
 vst3-sys = { branch = "fix-wrong-type-of-note-velocity", git = "https://github.com/t-sin/vst3-sys" }
 vst3-com = { branch = "fix-wrong-type-of-note-velocity", git = "https://github.com/t-sin/vst3-sys" }
 
+rand = "0.8.4"
 widestring = "0.4.0"
