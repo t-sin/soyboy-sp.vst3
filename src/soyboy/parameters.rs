@@ -237,7 +237,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
     let mut params = HashMap::new();
 
     // global parameters
-    let param = NonLinearParameter {
+    static GLOBAL_MASTER_VOLUME: NonLinearParameter = NonLinearParameter {
         plain_zero: -f64::INFINITY,
         plain_min: -110.0,
         plain_max: 6.0,
@@ -249,35 +249,37 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
         Parameter::MasterVolume,
         SoyBoyParameter {
             r#type: ParameterType::NonLinear,
-            parameter: ParameterInfo { non_linear: param },
+            parameter: ParameterInfo {
+                non_linear: GLOBAL_MASTER_VOLUME,
+            },
             title: "Master Volume".to_string(),
             short_title: "Volume".to_string(),
             unit_name: "dB".to_string(),
             step_count: 0,
-            default_value: param.normalize(1.0),
+            default_value: GLOBAL_MASTER_VOLUME.normalize(1.0),
         },
     );
 
     // square wave osciilator parameters
     static SQUARE_OSCILATOR_DUTY_LIST: [&str; 3] = ["12.5%", "25%", "50%"];
-    let param = ListParameter {
+    static OSC_SQ_DUTY: ListParameter = ListParameter {
         elements: &SQUARE_OSCILATOR_DUTY_LIST,
     };
     params.insert(
         Parameter::OscSqDuty,
         SoyBoyParameter {
             r#type: ParameterType::List,
-            parameter: ParameterInfo { list: param },
+            parameter: ParameterInfo { list: OSC_SQ_DUTY },
             title: "OscSq: Duty".to_string(),
             short_title: "Duty".to_string(),
             unit_name: "".to_string(),
-            step_count: (param.elements.len() - 1) as i32,
-            default_value: param.normalize(2.0),
+            step_count: (OSC_SQ_DUTY.elements.len() - 1) as i32,
+            default_value: OSC_SQ_DUTY.normalize(2.0),
         },
     );
 
     // envelope generator parameters
-    let param = NonLinearParameter {
+    static EG_TIME: NonLinearParameter = NonLinearParameter {
         plain_zero: 0.00,
         plain_min: 0.01,
         plain_max: 2.0,
@@ -290,13 +292,13 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
         SoyBoyParameter {
             r#type: ParameterType::NonLinear,
             parameter: ParameterInfo {
-                non_linear: param.clone(),
+                non_linear: EG_TIME,
             },
             title: "Eg: Attack".to_string(),
             short_title: "Attack".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
-            default_value: param.normalize(0.08),
+            default_value: EG_TIME.normalize(0.08),
         },
     );
     params.insert(
@@ -304,13 +306,13 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
         SoyBoyParameter {
             r#type: ParameterType::NonLinear,
             parameter: ParameterInfo {
-                non_linear: param.clone(),
+                non_linear: EG_TIME,
             },
             title: "Eg: Decay".to_string(),
             short_title: "Decay".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
-            default_value: param.normalize(0.1),
+            default_value: EG_TIME.normalize(0.1),
         },
     );
     params.insert(
@@ -318,26 +320,26 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
         SoyBoyParameter {
             r#type: ParameterType::NonLinear,
             parameter: ParameterInfo {
-                non_linear: param.clone(),
+                non_linear: EG_TIME,
             },
             title: "Eg: Release".to_string(),
             short_title: "Release".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
-            default_value: param.normalize(0.1),
+            default_value: EG_TIME.normalize(0.1),
         },
     );
-    let param = LinearParameter { min: 0.0, max: 1.0 };
+    static EG_SUSTAIN: LinearParameter = LinearParameter { min: 0.0, max: 1.0 };
     params.insert(
         Parameter::EgSustain,
         SoyBoyParameter {
             r#type: ParameterType::Linear,
-            parameter: ParameterInfo { linear: param },
+            parameter: ParameterInfo { linear: EG_SUSTAIN },
             title: "Eg: Sustain".to_string(),
             short_title: "Sustain".to_string(),
             unit_name: "".to_string(),
             step_count: 0,
-            default_value: param.normalize(0.3),
+            default_value: EG_SUSTAIN.normalize(0.3),
         },
     );
 
