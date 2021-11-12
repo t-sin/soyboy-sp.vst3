@@ -1,3 +1,4 @@
+use crate::soyboy::parameters::{Parameter, Parametric};
 use crate::soyboy::types::AudioProcessor;
 use crate::soyboy::utils::{discrete_loudness, linear};
 
@@ -106,5 +107,17 @@ impl AudioProcessor<f64> for EnvelopeGenerator {
         self.elapsed_samples += 1;
 
         discrete_loudness(v)
+    }
+}
+
+impl Parametric<Parameter> for EnvelopeGenerator {
+    fn set_param(&mut self, param: &Parameter, value: f64) {
+        match param {
+            Parameter::EgAttack => self.attack_time = value,
+            Parameter::EgDecay => self.decay_time = value,
+            Parameter::EgSustain => self.sustain_val = value,
+            Parameter::EgRelease => self.release_time = value,
+            _ => (),
+        }
     }
 }

@@ -1,9 +1,7 @@
-use std::convert::TryFrom;
-
 use crate::soyboy::{
     envelope_generator::{EnvelopeGenerator, EnvelopeState},
     parameters::{Parameter, Parametric},
-    square_wave::{SquareWaveDuty, SquareWaveOscillator},
+    square_wave::SquareWaveOscillator,
     types::{AudioProcessor, Oscillator},
     utils::level,
 };
@@ -49,16 +47,11 @@ impl Parametric<Parameter> for SoyBoy {
     fn set_param(&mut self, param: &Parameter, value: f64) {
         match param {
             Parameter::MasterVolume => self.master_volume = value,
-            Parameter::EgAttack => self.envelope_gen.attack_time = value,
-            Parameter::EgDecay => self.envelope_gen.decay_time = value,
-            Parameter::EgSustain => self.envelope_gen.sustain_val = value,
-            Parameter::EgRelease => self.envelope_gen.release_time = value,
-            Parameter::OscSqDuty => {
-                if let Ok(ratio) = SquareWaveDuty::try_from(value as u32) {
-                    self.square_osc.set_duty(ratio);
-                } else {
-                }
-            }
+            Parameter::EgAttack => self.envelope_gen.set_param(param, value),
+            Parameter::EgDecay => self.envelope_gen.set_param(param, value),
+            Parameter::EgSustain => self.envelope_gen.set_param(param, value),
+            Parameter::EgRelease => self.envelope_gen.set_param(param, value),
+            Parameter::OscSqDuty => self.square_osc.set_param(param, value),
         }
     }
 }

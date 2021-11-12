@@ -1,6 +1,7 @@
 use std::convert::TryFrom;
 
 use crate::soyboy::{
+    parameters::{Parameter, Parametric},
     types::{i4, AudioProcessor, Oscillator},
     utils::{frequency_from_note_number, pulse},
 };
@@ -65,6 +66,21 @@ impl AudioProcessor<i4> for SquareWaveOscillator {
 
         self.phase += phase_diff;
         v
+    }
+}
+
+impl Parametric<Parameter> for SquareWaveOscillator {
+    fn set_param(&mut self, param: &Parameter, value: f64) {
+        match param {
+            Parameter::OscSqDuty => {
+                if let Ok(ratio) = SquareWaveDuty::try_from(value as u32) {
+                    self.set_duty(ratio);
+                } else {
+                    ()
+                }
+            }
+            _ => (),
+        }
     }
 }
 
