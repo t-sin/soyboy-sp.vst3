@@ -1,4 +1,5 @@
 #[allow(non_camel_case_types)]
+#[derive(Copy, Clone)]
 pub struct i4(i8);
 
 impl i4 {
@@ -20,13 +21,13 @@ impl i4 {
         self.0
     }
 
-// pub fn to_signal(&self) -> f64 {
-//     if self.0 < 0 {
-//         -(self.0 as f64 / i4::MIN.0 as f64)
-//     } else {
-//         self.0 as f64 / i4::MAX.0 as f64
-//     }
-// }
+    // pub fn to_signal(&self) -> f64 {
+    //     if self.0 < 0 {
+    //         -(self.0 as f64 / i4::MIN.0 as f64)
+    //     } else {
+    //         self.0 as f64 / i4::MAX.0 as f64
+    //     }
+    // }
 
     pub fn to_f64(&self) -> f64 {
         self.0 as f64
