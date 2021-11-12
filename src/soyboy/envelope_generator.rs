@@ -1,6 +1,8 @@
-use crate::soyboy::parameters::{Parameter, Parametric};
-use crate::soyboy::types::AudioProcessor;
-use crate::soyboy::utils::{discrete_loudness, linear};
+use crate::soyboy::{
+    parameters::{Parameter, Parametric},
+    types::AudioProcessor,
+    utils::{discrete_loudness, linear},
+};
 
 #[derive(Debug)]
 pub enum EnvelopeState {
