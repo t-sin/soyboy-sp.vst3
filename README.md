@@ -19,9 +19,9 @@ I want to do some chiptunes on GNU/Linux.
     - [x] envelope generator
         - [x] generate ADSR envelope
         - [x] make output 4-bit value
-    - [ ] noise oscillator
-        - [ ] oscillate with fixed period
-        - [ ] periods for random number generation
+    - [x] noise oscillator
+        - [x] oscillate with fixed period
+        - [x] periods for random number generation
     - [ ] wave table oscillator
         - ???
     - [ ] pitch bend
