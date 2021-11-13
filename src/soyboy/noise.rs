@@ -7,7 +7,7 @@ use crate::soyboy::{
 
 pub struct NoiseOscillator {
     velocity: f32,
-    interval_sec: f64,
+    interval_micro_sec: f64,
     sec_counter: f64,
     last_signal: i4,
 }
@@ -16,7 +16,7 @@ impl NoiseOscillator {
     pub fn new() -> Self {
         NoiseOscillator {
             velocity: 0.0,
-            interval_sec: 0.0001,
+            interval_micro_sec: 0.1,
             sec_counter: 0.0,
             last_signal: i4::new(0),
         }
@@ -25,7 +25,7 @@ impl NoiseOscillator {
 
 impl AudioProcessor<i4> for NoiseOscillator {
     fn process(&mut self, sample_rate: f64) -> i4 {
-        if self.sec_counter >= self.interval_sec {
+        if self.sec_counter >= self.interval_micro_sec / 1000_000.0 {
             let range = (i4::MAX_I8 - i4::MIN_I8) as f32;
             let v = ((random::<f32>() * range + i4::MIN_I8 as f32) * self.velocity) as i8;
             self.last_signal = i4::from(v);
@@ -40,7 +40,7 @@ impl AudioProcessor<i4> for NoiseOscillator {
 impl Parametric<Parameter> for NoiseOscillator {
     fn set_param(&mut self, param: &Parameter, value: f64) {
         match param {
-            Parameter::OscNsInterval => self.interval_sec = value,
+            Parameter::OscNsInterval => self.interval_micro_sec = value,
             _ => (),
         }
     }
