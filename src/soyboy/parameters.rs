@@ -303,11 +303,11 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
 
     // noise oscillator parameters
     static OSC_NS_INTERVAL: NonLinearParameter = NonLinearParameter {
-        plain_zero: 2.0,
-        plain_min: 4.0,
-        plain_max: 1000.0,
-        plain_one: 1000.0,
-        factor: 5.0,
+        plain_zero: 0.001,
+        plain_min: 0.002,
+        plain_max: 1.0,
+        plain_one: 1.0,
+        factor: 2.0,
         diverge: true,
     };
     params.insert(
@@ -319,9 +319,9 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             },
             title: "OscNs: Noise interval".to_string(),
             short_title: "Noise int".to_string(),
-            unit_name: "μs".to_string(),
+            unit_name: "ms".to_string(),
             step_count: 0,
-            default_value: OSC_NS_INTERVAL.normalize(50.0),
+            default_value: OSC_NS_INTERVAL.normalize(0.05),
         },
     );
 

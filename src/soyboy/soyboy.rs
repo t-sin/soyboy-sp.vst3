@@ -53,7 +53,7 @@ impl AudioProcessor<Signal> for SoyBoy {
 
         let env = self.envelope_gen.process(sample_rate);
 
-        let signal = osc * env * 0.4 * level(self.master_volume);
+        let signal = osc * env * 0.25 * level(self.master_volume);
         (signal, signal)
     }
 }
