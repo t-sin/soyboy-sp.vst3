@@ -263,7 +263,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             short_title: "Volume".to_string(),
             unit_name: "dB".to_string(),
             step_count: 0,
-            default_value: GLOBAL_MASTER_VOLUME.normalize(0.0),
+            default_value: GLOBAL_MASTER_VOLUME.normalize(-4.0),
         },
     );
     static SELECTED_OSCILATOR_LIST: [&str; 3] = ["Square", "Noise", "Wavetable"];
