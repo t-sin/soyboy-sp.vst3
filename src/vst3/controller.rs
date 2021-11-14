@@ -109,12 +109,12 @@ impl IEditController for SoyBoyController {
         let state: ComPtr<dyn IBStream> = ComPtr::new(state);
 
         let mut num_bytes_read = 0;
-        for param in self.soyboy_params.keys() {
+        for param in Parameter::iter() {
             let mut value = 0.0;
             let ptr = &mut value as *mut f64 as *mut c_void;
 
             state.read(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_read);
-            self.param_values.borrow_mut().insert(*param as u32, value);
+            self.param_values.borrow_mut().insert(param as u32, value);
         }
 
         kResultOk
@@ -129,8 +129,8 @@ impl IEditController for SoyBoyController {
         let state: ComPtr<dyn IBStream> = ComPtr::new(state);
 
         let mut num_bytes_written = 0;
-        for param in self.soyboy_params.keys() {
-            let id = *param as u32;
+        for param in Parameter::iter() {
+            let id = param as u32;
             if let Some(value) = self.param_values.borrow_mut().get_mut(&id) {
                 let ptr = &mut *value as *mut f64 as *mut c_void;
                 state.write(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_written);

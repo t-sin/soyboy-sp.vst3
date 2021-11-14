@@ -46,6 +46,33 @@ impl TryFrom<u32> for Parameter {
     }
 }
 
+pub struct ParamIter(u32);
+
+impl ParamIter {
+    pub fn new() -> ParamIter {
+        ParamIter(Parameter::MasterVolume as u32)
+    }
+}
+
+impl Iterator for ParamIter {
+    type Item = Parameter;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Ok(p) = Parameter::try_from(self.0) {
+            self.0 += 1;
+            Some(p)
+        } else {
+            None
+        }
+    }
+}
+
+impl Parameter {
+    pub fn iter() -> ParamIter {
+        ParamIter::new()
+    }
+}
+
 pub trait Parametric<Parameter> {
     fn set_param(&mut self, param: &Parameter, value: f64);
     fn get_param(&self, param: &Parameter) -> f64;

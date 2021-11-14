@@ -67,6 +67,15 @@ impl SoyBoyPlugin {
 
         let mut gb = SoyBoyPlugin::allocate(soyboy, params, audio_out, event_in);
 
+        {
+            let mut sb = gb.soyboy.borrow_mut();
+            for param in Parameter::iter() {
+                if let Some(sp) = gb.params.get(&param) {
+                    sb.set_param(&param, sp.default_value);
+                }
+            }
+        }
+
         gb.init_event_in();
         gb.init_audio_out();
 
@@ -195,13 +204,13 @@ impl IComponent for SoyBoyPlugin {
         let state: ComPtr<dyn IBStream> = ComPtr::new(state);
 
         let mut num_bytes_read = 0;
-        for param in self.params.keys() {
+        for param in Parameter::iter() {
             let mut value = 0.0;
             let ptr = &mut value as *mut f64 as *mut c_void;
 
             state.read(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_read);
             let mut soyboy = self.soyboy.borrow_mut();
-            soyboy.set_param(param, value);
+            soyboy.set_param(&param, value);
         }
 
         kResultOk
@@ -216,8 +225,8 @@ impl IComponent for SoyBoyPlugin {
         let state: ComPtr<dyn IBStream> = ComPtr::new(state);
 
         let mut num_bytes_written = 0;
-        for param in self.params.keys() {
-            let mut value = self.soyboy.borrow().get_param(param);
+        for param in Parameter::iter() {
+            let mut value = self.soyboy.borrow().get_param(&param);
             let ptr = &mut value as *mut f64 as *mut c_void;
             state.write(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_written);
         }
