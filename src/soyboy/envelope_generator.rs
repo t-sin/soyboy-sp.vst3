@@ -122,4 +122,14 @@ impl Parametric<Parameter> for EnvelopeGenerator {
             _ => (),
         }
     }
+
+    fn get_param(&self, param: &Parameter) -> f64 {
+        match param {
+            Parameter::EgAttack => self.attack,
+            Parameter::EgDecay => self.decay,
+            Parameter::EgSustain => self.sustain,
+            Parameter::EgRelease => self.release,
+            _ => 0.0,
+        }
+    }
 }

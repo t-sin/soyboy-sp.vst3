@@ -44,6 +44,13 @@ impl Parametric<Parameter> for NoiseOscillator {
             _ => (),
         }
     }
+
+    fn get_param(&self, param: &Parameter) -> f64 {
+        match param {
+            Parameter::OscNsInterval => self.interval_msec,
+            _ => 0.0,
+        }
+    }
 }
 
 impl Oscillator for NoiseOscillator {

@@ -11,6 +11,7 @@ use crate::soyboy::{
 
 pub type Signal = (f64, f64);
 
+#[derive(Copy, Clone)]
 enum OscillatorType {
     Square = 0,
     Noise,
@@ -98,6 +99,22 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::EgRelease => self.envelope_gen.set_param(param, value),
             Parameter::OscSqDuty => self.square_osc.set_param(param, value),
             Parameter::OscNsInterval => self.noise_osc.set_param(param, value),
+        }
+    }
+
+    fn get_param(&self, param: &Parameter) -> f64 {
+        match param {
+            Parameter::MasterVolume => self.master_volume,
+            Parameter::OscillatorType => {
+                let v = self.selected_osc as u32;
+                v.into()
+            }
+            Parameter::EgAttack => self.envelope_gen.get_param(param),
+            Parameter::EgDecay => self.envelope_gen.get_param(param),
+            Parameter::EgSustain => self.envelope_gen.get_param(param),
+            Parameter::EgRelease => self.envelope_gen.get_param(param),
+            Parameter::OscSqDuty => self.square_osc.get_param(param),
+            Parameter::OscNsInterval => self.noise_osc.get_param(param),
         }
     }
 }

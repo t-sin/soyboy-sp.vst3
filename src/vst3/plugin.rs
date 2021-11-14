@@ -1,18 +1,22 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::convert::TryFrom;
+use std::mem;
 
 use std::os::raw::c_void;
 
 use vst3_com::{sys::GUID, IID};
 use vst3_sys::{
-    base::{kInvalidArgument, kResultFalse, kResultOk, kResultTrue, tresult, IPluginBase, TBool},
+    base::{
+        kInvalidArgument, kResultFalse, kResultOk, kResultTrue, tresult, IBStream, IPluginBase,
+        TBool,
+    },
     vst::{
         AudioBusBuffers, BusDirections, BusFlags, BusInfo, BusTypes, EventTypes, IAudioProcessor,
         IComponent, IEventList, IParamValueQueue, IParameterChanges, MediaTypes, ProcessData,
         ProcessSetup, RoutingInfo, K_SAMPLE32, K_SAMPLE64,
     },
-    VST3,
+    ComPtr, VST3,
 };
 
 use crate::soyboy::{
@@ -182,11 +186,42 @@ impl IComponent for SoyBoyPlugin {
         kResultOk
     }
 
-    unsafe fn set_state(&self, _state: *mut c_void) -> tresult {
+    unsafe fn set_state(&self, state: *mut c_void) -> tresult {
+        if state.is_null() {
+            return kResultFalse;
+        }
+
+        let state = state as *mut *mut _;
+        let state: ComPtr<dyn IBStream> = ComPtr::new(state);
+
+        let mut num_bytes_read = 0;
+        for param in self.params.keys() {
+            let mut value = 0.0;
+            let ptr = &mut value as *mut f64 as *mut c_void;
+
+            state.read(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_read);
+            let mut soyboy = self.soyboy.borrow_mut();
+            soyboy.set_param(param, value);
+        }
+
         kResultOk
     }
 
-    unsafe fn get_state(&self, _state: *mut c_void) -> tresult {
+    unsafe fn get_state(&self, state: *mut c_void) -> tresult {
+        if state.is_null() {
+            return kResultFalse;
+        }
+
+        let state = state as *mut *mut _;
+        let state: ComPtr<dyn IBStream> = ComPtr::new(state);
+
+        let mut num_bytes_written = 0;
+        for param in self.params.keys() {
+            let mut value = self.soyboy.borrow().get_param(param);
+            let ptr = &mut value as *mut f64 as *mut c_void;
+            state.write(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_written);
+        }
+
         kResultOk
     }
 }

@@ -6,7 +6,7 @@ use crate::soyboy::{
     utils::{frequency_from_note_number, pulse},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum SquareWaveDuty {
     Ratio12_5 = 0,
     Ratio25,
@@ -82,6 +82,13 @@ impl Parametric<Parameter> for SquareWaveOscillator {
                 }
             }
             _ => (),
+        }
+    }
+
+    fn get_param(&self, param: &Parameter) -> f64 {
+        match param {
+            Parameter::OscSqDuty => (self.duty as u32).into(),
+            _ => 0.0,
         }
     }
 }
