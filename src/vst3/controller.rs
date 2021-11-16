@@ -96,11 +96,6 @@ impl IPluginBase for SoyBoyController {
 impl IEditController for SoyBoyController {
     unsafe fn set_component_state(&self, state: *mut c_void) -> tresult {
         println!("controller.set_component_state() called");
-        self.set_state(state)
-    }
-
-    unsafe fn set_state(&self, state: *mut c_void) -> tresult {
-        println!("controller.set_state() called");
         if state.is_null() {
             return kResultFalse;
         }
@@ -110,36 +105,28 @@ impl IEditController for SoyBoyController {
 
         let mut num_bytes_read = 0;
         for param in Parameter::iter() {
-            let mut value = 0.0;
-            let ptr = &mut value as *mut f64 as *mut c_void;
+            if let Some(p) = self.soyboy_params.get(&param) {
+                let mut value = 0.0;
+                let ptr = &mut value as *mut f64 as *mut c_void;
 
-            state.read(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_read);
-            self.param_values.borrow_mut().insert(param as u32, value);
-        }
+                state.read(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_read);
 
-        kResultOk
-    }
-
-    unsafe fn get_state(&self, state: *mut c_void) -> tresult {
-        println!("controller.get_state() called");
-        if state.is_null() {
-            return kResultFalse;
-        }
-
-        let state = state as *mut *mut _;
-        let state: ComPtr<dyn IBStream> = ComPtr::new(state);
-
-        let mut num_bytes_written = 0;
-        for param in Parameter::iter() {
-            let id = param as u32;
-            if let Some(value) = self.param_values.borrow_mut().get_mut(&id) {
-                let ptr = &mut *value as *mut f64 as *mut c_void;
-                state.write(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_written);
+                self.param_values
+                    .borrow_mut()
+                    .insert(param as u32, p.normalize(value));
             } else {
                 return kResultFalse;
             }
         }
 
+        kResultOk
+    }
+
+    unsafe fn set_state(&self, _state: *mut c_void) -> tresult {
+        kResultOk
+    }
+
+    unsafe fn get_state(&self, _state: *mut c_void) -> tresult {
         kResultOk
     }
 
