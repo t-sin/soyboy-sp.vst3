@@ -196,6 +196,7 @@ impl IComponent for SoyBoyPlugin {
     }
 
     unsafe fn set_state(&self, state: *mut c_void) -> tresult {
+        println!("[processor::set_state] called");
         if state.is_null() {
             return kResultFalse;
         }
@@ -217,6 +218,7 @@ impl IComponent for SoyBoyPlugin {
     }
 
     unsafe fn get_state(&self, state: *mut c_void) -> tresult {
+        println!("[processor::get_state] called");
         if state.is_null() {
             return kResultFalse;
         }

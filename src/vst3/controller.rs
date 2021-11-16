@@ -101,6 +101,7 @@ impl IEditController for SoyBoyController {
     }
 
     unsafe fn set_state(&self, state: *mut c_void) -> tresult {
+        println!("[controller::set_state] called");
         if state.is_null() {
             return kResultFalse;
         }
@@ -121,6 +122,7 @@ impl IEditController for SoyBoyController {
     }
 
     unsafe fn get_state(&self, state: *mut c_void) -> tresult {
+        println!("[controller::get_state] called");
         if state.is_null() {
             return kResultFalse;
         }
