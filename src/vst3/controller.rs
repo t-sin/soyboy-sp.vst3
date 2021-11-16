@@ -97,11 +97,12 @@ impl IPluginBase for SoyBoyController {
 
 impl IEditController for SoyBoyController {
     unsafe fn set_component_state(&self, state: *mut c_void) -> tresult {
+        println!("controller.set_component_state() called");
         self.set_state(state)
     }
 
     unsafe fn set_state(&self, state: *mut c_void) -> tresult {
-        println!("[controller::set_state] called");
+        println!("controller.set_state() called");
         if state.is_null() {
             return kResultFalse;
         }
@@ -122,7 +123,7 @@ impl IEditController for SoyBoyController {
     }
 
     unsafe fn get_state(&self, state: *mut c_void) -> tresult {
-        println!("[controller::get_state] called");
+        println!("controller.get_state() called");
         if state.is_null() {
             return kResultFalse;
         }
