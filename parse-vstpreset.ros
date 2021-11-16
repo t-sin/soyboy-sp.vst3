@@ -1,0 +1,45 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -Q -- $0 "$@"
+|#
+(progn ;;init forms
+  (ros:ensure-asdf)
+  #+quicklisp(ql:quickload '(:ieee-floats) :silent t)
+  )
+
+(defpackage :ros.script.parse-vstpreset.3846062542
+  (:use :cl))
+(in-package :ros.script.parse-vstpreset.3846062542)
+
+(defun parse-vstpreset (stream)
+  (unless (and (= (read-byte stream nil :eof) (char-code #\V))
+               (= (read-byte stream nil :eof) (char-code #\S))
+               (= (read-byte stream nil :eof) (char-code #\T))
+               (= (read-byte stream nil :eof) (char-code #\3)))
+    (error "not vstpreset"))
+  (dotimes (n 4)
+    (read-byte stream))
+  (dotimes (n 32)
+    (read-byte stream))
+  (let ((bytes 0))
+    (dotimes (n 8)
+      (setf bytes (logior bytes (ash (read-byte stream nil :eof) (* 8 n)))))
+    (dotimes (n (floor bytes 8))
+      (format t "n = ~a: float = ~s~%"
+              n (loop
+                  :named loop
+                  :with bytes := 0
+                  :for n :from 0 :below 8
+                  :do (setf bytes (logior bytes (ash (read-byte stream nil :eof) (* 8 n))))
+                  :finally (return-from loop (ieee-floats:decode-float64 bytes)))))))
+                  
+                  
+
+(defun main (&rest argv)
+  (declare (ignorable argv))
+  (with-open-file (in (first argv)
+                      :direction :input
+                      :element-type '(unsigned-byte 8))
+    (parse-vstpreset in)))
+;;; vim: set ft=lisp lisp:
