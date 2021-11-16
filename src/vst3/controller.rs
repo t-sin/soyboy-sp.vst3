@@ -36,7 +36,7 @@ impl SoyBoyController {
     };
 
     unsafe fn add_parameter(
-        &mut self,
+        &self,
         id: u32,
         title: &str,
         short_title: &str,
@@ -66,11 +66,15 @@ impl SoyBoyController {
         let vst3_params = RefCell::new(HashMap::new());
         let param_vals = RefCell::new(HashMap::new());
 
-        let mut controller = SoyBoyController::allocate(soyboy_params, vst3_params, param_vals);
+        SoyBoyController::allocate(soyboy_params, vst3_params, param_vals)
+    }
+}
 
-        let soyboy_params = controller.soyboy_params.clone();
+impl IPluginBase for SoyBoyController {
+    unsafe fn initialize(&self, _host_context: *mut c_void) -> tresult {
+        let soyboy_params = self.soyboy_params.clone();
         for (param, soyboy_param) in soyboy_params.iter() {
-            controller.add_parameter(
+            self.add_parameter(
                 *param as u32,
                 &soyboy_param.title,
                 &soyboy_param.short_title,
@@ -81,12 +85,6 @@ impl SoyBoyController {
             );
         }
 
-        controller
-    }
-}
-
-impl IPluginBase for SoyBoyController {
-    unsafe fn initialize(&self, _host_context: *mut c_void) -> tresult {
         kResultOk
     }
 
