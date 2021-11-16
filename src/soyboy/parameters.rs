@@ -291,7 +291,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             short_title: "Volume".to_string(),
             unit_name: "dB".to_string(),
             step_count: 0,
-            default_value: GLOBAL_MASTER_VOLUME.normalize(-4.0),
+            default_value: -4.0,
         },
     );
     static SELECTED_OSCILATOR_LIST: [&str; 3] = ["Square", "Noise", "Wavetable"];
@@ -349,7 +349,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             short_title: "Noise int".to_string(),
             unit_name: "ms".to_string(),
             step_count: 0,
-            default_value: OSC_NS_INTERVAL.normalize(0.05),
+            default_value: 0.05,
         },
     );
 
@@ -373,7 +373,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             short_title: "Attack".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
-            default_value: EG_TIME.normalize(0.08),
+            default_value: 0.08,
         },
     );
     params.insert(
@@ -387,7 +387,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             short_title: "Decay".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
-            default_value: EG_TIME.normalize(0.1),
+            default_value: 0.1,
         },
     );
     params.insert(
@@ -401,7 +401,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             short_title: "Release".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
-            default_value: EG_TIME.normalize(0.1),
+            default_value: 0.1,
         },
     );
     static EG_SUSTAIN: LinearParameter = LinearParameter { min: 0.0, max: 1.0 };
@@ -414,7 +414,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             short_title: "Sustain".to_string(),
             unit_name: "".to_string(),
             step_count: 0,
-            default_value: EG_SUSTAIN.normalize(0.3),
+            default_value: 0.3,
         },
     );
 
