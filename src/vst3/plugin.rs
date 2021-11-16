@@ -38,7 +38,7 @@ impl SoyBoyPlugin {
         data: plugin_data::VST3_CID,
     };
 
-    unsafe fn init_event_in(&mut self) {
+    unsafe fn init_event_in(&self) {
         let mut bus = self.event_in.borrow_mut();
 
         utils::wstrcpy("Event In", bus.name.as_mut_ptr());
@@ -49,7 +49,7 @@ impl SoyBoyPlugin {
         bus.flags = BusFlags::kDefaultActive as u32;
     }
 
-    unsafe fn init_audio_out(&mut self) {
+    unsafe fn init_audio_out(&self) {
         let mut bus = self.audio_out.borrow_mut();
 
         utils::wstrcpy("Audio Out", bus.name.as_mut_ptr());
@@ -65,21 +65,7 @@ impl SoyBoyPlugin {
         let audio_out = RefCell::new(utils::make_empty_bus_info());
         let event_in = RefCell::new(utils::make_empty_bus_info());
 
-        let mut gb = SoyBoyPlugin::allocate(soyboy, params, audio_out, event_in);
-
-        {
-            let mut sb = gb.soyboy.borrow_mut();
-            for param in Parameter::iter() {
-                if let Some(sp) = gb.params.get(&param) {
-                    sb.set_param(&param, sp.default_value);
-                }
-            }
-        }
-
-        gb.init_event_in();
-        gb.init_audio_out();
-
-        gb
+        SoyBoyPlugin::allocate(soyboy, params, audio_out, event_in)
     }
 
     pub fn bus_count(&self, media_type: MediaTypes, dir: BusDirections) -> i32 {
@@ -99,6 +85,16 @@ impl SoyBoyPlugin {
 
 impl IPluginBase for SoyBoyPlugin {
     unsafe fn initialize(&self, _host_context: *mut c_void) -> tresult {
+        let mut sb = self.soyboy.borrow_mut();
+        for param in Parameter::iter() {
+            if let Some(sp) = self.params.get(&param) {
+                sb.set_param(&param, sp.default_value);
+            }
+        }
+
+        self.init_event_in();
+        self.init_audio_out();
+
         kResultOk
     }
 
