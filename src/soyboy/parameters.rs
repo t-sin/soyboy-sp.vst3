@@ -315,10 +315,7 @@ impl Normalizable<f64> for SoyBoyParameter {
     }
 }
 
-pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
-    let mut params = HashMap::new();
-
-    // global parameters
+fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
     static GLOBAL_MASTER_VOLUME: NonLinearParameter = NonLinearParameter {
         plain_zero: -f64::INFINITY,
         plain_min: -110.0,
@@ -357,8 +354,9 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             default_value: 0.0,
         },
     );
+}
 
-    // square wave osciilator parameters
+pub fn make_square_oscillator_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
     static SQUARE_OSCILLATOR_DUTY_LIST: [&str; 3] = ["12.5%", "25%", "50%"];
     static OSC_SQ_DUTY: ListParameter = ListParameter {
         elements: &SQUARE_OSCILLATOR_DUTY_LIST,
@@ -423,8 +421,9 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             default_value: 0.0,
         },
     );
+}
 
-    // noise oscillator parameters
+pub fn make_noise_oscillator_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
     static OSC_NS_INTERVAL: NonLinearParameter = NonLinearParameter {
         plain_zero: 0.001,
         plain_min: 0.002,
@@ -447,8 +446,9 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             default_value: 0.05,
         },
     );
+}
 
-    // envelope generator parameters
+pub fn make_envelope_generator_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
     static EG_TIME: NonLinearParameter = NonLinearParameter {
         plain_zero: 0.00,
         plain_min: 0.01,
@@ -512,6 +512,17 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             default_value: 0.3,
         },
     );
+}
+
+pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
+    let mut params = HashMap::new();
+
+    make_global_parameters(&mut params);
+
+    make_square_oscillator_parameters(&mut params);
+    make_noise_oscillator_parameters(&mut params);
+
+    make_envelope_generator_parameters(&mut params);
 
     params
 }
