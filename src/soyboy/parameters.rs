@@ -192,7 +192,7 @@ pub struct ListParameter {
 
 impl Normalizable<f64> for ListParameter {
     fn denormalize(&self, normalized: f64) -> f64 {
-        (normalized * (self.elements.len() - 1) as f64) as f64
+        normalized * (self.elements.len() - 1) as f64
     }
 
     fn normalize(&self, plain: f64) -> f64 {
