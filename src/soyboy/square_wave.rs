@@ -35,7 +35,6 @@ impl TryFrom<u32> for SweepType {
 pub struct SweepOscillator {
     shadow_freq: f64,
     sweep_timer_sec: f64,
-    sweep_tri_sec: f64,
 
     clipped: bool,
     sweep_type: SweepType,
@@ -48,7 +47,6 @@ impl SweepOscillator {
         SweepOscillator {
             shadow_freq: 0.0,
             sweep_timer_sec: 0.0,
-            sweep_tri_sec: 0.0,
 
             clipped: false,
             sweep_type: SweepType::None,
