@@ -88,13 +88,13 @@ impl Parametric<Parameter> for SquareWaveOscillator {
     fn get_param(&self, param: &Parameter) -> f64 {
         match param {
             Parameter::OscSqDuty => (self.duty as u32).into(),
+            Parameter::OscSqSweepType => (self.sweep_type as u32).into(),
             _ => 0.0,
         }
     }
 }
 
 impl Oscillator for SquareWaveOscillator {
-    /// https://steinbergmedia.github.io/vst3_doc/vstinterfaces/structSteinberg_1_1Vst_1_1NoteOnEvent.html の pitch の項目
     fn set_pitch(&mut self, note: i16) {
         self.freq = frequency_from_note_number(note);
     }
