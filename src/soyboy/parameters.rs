@@ -307,7 +307,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             short_title: "Osc type".to_string(),
             unit_name: "".to_string(),
             step_count: (SELECTED_OSC.elements.len() - 1) as i32,
-            default_value: SELECTED_OSC.normalize(0.0),
+            default_value: 0.0,
         },
     );
 
@@ -325,7 +325,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             short_title: "Duty".to_string(),
             unit_name: "".to_string(),
             step_count: (OSC_SQ_DUTY.elements.len() - 1) as i32,
-            default_value: OSC_SQ_DUTY.normalize(2.0),
+            default_value: 2.0,
         },
     );
 
