@@ -16,6 +16,7 @@ pub enum Parameter {
     EgRelease,
     // square wave oscillator
     OscSqDuty,
+    OscSqSweepType,
     // noise oscillator
     OscNsInterval,
 }
@@ -326,6 +327,24 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             unit_name: "".to_string(),
             step_count: (OSC_SQ_DUTY.elements.len() - 1) as i32,
             default_value: 2.0,
+        },
+    );
+    static SQUARE_OSCILATOR_SWEEP_TYPE_LIST: [&str; 4] = ["None", "Up", "Down", "Tri"];
+    static OSC_SQ_SWEEP_TYPE: ListParameter = ListParameter {
+        elements: &SQUARE_OSCILATOR_SWEEP_TYPE_LIST,
+    };
+    params.insert(
+        Parameter::OscSqSweepType,
+        SoyBoyParameter {
+            r#type: ParameterType::List,
+            parameter: ParameterInfo {
+                list: OSC_SQ_SWEEP_TYPE,
+            },
+            title: "OscSq: Sweep Type".to_string(),
+            short_title: "Sweep Type".to_string(),
+            unit_name: "".to_string(),
+            step_count: (OSC_SQ_SWEEP_TYPE.elements.len() - 1) as i32,
+            default_value: 0.0,
         },
     );
 

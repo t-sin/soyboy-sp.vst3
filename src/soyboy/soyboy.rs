@@ -98,6 +98,7 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::EgSustain => self.envelope_gen.set_param(param, value),
             Parameter::EgRelease => self.envelope_gen.set_param(param, value),
             Parameter::OscSqDuty => self.square_osc.set_param(param, value),
+            Parameter::OscSqSweepType => self.square_osc.set_param(param, value),
             Parameter::OscNsInterval => self.noise_osc.set_param(param, value),
         }
     }
@@ -114,6 +115,7 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::EgSustain => self.envelope_gen.get_param(param),
             Parameter::EgRelease => self.envelope_gen.get_param(param),
             Parameter::OscSqDuty => self.square_osc.get_param(param),
+            Parameter::OscSqSweepType => self.square_osc.get_param(param),
             Parameter::OscNsInterval => self.noise_osc.get_param(param),
         }
     }

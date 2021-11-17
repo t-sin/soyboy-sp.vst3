@@ -39,11 +39,39 @@ impl SquareWaveDuty {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum SweepType {
+    None = 0,
+    Up,
+    Down,
+    Triangle,
+}
+
+impl TryFrom<u32> for SweepType {
+    type Error = ();
+
+    fn try_from(id: u32) -> Result<Self, Self::Error> {
+        if id == SweepType::None as u32 {
+            Ok(SweepType::None)
+        } else if id == SweepType::Up as u32 {
+            Ok(SweepType::Up)
+        } else if id == SweepType::Down as u32 {
+            Ok(SweepType::Down)
+        } else if id == SweepType::Triangle as u32 {
+            Ok(SweepType::Triangle)
+        } else {
+            Err(())
+        }
+    }
+}
+
 pub struct SquareWaveOscillator {
     phase: f64,
     velocity: f64,
     freq: f64,
+
     duty: SquareWaveDuty,
+    sweep_type: SweepType,
 }
 
 impl SquareWaveOscillator {
@@ -53,6 +81,7 @@ impl SquareWaveOscillator {
             velocity: 0.0,
             freq: 440.0,
             duty: SquareWaveDuty::Ratio50,
+            sweep_type: SweepType::None,
         }
     }
 
@@ -77,6 +106,13 @@ impl Parametric<Parameter> for SquareWaveOscillator {
             Parameter::OscSqDuty => {
                 if let Ok(ratio) = SquareWaveDuty::try_from(value as u32) {
                     self.set_duty(ratio);
+                } else {
+                    ()
+                }
+            }
+            Parameter::OscSqSweepType => {
+                if let Ok(sweep_type) = SweepType::try_from(value as u32) {
+                    self.sweep_type = sweep_type;
                 } else {
                     ()
                 }
