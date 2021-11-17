@@ -3,7 +3,7 @@ use std::convert::TryFrom;
 use crate::soyboy::{
     parameters::{Parameter, Parametric},
     types::{i4, AudioProcessor, Oscillator},
-    utils::{frequency_from_note_number, pulse},
+    utils::{frequency_from_note_number, level_from_velocity, pulse},
 };
 
 #[derive(Debug, Copy, Clone)]
@@ -41,7 +41,7 @@ impl SquareWaveDuty {
 
 pub struct SquareWaveOscillator {
     phase: f64,
-    velocity: f32,
+    velocity: f64,
     freq: f64,
     duty: SquareWaveDuty,
 }
@@ -67,7 +67,7 @@ impl AudioProcessor<i4> for SquareWaveOscillator {
         let v = pulse(self.phase, self.duty.to_ratio());
 
         self.phase += phase_diff;
-        i4::from((v.to_f64() * self.velocity as f64) as i8)
+        i4::from((v.to_f64() * level_from_velocity(self.velocity)) as i8)
     }
 }
 
@@ -102,6 +102,6 @@ impl Oscillator for SquareWaveOscillator {
     }
 
     fn set_velocity(&mut self, velocity: f32) {
-        self.velocity = velocity;
+        self.velocity = velocity as f64;
     }
 }
