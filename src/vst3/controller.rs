@@ -104,18 +104,11 @@ impl IEditController for SoyBoyController {
 
         let mut num_bytes_read = 0;
         for param in Parameter::iter() {
-            if let Some(p) = self.soyboy_params.get(&param) {
-                let mut value = 0.0;
-                let ptr = &mut value as *mut f64 as *mut c_void;
+            let mut value = 0.0;
+            let ptr = &mut value as *mut f64 as *mut c_void;
 
-                state.read(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_read);
-
-                self.param_values
-                    .borrow_mut()
-                    .insert(param as u32, p.normalize(value));
-            } else {
-                return kResultFalse;
-            }
+            state.read(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_read);
+            self.param_values.borrow_mut().insert(param as u32, value);
         }
 
         kResultOk

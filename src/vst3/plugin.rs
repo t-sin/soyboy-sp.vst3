@@ -201,12 +201,17 @@ impl IComponent for SoyBoyPlugin {
 
         let mut num_bytes_read = 0;
         for param in Parameter::iter() {
-            let mut value = 0.0;
-            let ptr = &mut value as *mut f64 as *mut c_void;
+            if let Some(p) = self.params.get(&param) {
+                let mut value = 0.0;
+                let ptr = &mut value as *mut f64 as *mut c_void;
 
-            state.read(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_read);
-            let mut soyboy = self.soyboy.borrow_mut();
-            soyboy.set_param(&param, value);
+                state.read(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_read);
+
+                let mut soyboy = self.soyboy.borrow_mut();
+                soyboy.set_param(&param, p.denormalize(value));
+            } else {
+                return kResultFalse;
+            }
         }
 
         kResultOk
@@ -222,9 +227,15 @@ impl IComponent for SoyBoyPlugin {
 
         let mut num_bytes_written = 0;
         for param in Parameter::iter() {
-            let mut value = self.soyboy.borrow().get_param(&param);
-            let ptr = &mut value as *mut f64 as *mut c_void;
-            state.write(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_written);
+            if let Some(p) = self.params.get(&param) {
+                let value = self.soyboy.borrow().get_param(&param);
+
+                let mut value = p.normalize(value);
+                let ptr = &mut value as *mut f64 as *mut c_void;
+                state.write(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_written);
+            } else {
+                return kResultFalse;
+            }
         }
 
         kResultOk
