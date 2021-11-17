@@ -86,7 +86,6 @@ impl SoyBoy {
 
 impl Parametric<Parameter> for SoyBoy {
     fn set_param(&mut self, param: &Parameter, value: f64) {
-        println!("param = {:?}, val = {}", param, value);
         match param {
             Parameter::MasterVolume => self.master_volume = value,
             Parameter::OscillatorType => {
