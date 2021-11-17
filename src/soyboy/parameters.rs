@@ -39,6 +39,8 @@ impl TryFrom<u32> for Parameter {
             Ok(Parameter::EgRelease)
         } else if id == Parameter::OscSqDuty as u32 {
             Ok(Parameter::OscSqDuty)
+        } else if id == Parameter::OscSqSweepType as u32 {
+            Ok(Parameter::OscSqSweepType)
         } else if id == Parameter::OscNsInterval as u32 {
             Ok(Parameter::OscNsInterval)
         } else {
