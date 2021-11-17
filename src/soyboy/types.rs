@@ -49,8 +49,3 @@ impl From<i8> for i4 {
 pub trait AudioProcessor<T> {
     fn process(&mut self, sample_rate: f64) -> T;
 }
-
-pub trait Oscillator {
-    fn set_pitch(&mut self, midi_note_number: u16);
-    fn set_velocity(&mut self, velocity: f64);
-}

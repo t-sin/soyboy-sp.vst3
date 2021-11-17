@@ -1,8 +1,9 @@
 use std::convert::TryFrom;
 
 use crate::soyboy::{
+    event::{Event, Triggered},
     parameters::{Parameter, Parametric},
-    types::{i4, AudioProcessor, Oscillator},
+    types::{i4, AudioProcessor},
     utils::{frequency_from_note_number, level_from_velocity, pulse},
 };
 
@@ -216,6 +217,21 @@ impl SquareWaveOscillator {
     }
 }
 
+impl Triggered for SquareWaveOscillator {
+    fn trigger(&mut self, event: &Event) {
+        match event {
+            Event::NoteOn { note, velocity } => {
+                self.freq = frequency_from_note_number(*note);
+
+                self.sweep.shadow_freq = self.freq;
+                self.sweep.clipped = false;
+                self.velocity = *velocity;
+            }
+            Event::NoteOff { note: _ } => {}
+        }
+    }
+}
+
 const SWEEP_TIMER_FREQUENCY: f64 = 128.0;
 
 impl AudioProcessor<i4> for SquareWaveOscillator {
@@ -265,17 +281,5 @@ impl Parametric<Parameter> for SquareWaveOscillator {
             Parameter::OscSqSweepPeriod => self.sweep.get_param(param),
             _ => 0.0,
         }
-    }
-}
-
-impl Oscillator for SquareWaveOscillator {
-    fn set_pitch(&mut self, note: u16) {
-        self.freq = frequency_from_note_number(note);
-        self.sweep.shadow_freq = self.freq;
-        self.sweep.clipped = false;
-    }
-
-    fn set_velocity(&mut self, velocity: f64) {
-        self.velocity = velocity;
     }
 }

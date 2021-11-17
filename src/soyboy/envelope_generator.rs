@@ -1,4 +1,5 @@
 use crate::soyboy::{
+    event::{Event, Triggered},
     parameters::{Parameter, Parametric},
     types::AudioProcessor,
     utils::{discrete_loudness, linear},
@@ -109,6 +110,18 @@ impl AudioProcessor<f64> for EnvelopeGenerator {
         self.elapsed_samples += 1;
 
         discrete_loudness(v)
+    }
+}
+
+impl Triggered for EnvelopeGenerator {
+    fn trigger(&mut self, event: &Event) {
+        match event {
+            Event::NoteOn {
+                note: _,
+                velocity: _,
+            } => self.set_state(EnvelopeState::Attack),
+            Event::NoteOff { note: _ } => self.set_state(EnvelopeState::Release),
+        }
     }
 }
 

@@ -1,12 +1,12 @@
 use std::convert::TryFrom;
 
 use crate::soyboy::{
-    envelope_generator::{EnvelopeGenerator, EnvelopeState},
+    envelope_generator::EnvelopeGenerator,
     event::{Event, Triggered},
     noise::NoiseOscillator,
     parameters::{Parameter, Parametric},
     square_wave::SquareWaveOscillator,
-    types::{AudioProcessor, Oscillator},
+    types::AudioProcessor,
     utils::level,
 };
 
@@ -75,16 +75,17 @@ impl SoyBoy {
 impl Triggered for SoyBoy {
     fn trigger(&mut self, event: &Event) {
         match event {
-            Event::NoteOn { note, velocity } => {
-                self.square_osc.set_pitch(*note);
-                self.square_osc.set_velocity(*velocity);
+            Event::NoteOn {
+                note: _,
+                velocity: _,
+            } => {
+                self.square_osc.trigger(event);
+                self.noise_osc.trigger(event);
 
-                self.noise_osc.set_velocity(*velocity);
-
-                self.envelope_gen.set_state(EnvelopeState::Attack);
+                self.envelope_gen.trigger(event);
             }
             Event::NoteOff { note: _ } => {
-                self.envelope_gen.set_state(EnvelopeState::Release);
+                self.envelope_gen.trigger(event);
             }
         }
     }
