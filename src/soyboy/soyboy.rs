@@ -2,6 +2,7 @@ use std::convert::TryFrom;
 
 use crate::soyboy::{
     envelope_generator::{EnvelopeGenerator, EnvelopeState},
+    event::{Event, Triggered},
     noise::NoiseOscillator,
     parameters::{Parameter, Parametric},
     square_wave::SquareWaveOscillator,
@@ -69,18 +70,23 @@ impl SoyBoy {
             selected_osc: OscillatorType::Square,
         }
     }
+}
 
-    pub fn note_on(&mut self, pitch: i16, velocity: f32) {
-        self.square_osc.set_pitch(pitch);
-        self.square_osc.set_velocity(velocity);
+impl Triggered for SoyBoy {
+    fn trigger(&mut self, event: &Event) {
+        match event {
+            Event::NoteOn { note, velocity } => {
+                self.square_osc.set_pitch(*note);
+                self.square_osc.set_velocity(*velocity);
 
-        self.noise_osc.set_velocity(velocity);
+                self.noise_osc.set_velocity(*velocity);
 
-        self.envelope_gen.set_state(EnvelopeState::Attack);
-    }
-
-    pub fn note_off(&mut self) {
-        self.envelope_gen.set_state(EnvelopeState::Release);
+                self.envelope_gen.set_state(EnvelopeState::Attack);
+            }
+            Event::NoteOff { note: _ } => {
+                self.envelope_gen.set_state(EnvelopeState::Release);
+            }
+        }
     }
 }
 

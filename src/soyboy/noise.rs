@@ -67,9 +67,9 @@ impl Parametric<Parameter> for NoiseOscillator {
 }
 
 impl Oscillator for NoiseOscillator {
-    fn set_pitch(&mut self, _note: i16) {}
+    fn set_pitch(&mut self, _note: u16) {}
 
-    fn set_velocity(&mut self, velocity: f32) {
-        self.velocity = velocity as f64;
+    fn set_velocity(&mut self, velocity: f64) {
+        self.velocity = velocity;
     }
 }

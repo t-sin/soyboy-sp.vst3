@@ -269,13 +269,13 @@ impl Parametric<Parameter> for SquareWaveOscillator {
 }
 
 impl Oscillator for SquareWaveOscillator {
-    fn set_pitch(&mut self, note: i16) {
+    fn set_pitch(&mut self, note: u16) {
         self.freq = frequency_from_note_number(note);
         self.sweep.shadow_freq = self.freq;
         self.sweep.clipped = false;
     }
 
-    fn set_velocity(&mut self, velocity: f32) {
-        self.velocity = velocity as f64;
+    fn set_velocity(&mut self, velocity: f64) {
+        self.velocity = velocity;
     }
 }

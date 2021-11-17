@@ -20,6 +20,7 @@ use vst3_sys::{
 };
 
 use crate::soyboy::{
+    event::{Event, Triggered},
     parameters::{Normalizable, Parameter, Parametric, SoyBoyParameter},
     AudioProcessor, SoyBoy,
 };
@@ -337,10 +338,13 @@ impl IAudioProcessor for SoyBoyPlugin {
                 if input_events.get_event(c, &mut e) == kResultOk {
                     let mut soyboy = self.soyboy.borrow_mut();
                     match utils::as_event_type(e.type_) {
-                        Some(EventTypes::kNoteOnEvent) => {
-                            soyboy.note_on(e.event.note_on.pitch, e.event.note_on.velocity)
-                        }
-                        Some(EventTypes::kNoteOffEvent) => soyboy.note_off(),
+                        Some(EventTypes::kNoteOnEvent) => soyboy.trigger(&Event::NoteOn {
+                            note: e.event.note_on.pitch as u16,
+                            velocity: e.event.note_on.velocity as f64,
+                        }),
+                        Some(EventTypes::kNoteOffEvent) => soyboy.trigger(&Event::NoteOff {
+                            note: e.event.note_off.pitch as u16,
+                        }),
                         Some(_) => (),
                         _ => (),
                     }
