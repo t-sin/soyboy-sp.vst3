@@ -17,7 +17,8 @@ pub enum Parameter {
     // square wave oscillator
     OscSqDuty,
     OscSqSweepType,
-    OscSqSweepSpeed,
+    OscSqSweepAmount,
+    OscSqSweepPeriod,
     // noise oscillator
     OscNsInterval,
 }
@@ -42,8 +43,10 @@ impl TryFrom<u32> for Parameter {
             Ok(Parameter::OscSqDuty)
         } else if id == Parameter::OscSqSweepType as u32 {
             Ok(Parameter::OscSqSweepType)
-        } else if id == Parameter::OscSqSweepSpeed as u32 {
-            Ok(Parameter::OscSqSweepSpeed)
+        } else if id == Parameter::OscSqSweepAmount as u32 {
+            Ok(Parameter::OscSqSweepAmount)
+        } else if id == Parameter::OscSqSweepPeriod as u32 {
+            Ok(Parameter::OscSqSweepPeriod)
         } else if id == Parameter::OscNsInterval as u32 {
             Ok(Parameter::OscNsInterval)
         } else {
@@ -390,18 +393,33 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             default_value: 0.0,
         },
     );
-    static OSC_SQ_SWEEP_SPEED: IntegerParameter = IntegerParameter { min: 0, max: 8 };
+    static OSC_SQ_SWEEP_AMOUNT: IntegerParameter = IntegerParameter { min: 0, max: 8 };
     params.insert(
-        Parameter::OscSqSweepSpeed,
+        Parameter::OscSqSweepAmount,
         SoyBoyParameter {
             r#type: ParameterType::Integer,
             parameter: ParameterInfo {
-                int: OSC_SQ_SWEEP_SPEED,
+                int: OSC_SQ_SWEEP_AMOUNT,
             },
-            title: "OscSq: Sweep Speed".to_string(),
-            short_title: "Sweep Speed".to_string(),
-            unit_name: "samples".to_string(),
-            step_count: OSC_SQ_SWEEP_SPEED.max - OSC_SQ_SWEEP_SPEED.min - 1,
+            title: "OscSq: Sweep Amount".to_string(),
+            short_title: "Sweep Amount".to_string(),
+            unit_name: "".to_string(),
+            step_count: OSC_SQ_SWEEP_AMOUNT.max - OSC_SQ_SWEEP_AMOUNT.min,
+            default_value: 0.0,
+        },
+    );
+    static OSC_SQ_SWEEP_PERIOD: IntegerParameter = IntegerParameter { min: 0, max: 8 };
+    params.insert(
+        Parameter::OscSqSweepPeriod,
+        SoyBoyParameter {
+            r#type: ParameterType::Integer,
+            parameter: ParameterInfo {
+                int: OSC_SQ_SWEEP_PERIOD,
+            },
+            title: "OscSq: Sweep period".to_string(),
+            short_title: "Sweep period".to_string(),
+            unit_name: "".to_string(),
+            step_count: OSC_SQ_SWEEP_PERIOD.max - OSC_SQ_SWEEP_PERIOD.min - 1,
             default_value: 0.0,
         },
     );
