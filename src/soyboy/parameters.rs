@@ -297,9 +297,9 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             default_value: -4.0,
         },
     );
-    static SELECTED_OSCILATOR_LIST: [&str; 3] = ["Square", "Noise", "Wavetable"];
+    static SELECTED_OSCILLATOR_LIST: [&str; 3] = ["Square", "Noise", "Wavetable"];
     static SELECTED_OSC: ListParameter = ListParameter {
-        elements: &SELECTED_OSCILATOR_LIST,
+        elements: &SELECTED_OSCILLATOR_LIST,
     };
     params.insert(
         Parameter::OscillatorType,
@@ -309,15 +309,15 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             title: "Osc type".to_string(),
             short_title: "Osc type".to_string(),
             unit_name: "".to_string(),
-            step_count: (SELECTED_OSC.elements.len() - 1) as i32,
+            step_count: (SELECTED_OSC.denormalize(1.0)) as i32,
             default_value: 0.0,
         },
     );
 
     // square wave osciilator parameters
-    static SQUARE_OSCILATOR_DUTY_LIST: [&str; 3] = ["12.5%", "25%", "50%"];
+    static SQUARE_OSCILLATOR_DUTY_LIST: [&str; 3] = ["12.5%", "25%", "50%"];
     static OSC_SQ_DUTY: ListParameter = ListParameter {
-        elements: &SQUARE_OSCILATOR_DUTY_LIST,
+        elements: &SQUARE_OSCILLATOR_DUTY_LIST,
     };
     params.insert(
         Parameter::OscSqDuty,
@@ -327,13 +327,13 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             title: "OscSq: Duty".to_string(),
             short_title: "Duty".to_string(),
             unit_name: "".to_string(),
-            step_count: (OSC_SQ_DUTY.elements.len() - 1) as i32,
+            step_count: (OSC_SQ_DUTY.denormalize(1.0)) as i32,
             default_value: 2.0,
         },
     );
-    static SQUARE_OSCILATOR_SWEEP_TYPE_LIST: [&str; 4] = ["None", "Up", "Down", "Tri"];
+    static SQUARE_OSCILLATOR_SWEEP_TYPE_LIST: [&str; 4] = ["None", "Up", "Down", "Tri"];
     static OSC_SQ_SWEEP_TYPE: ListParameter = ListParameter {
-        elements: &SQUARE_OSCILATOR_SWEEP_TYPE_LIST,
+        elements: &SQUARE_OSCILLATOR_SWEEP_TYPE_LIST,
     };
     params.insert(
         Parameter::OscSqSweepType,
