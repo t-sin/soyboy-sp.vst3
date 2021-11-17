@@ -29,6 +29,11 @@ pub fn level(decibel: f64) -> f64 {
     level
 }
 
+pub fn level_from_velocity(velocity: f64) -> f64 {
+    let level = velocity.powf(1.2);
+    level
+}
+
 pub fn linear_denormalize(v: f64, min: f64, max: f64) -> f64 {
     let range = max.abs() - min.abs();
     v * range + min
