@@ -33,7 +33,7 @@ pub fn level(decibel: f64) -> f64 {
 }
 
 pub fn level_from_velocity(velocity: f64) -> f64 {
-    let level = velocity.powf(1.2);
+    let level = 10.0f64.powf(velocity - 1.0);
     level
 }
 
