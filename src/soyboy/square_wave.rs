@@ -93,12 +93,10 @@ impl Parametric<Parameter> for SquareWaveOscillator {
     }
 }
 
-const NOTE_NUMBER_OF_440_HZ: u16 = 69;
-
 impl Oscillator for SquareWaveOscillator {
     /// https://steinbergmedia.github.io/vst3_doc/vstinterfaces/structSteinberg_1_1Vst_1_1NoteOnEvent.html の pitch の項目
     fn set_pitch(&mut self, note: i16) {
-        self.freq = frequency_from_note_number(note as u16, NOTE_NUMBER_OF_440_HZ);
+        self.freq = frequency_from_note_number(note);
     }
 
     fn set_velocity(&mut self, velocity: f32) {
