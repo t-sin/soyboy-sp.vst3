@@ -89,6 +89,7 @@ pub enum ParameterType {
     NonLinear,
     Linear,
     List,
+    Integer,
 }
 
 pub trait Normalizable<T> {
@@ -188,6 +189,38 @@ impl Normalizable<f64> for LinearParameter {
     }
 }
 
+#[derive(Clone, Copy)]
+pub struct IntegerParameter {
+    min: i32,
+    max: i32,
+}
+
+impl Normalizable<f64> for IntegerParameter {
+    fn denormalize(&self, normalized: f64) -> f64 {
+        utils::linear_denormalize(normalized, self.min as f64, self.max as f64) as i64 as f64
+    }
+
+    fn normalize(&self, plain: f64) -> f64 {
+        utils::linear_normalize(plain, self.min as f64, self.max as f64)
+    }
+
+    fn format(&self, normalized: f64) -> String {
+        format!("{:.2}", self.denormalize(normalized))
+    }
+
+    fn parse(&self, string: &str) -> Option<f64> {
+        if let Some(vs) = string.split(' ').nth(0) {
+            if let Ok(v) = vs.parse() {
+                Some(self.normalize(v))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+}
+
 #[derive(Copy, Clone)]
 pub struct ListParameter {
     elements: &'static [&'static str],
@@ -224,6 +257,7 @@ pub union ParameterInfo {
     pub non_linear: NonLinearParameter,
     pub linear: LinearParameter,
     pub list: ListParameter,
+    pub int: IntegerParameter,
 }
 
 #[derive(Clone)]
@@ -245,6 +279,7 @@ impl Normalizable<f64> for SoyBoyParameter {
             },
             ParameterType::Linear => unsafe { self.parameter.linear.denormalize(normalized) },
             ParameterType::List => unsafe { self.parameter.list.denormalize(normalized) },
+            ParameterType::Integer => unsafe { self.parameter.int.denormalize(normalized) },
         }
     }
 
@@ -253,6 +288,7 @@ impl Normalizable<f64> for SoyBoyParameter {
             ParameterType::NonLinear => unsafe { self.parameter.non_linear.normalize(plain) },
             ParameterType::Linear => unsafe { self.parameter.linear.normalize(plain) },
             ParameterType::List => unsafe { self.parameter.list.normalize(plain) },
+            ParameterType::Integer => unsafe { self.parameter.int.normalize(plain) },
         }
     }
 
@@ -261,6 +297,7 @@ impl Normalizable<f64> for SoyBoyParameter {
             ParameterType::NonLinear => unsafe { self.parameter.non_linear.format(normalized) },
             ParameterType::Linear => unsafe { self.parameter.linear.format(normalized) },
             ParameterType::List => unsafe { self.parameter.list.format(normalized) },
+            ParameterType::Integer => unsafe { self.parameter.int.format(normalized) },
         };
         format!("{} {}", s, self.unit_name)
     }
@@ -270,6 +307,7 @@ impl Normalizable<f64> for SoyBoyParameter {
             ParameterType::NonLinear => unsafe { self.parameter.non_linear.parse(string) },
             ParameterType::Linear => unsafe { self.parameter.linear.parse(string) },
             ParameterType::List => unsafe { self.parameter.list.parse(string) },
+            ParameterType::Integer => unsafe { self.parameter.int.parse(string) },
         }
     }
 }
@@ -352,26 +390,19 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             default_value: 0.0,
         },
     );
-    static OSC_SQ_SWEEP_SPEED: NonLinearParameter = NonLinearParameter {
-        plain_zero: 1.0,
-        plain_min: 1.0,
-        plain_max: 3000.0,
-        plain_one: 3000.0,
-        factor: 2.0,
-        diverge: true,
-    };
+    static OSC_SQ_SWEEP_SPEED: IntegerParameter = IntegerParameter { min: 0, max: 8 };
     params.insert(
         Parameter::OscSqSweepSpeed,
         SoyBoyParameter {
-            r#type: ParameterType::NonLinear,
+            r#type: ParameterType::Integer,
             parameter: ParameterInfo {
-                non_linear: OSC_SQ_SWEEP_SPEED,
+                int: OSC_SQ_SWEEP_SPEED,
             },
             title: "OscSq: Sweep Speed".to_string(),
             short_title: "Sweep Speed".to_string(),
             unit_name: "samples".to_string(),
-            step_count: 0,
-            default_value: 20.0,
+            step_count: OSC_SQ_SWEEP_SPEED.max - OSC_SQ_SWEEP_SPEED.min - 1,
+            default_value: 0.0,
         },
     );
 
