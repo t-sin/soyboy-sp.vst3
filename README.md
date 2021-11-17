@@ -12,10 +12,10 @@ I want to do some chiptunes on GNU/Linux.
     - [x] controllable parameters
     - [ ] Original GUI?
 - [ ] plugin features
-    - [ ] square wave osillator
+    - [x] square wave osillator
         - [x] oscillate with fixed duty ratio
         - [x] duty ratio parameter
-        - [ ] frequency sweep unit
+        - [x] frequency sweep unit
     - [x] envelope generator
         - [x] generate ADSR envelope
         - [x] make output 4-bit value
