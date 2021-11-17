@@ -72,6 +72,7 @@ pub struct SquareWaveOscillator {
 
     duty: SquareWaveDuty,
     sweep_type: SweepType,
+    sweep_speed: f64,
 }
 
 impl SquareWaveOscillator {
@@ -82,6 +83,7 @@ impl SquareWaveOscillator {
             freq: 440.0,
             duty: SquareWaveDuty::Ratio50,
             sweep_type: SweepType::None,
+            sweep_speed: 0.0,
         }
     }
 
@@ -117,6 +119,9 @@ impl Parametric<Parameter> for SquareWaveOscillator {
                     ()
                 }
             }
+            Parameter::OscSqSweepSpeed => {
+                self.sweep_speed = value;
+            }
             _ => (),
         }
     }
@@ -125,6 +130,7 @@ impl Parametric<Parameter> for SquareWaveOscillator {
         match param {
             Parameter::OscSqDuty => (self.duty as u32).into(),
             Parameter::OscSqSweepType => (self.sweep_type as u32).into(),
+            Parameter::OscSqSweepSpeed => self.sweep_speed,
             _ => 0.0,
         }
     }

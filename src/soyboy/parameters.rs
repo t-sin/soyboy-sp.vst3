@@ -4,7 +4,7 @@ use std::convert::TryFrom;
 
 use crate::soyboy::utils;
 
-#[derive(Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum Parameter {
     // global parameter
     MasterVolume = 0,
@@ -17,6 +17,7 @@ pub enum Parameter {
     // square wave oscillator
     OscSqDuty,
     OscSqSweepType,
+    OscSqSweepSpeed,
     // noise oscillator
     OscNsInterval,
 }
@@ -41,6 +42,8 @@ impl TryFrom<u32> for Parameter {
             Ok(Parameter::OscSqDuty)
         } else if id == Parameter::OscSqSweepType as u32 {
             Ok(Parameter::OscSqSweepType)
+        } else if id == Parameter::OscSqSweepSpeed as u32 {
+            Ok(Parameter::OscSqSweepSpeed)
         } else if id == Parameter::OscNsInterval as u32 {
             Ok(Parameter::OscNsInterval)
         } else {
@@ -347,6 +350,28 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             unit_name: "".to_string(),
             step_count: (OSC_SQ_SWEEP_TYPE.denormalize(1.0)) as i32,
             default_value: 0.0,
+        },
+    );
+    static OSC_SQ_SWEEP_SPEED: NonLinearParameter = NonLinearParameter {
+        plain_zero: 1.0,
+        plain_min: 1.0,
+        plain_max: 3000.0,
+        plain_one: 3000.0,
+        factor: 2.0,
+        diverge: true,
+    };
+    params.insert(
+        Parameter::OscSqSweepSpeed,
+        SoyBoyParameter {
+            r#type: ParameterType::NonLinear,
+            parameter: ParameterInfo {
+                non_linear: OSC_SQ_SWEEP_SPEED,
+            },
+            title: "OscSq: Sweep Speed".to_string(),
+            short_title: "Sweep Speed".to_string(),
+            unit_name: "samples".to_string(),
+            step_count: 0,
+            default_value: 20.0,
         },
     );
 

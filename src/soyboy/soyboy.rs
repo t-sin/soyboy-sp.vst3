@@ -86,6 +86,7 @@ impl SoyBoy {
 
 impl Parametric<Parameter> for SoyBoy {
     fn set_param(&mut self, param: &Parameter, value: f64) {
+        println!("param = {:?}, val = {}", param, value);
         match param {
             Parameter::MasterVolume => self.master_volume = value,
             Parameter::OscillatorType => {
@@ -99,6 +100,7 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::EgRelease => self.envelope_gen.set_param(param, value),
             Parameter::OscSqDuty => self.square_osc.set_param(param, value),
             Parameter::OscSqSweepType => self.square_osc.set_param(param, value),
+            Parameter::OscSqSweepSpeed => self.square_osc.set_param(param, value),
             Parameter::OscNsInterval => self.noise_osc.set_param(param, value),
         }
     }
@@ -116,6 +118,7 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::EgRelease => self.envelope_gen.get_param(param),
             Parameter::OscSqDuty => self.square_osc.get_param(param),
             Parameter::OscSqSweepType => self.square_osc.get_param(param),
+            Parameter::OscSqSweepSpeed => self.square_osc.get_param(param),
             Parameter::OscNsInterval => self.noise_osc.get_param(param),
         }
     }
