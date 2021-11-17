@@ -345,7 +345,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
             title: "OscSq: Sweep Type".to_string(),
             short_title: "Sweep Type".to_string(),
             unit_name: "".to_string(),
-            step_count: (OSC_SQ_SWEEP_TYPE.elements.len() - 1) as i32,
+            step_count: (OSC_SQ_SWEEP_TYPE.denormalize(1.0)) as i32,
             default_value: 0.0,
         },
     );
