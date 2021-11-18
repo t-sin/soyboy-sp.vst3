@@ -22,8 +22,9 @@ I want to do some chiptunes on GNU/Linux.
     - [x] noise oscillator
         - [x] oscillate with fixed period
         - [x] periods for random number generation
-    - [ ] wave table oscillator
-        - ???
+    - [x] wave table oscillator
+        - [x] oscillate with fixed table
+        - [x] modify wave table with index parameter
     - [x] pitch bend
     - [x] note velocity
     - [ ] note stutter (note delay)
