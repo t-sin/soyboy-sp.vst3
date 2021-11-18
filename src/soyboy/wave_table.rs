@@ -90,7 +90,7 @@ impl AudioProcessor<i4> for WaveTableOscillator {
     fn process(&mut self, sample_rate: f64) -> i4 {
         let v = self.table[self.phase as usize] * level_from_velocity(self.velocity);
 
-        let phase_diff = (self.freq / sample_rate) * WAVETABLE_SIZE_F64;
+        let phase_diff = ((self.freq * self.pitch) / sample_rate) * WAVETABLE_SIZE_F64;
         self.phase = (self.phase + phase_diff) % WAVETABLE_SIZE_F64;
 
         i4::from(v)
