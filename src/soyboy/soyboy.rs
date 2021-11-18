@@ -135,18 +135,19 @@ impl Parametric<Parameter> for SoyBoy {
 
 impl AudioProcessor<Signal> for SoyBoy {
     fn process(&mut self, sample_rate: f64) -> Signal {
-        let sq_osc = self.square_osc.process(sample_rate).to_f64();
-        let n_osc = self.noise_osc.process(sample_rate).to_f64();
-        let wt_osc = self.wavetable_osc.process(sample_rate).to_f64();
+        let sq_osc = self.square_osc.process(sample_rate);
+        let n_osc = self.noise_osc.process(sample_rate);
+        let wt_osc = self.wavetable_osc.process(sample_rate);
         let osc = match self.selected_osc {
             OscillatorType::Square => sq_osc,
             OscillatorType::Noise => n_osc,
             OscillatorType::WaveTable => wt_osc,
         };
-
         let env = self.envelope_gen.process(sample_rate);
 
-        let signal = osc * env * 0.25 * level(self.master_volume);
-        (signal, signal)
+        static VOLUME: f64 = 0.25;
+        let v = osc * env * VOLUME * level(self.master_volume);
+        let v: f64 = v.into();
+        (v, v)
     }
 }

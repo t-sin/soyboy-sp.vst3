@@ -13,10 +13,11 @@ pub fn discrete_loudness(x: f64) -> f64 {
 
 pub fn pulse(phase: f64, duty: f64) -> i4 {
     let ph = phase % 1.0;
+
     if ph < duty {
-        i4::MIN
+        i4::from(i4::min())
     } else {
-        i4::MAX
+        i4::from(i4::max())
     }
 }
 

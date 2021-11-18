@@ -19,10 +19,11 @@ pub struct WaveTableOscillator {
 
 impl WaveTableOscillator {
     pub fn new() -> Self {
-        let mut table = [i4::ZERO; WAVETABLE_SIZE];
+        let mut table = [i4::from(0.0); WAVETABLE_SIZE];
         let mut phase: f64 = 0.0;
-        for v in table.iter_mut() {
-            *v = i4::from(((phase * 2.0 * std::f64::consts::PI).sin() * i4::MAX_I8 as f64) as i8);
+        for e in table.iter_mut() {
+            let v = (phase * 2.0 * std::f64::consts::PI).sin() * i4::max();
+            *e = i4::from(v);
             phase += 1.0 / WAVETABLE_SIZE as f64;
         }
 
@@ -61,12 +62,11 @@ impl Parametric<Parameter> for WaveTableOscillator {
 
 impl AudioProcessor<i4> for WaveTableOscillator {
     fn process(&mut self, sample_rate: f64) -> i4 {
-        let signal = self.table[self.phase as usize];
-        let signal = i4::from((signal.to_i8() as f64 * level_from_velocity(self.velocity)) as i8);
+        let v = self.table[self.phase as usize] * level_from_velocity(self.velocity);
 
         let phase_diff = (self.freq / sample_rate) * WAVETABLE_SIZE_F64;
         self.phase = (self.phase + phase_diff) % WAVETABLE_SIZE_F64;
 
-        signal
+        i4::from(v)
     }
 }

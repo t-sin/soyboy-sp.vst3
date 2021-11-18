@@ -1,48 +1,68 @@
+use std::ops::{Add, Mul};
+
 #[allow(non_camel_case_types)]
-#[derive(Copy, Clone)]
-pub struct i4(i8);
+#[derive(Copy, Clone, Debug)]
+pub struct i4(f64);
 
 impl i4 {
-    pub const MIN_I8: i8 = -0x08;
-    pub const MAX_I8: i8 = 0x07;
-    #[allow(dead_code)]
-    pub const ZERO_I8: i8 = 0x00;
-    pub const MIN: i4 = i4(i4::MIN_I8);
-    pub const MAX: i4 = i4(i4::MAX_I8);
-    #[allow(dead_code)]
-    pub const ZERO: i4 = i4(i4::ZERO_I8);
-
-    pub fn new(v: i8) -> i4 {
-        i4(v)
+    pub fn zero() -> f64 {
+        0.0
     }
 
-    #[allow(dead_code)]
-    pub fn to_i8(&self) -> i8 {
-        self.0
+    pub fn min() -> f64 {
+        1.0 - i4::max()
     }
 
-    // pub fn to_signal(&self) -> f64 {
-    //     if self.0 < 0 {
-    //         -(self.0 as f64 / i4::MIN.0 as f64)
-    //     } else {
-    //         self.0 as f64 / i4::MAX.0 as f64
-    //     }
-    // }
+    pub fn max() -> f64 {
+        2.0_f64.powf(4.0)
+    }
 
-    pub fn to_f64(&self) -> f64 {
-        self.0 as f64
+    pub fn range() -> f64 {
+        i4::min().abs() + i4::max().abs()
     }
 }
 
-impl From<i8> for i4 {
-    fn from(v: i8) -> i4 {
-        if v < i4::MIN_I8 {
-            i4::MIN
-        } else if v > i4::MAX_I8 {
-            i4::MAX
+impl From<f64> for i4 {
+    fn from(v: f64) -> Self {
+        let min = i4::min();
+        let max = i4::max();
+
+        let v = if v < min {
+            min
+        } else if v > max {
+            max
         } else {
-            i4::new(v)
-        }
+            v.trunc()
+        };
+
+        i4(v)
+    }
+}
+
+impl From<i4> for f64 {
+    fn from(src: i4) -> f64 {
+        src.0
+    }
+}
+
+impl Add<i4> for i4 {
+    type Output = Self;
+    fn add(self, other: Self) -> Self::Output {
+        i4(self.0 + other.0)
+    }
+}
+
+impl Mul<i4> for i4 {
+    type Output = Self;
+    fn mul(self, other: Self) -> Self::Output {
+        i4(self.0 * other.0)
+    }
+}
+
+impl Mul<f64> for i4 {
+    type Output = Self;
+    fn mul(self, other: f64) -> Self::Output {
+        i4(self.0 * other)
     }
 }
 

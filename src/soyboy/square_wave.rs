@@ -242,10 +242,10 @@ const SWEEP_TIMER_FREQUENCY: f64 = 128.0;
 impl AudioProcessor<i4> for SquareWaveOscillator {
     fn process(&mut self, sample_rate: f64) -> i4 {
         let signal = if self.freq == 0.0 {
-            i4::ZERO
+            i4::from(i4::zero())
         } else {
-            let signal = pulse(self.phase, self.duty.to_ratio());
-            i4::from((signal.to_i8() as f64 * level_from_velocity(self.velocity)) as i8)
+            let v = pulse(self.phase, self.duty.to_ratio());
+            v * level_from_velocity(self.velocity)
         };
 
         if self.sweep.clipped {

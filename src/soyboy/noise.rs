@@ -13,17 +13,15 @@ pub struct NoiseOscillator {
     velocity: f64,
     interval_msec: f64,
     sec_counter: f64,
-    table: [i8; TABLE_SIZE],
+    table: [i4; TABLE_SIZE],
     table_index: usize,
 }
 
 impl NoiseOscillator {
     pub fn new() -> Self {
-        let mut table = [0; TABLE_SIZE];
-        for idx in 0..table.len() {
-            let range = (i4::MAX_I8 - i4::MIN_I8) as f64;
-            let v = (random::<f64>() * range + i4::MIN_I8 as f64) as i8;
-            table[idx] = v;
+        let mut table = [i4::from(0.0); TABLE_SIZE];
+        for v in table.iter_mut() {
+            *v = i4::from(i4::range() * random::<f64>() - i4::min().abs());
         }
 
         NoiseOscillator {
@@ -42,11 +40,9 @@ impl AudioProcessor<i4> for NoiseOscillator {
             self.table_index = (self.table_index + 1) % self.table.len();
             self.sec_counter = 0.0;
         }
-
         self.sec_counter += 1.0 / sample_rate;
 
-        let v =
-            (self.table[self.table_index] as f64 * utils::level_from_velocity(self.velocity)) as i8;
+        let v = self.table[self.table_index] * utils::level_from_velocity(self.velocity);
         i4::from(v)
     }
 }
