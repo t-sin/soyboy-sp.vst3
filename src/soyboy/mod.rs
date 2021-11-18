@@ -4,6 +4,7 @@ mod soyboy;
 mod square_wave;
 mod types;
 mod utils;
+mod wave_table;
 
 pub mod event;
 pub mod parameters;

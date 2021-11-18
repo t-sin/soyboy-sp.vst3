@@ -8,6 +8,7 @@ use crate::soyboy::{
     square_wave::SquareWaveOscillator,
     types::AudioProcessor,
     utils::{level, ratio_from_cents},
+    wave_table::WaveTableOscillator,
 };
 
 pub type Signal = (f64, f64);
@@ -38,6 +39,7 @@ impl TryFrom<u32> for OscillatorType {
 pub struct SoyBoy {
     square_osc: SquareWaveOscillator,
     noise_osc: NoiseOscillator,
+    wavetable_osc: WaveTableOscillator,
     envelope_gen: EnvelopeGenerator,
 
     master_volume: f64,
@@ -50,6 +52,7 @@ impl SoyBoy {
         SoyBoy {
             square_osc: SquareWaveOscillator::new(),
             noise_osc: NoiseOscillator::new(),
+            wavetable_osc: WaveTableOscillator::new(),
             envelope_gen: EnvelopeGenerator::new(),
 
             master_volume: 1.0,
@@ -132,10 +135,11 @@ impl AudioProcessor<Signal> for SoyBoy {
     fn process(&mut self, sample_rate: f64) -> Signal {
         let sq_osc = self.square_osc.process(sample_rate).to_f64();
         let n_osc = self.noise_osc.process(sample_rate).to_f64();
+        let wt_osc = self.wavetable_osc.process(sample_rate).to_f64();
         let osc = match self.selected_osc {
             OscillatorType::Square => sq_osc,
             OscillatorType::Noise => n_osc,
-            OscillatorType::WaveTable => 0.0,
+            OscillatorType::WaveTable => wt_osc,
         };
 
         let env = self.envelope_gen.process(sample_rate);
