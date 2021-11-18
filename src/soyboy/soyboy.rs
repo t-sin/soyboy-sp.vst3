@@ -39,7 +39,9 @@ pub struct SoyBoy {
     square_osc: SquareWaveOscillator,
     noise_osc: NoiseOscillator,
     envelope_gen: EnvelopeGenerator,
+
     master_volume: f64,
+    pitch: i16,
     selected_osc: OscillatorType,
 }
 
@@ -66,7 +68,9 @@ impl SoyBoy {
             square_osc: SquareWaveOscillator::new(),
             noise_osc: NoiseOscillator::new(),
             envelope_gen: EnvelopeGenerator::new(),
+
             master_volume: 1.0,
+            pitch: 0,
             selected_osc: OscillatorType::Square,
         }
     }
@@ -95,6 +99,7 @@ impl Parametric<Parameter> for SoyBoy {
     fn set_param(&mut self, param: &Parameter, value: f64) {
         match param {
             Parameter::MasterVolume => self.master_volume = value,
+            Parameter::Pitch => self.pitch = value as i16,
             Parameter::OscillatorType => {
                 if let Ok(r#type) = OscillatorType::try_from(value as u32) {
                     self.selected_osc = r#type
@@ -115,6 +120,7 @@ impl Parametric<Parameter> for SoyBoy {
     fn get_param(&self, param: &Parameter) -> f64 {
         match param {
             Parameter::MasterVolume => self.master_volume,
+            Parameter::Pitch => self.pitch as f64,
             Parameter::OscillatorType => {
                 let v = self.selected_osc as u32;
                 v.into()

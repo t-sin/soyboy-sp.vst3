@@ -8,6 +8,7 @@ use crate::soyboy::utils;
 pub enum Parameter {
     // global parameter
     MasterVolume = 0,
+    Pitch,
     OscillatorType,
     // envelope generator
     EgAttack,
@@ -31,6 +32,8 @@ impl TryFrom<u32> for Parameter {
             Ok(Parameter::MasterVolume)
         } else if id == Parameter::OscillatorType as u32 {
             Ok(Parameter::OscillatorType)
+        } else if id == Parameter::Pitch as u32 {
+            Ok(Parameter::Pitch)
         } else if id == Parameter::EgAttack as u32 {
             Ok(Parameter::EgAttack)
         } else if id == Parameter::EgDecay as u32 {
@@ -338,6 +341,24 @@ fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
             default_value: -4.0,
         },
     );
+
+    static GLOBAL_PITCH: IntegerParameter = IntegerParameter {
+        min: -200,
+        max: 200,
+    };
+    params.insert(
+        Parameter::Pitch,
+        SoyBoyParameter {
+            r#type: ParameterType::Integer,
+            parameter: ParameterInfo { int: GLOBAL_PITCH },
+            title: "Pitch".to_string(),
+            short_title: "Pitch".to_string(),
+            unit_name: "cent".to_string(),
+            step_count: GLOBAL_PITCH.max.abs() + GLOBAL_PITCH.min.abs(),
+            default_value: 0.0,
+        },
+    );
+
     static SELECTED_OSCILLATOR_LIST: [&str; 3] = ["Square", "Noise", "Wavetable"];
     static SELECTED_OSC: ListParameter = ListParameter {
         elements: &SELECTED_OSCILLATOR_LIST,
