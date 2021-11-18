@@ -9,7 +9,7 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::soyboy::{parameters, SoyBoy};
+use crate::soyboy::parameters;
 use crate::vst3::{
     controller::SoyBoyController,
     plugin::SoyBoyPlugin,
@@ -93,8 +93,7 @@ impl IPluginFactory for SoyBoyPluginFactory {
 
         match iid {
             SoyBoyPlugin::CID => {
-                let soyboy = SoyBoy::new();
-                let ptr = Box::into_raw(SoyBoyPlugin::new(soyboy, param_info)) as *mut c_void;
+                let ptr = Box::into_raw(SoyBoyPlugin::new(param_info)) as *mut c_void;
                 *obj = ptr;
 
                 kResultOk

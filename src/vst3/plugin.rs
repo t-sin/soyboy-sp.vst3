@@ -61,8 +61,8 @@ impl SoyBoyPlugin {
         bus.flags = BusFlags::kDefaultActive as u32;
     }
 
-    pub unsafe fn new(soyboy: SoyBoy, params: HashMap<Parameter, SoyBoyParameter>) -> Box<Self> {
-        let soyboy = RefCell::new(soyboy);
+    pub unsafe fn new(params: HashMap<Parameter, SoyBoyParameter>) -> Box<Self> {
+        let soyboy = RefCell::new(SoyBoy::new());
         let audio_out = RefCell::new(utils::make_empty_bus_info());
         let event_in = RefCell::new(utils::make_empty_bus_info());
 
