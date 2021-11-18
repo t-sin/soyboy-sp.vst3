@@ -38,12 +38,12 @@ pub fn level_from_velocity(velocity: f64) -> f64 {
 }
 
 pub fn linear_denormalize(v: f64, min: f64, max: f64) -> f64 {
-    let range = max.abs() - min.abs();
+    let range = max.abs() + min.abs();
     v * range + min
 }
 
 pub fn linear_normalize(x: f64, min: f64, max: f64) -> f64 {
-    let range = max.abs() - min.abs();
+    let range = max.abs() + min.abs();
     (x - min) / range
 }
 
