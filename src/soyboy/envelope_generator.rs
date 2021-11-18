@@ -121,6 +121,7 @@ impl Triggered for EnvelopeGenerator {
                 velocity: _,
             } => self.set_state(EnvelopeState::Attack),
             Event::NoteOff { note: _ } => self.set_state(EnvelopeState::Release),
+            _ => (),
         }
     }
 }

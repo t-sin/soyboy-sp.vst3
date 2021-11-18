@@ -195,9 +195,10 @@ pub struct SquareWaveOscillator {
     phase: f64,
     velocity: f64,
     freq: f64,
-    sweep: SweepOscillator,
 
     duty: SquareWaveDuty,
+    sweep: SweepOscillator,
+    pitch: f64,
 }
 
 impl SquareWaveOscillator {
@@ -209,6 +210,7 @@ impl SquareWaveOscillator {
 
             duty: SquareWaveDuty::Ratio50,
             sweep: SweepOscillator::new(),
+            pitch: 0.0,
         }
     }
 
@@ -228,6 +230,9 @@ impl Triggered for SquareWaveOscillator {
                 self.velocity = *velocity;
             }
             Event::NoteOff { note: _ } => {}
+            Event::PitchBend { ratio } => {
+                self.pitch = *ratio;
+            }
         }
     }
 }
@@ -249,7 +254,7 @@ impl AudioProcessor<i4> for SquareWaveOscillator {
             self.freq += self.sweep.process(sample_rate);
         }
 
-        let phase_diff = self.freq / sample_rate;
+        let phase_diff = (self.freq * self.pitch) / sample_rate;
         self.phase += phase_diff;
 
         signal

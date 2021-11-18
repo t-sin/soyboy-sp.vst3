@@ -7,7 +7,7 @@ use crate::soyboy::{
     parameters::{Parameter, Parametric},
     square_wave::SquareWaveOscillator,
     types::AudioProcessor,
-    utils::level,
+    utils::{level, ratio_from_cents},
 };
 
 pub type Signal = (f64, f64);
@@ -91,6 +91,9 @@ impl Triggered for SoyBoy {
             Event::NoteOff { note: _ } => {
                 self.envelope_gen.trigger(event);
             }
+            Event::PitchBend { ratio: _ } => {
+                self.square_osc.trigger(event);
+            }
         }
     }
 }
@@ -99,7 +102,11 @@ impl Parametric<Parameter> for SoyBoy {
     fn set_param(&mut self, param: &Parameter, value: f64) {
         match param {
             Parameter::MasterVolume => self.master_volume = value,
-            Parameter::Pitch => self.pitch = value as i16,
+            Parameter::Pitch => {
+                self.pitch = value as i16;
+                let ratio = ratio_from_cents(self.pitch);
+                self.trigger(&Event::PitchBend { ratio: ratio });
+            }
             Parameter::OscillatorType => {
                 if let Ok(r#type) = OscillatorType::try_from(value as u32) {
                     self.selected_osc = r#type

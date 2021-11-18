@@ -27,6 +27,10 @@ pub fn frequency_from_note_number(note_num: u16) -> f64 {
     440.0 * 2.0_f64.powf((note_num as i16 - NOTE_NUMBER_OF_440_HZ) as f64 / 12.0)
 }
 
+pub fn ratio_from_cents(cents: i16) -> f64 {
+    2.0f64.powf(cents as f64 / 1200.0)
+}
+
 pub fn level(decibel: f64) -> f64 {
     let level = 10.0f64.powf(decibel / 10.0);
     level
