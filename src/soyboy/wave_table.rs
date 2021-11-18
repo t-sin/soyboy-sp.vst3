@@ -1,3 +1,5 @@
+use rand::prelude::*;
+
 use crate::soyboy::{
     event::{Event, Triggered},
     parameters::{Parameter, Parametric},
@@ -19,21 +21,32 @@ pub struct WaveTableOscillator {
 
 impl WaveTableOscillator {
     pub fn new() -> Self {
-        let mut table = [i4::from(0.0); WAVETABLE_SIZE];
-        let mut phase: f64 = 0.0;
-        for e in table.iter_mut() {
-            let v = (phase * 2.0 * std::f64::consts::PI).sin() * i4::max();
-            *e = i4::from(v);
-            phase += 1.0 / WAVETABLE_SIZE as f64;
-        }
-
-        WaveTableOscillator {
+        let mut osc = WaveTableOscillator {
             phase: 0.0,
             freq: 0.0,
             pitch: 0.0,
             velocity: 0.0,
 
-            table: table,
+            table: [i4::from(0.0); WAVETABLE_SIZE],
+        };
+
+        osc.initialize_table();
+        osc
+    }
+
+    fn randomize_table(&mut self) {
+        for e in self.table.iter_mut() {
+            let v = random::<f64>() * i4::max();
+            *e = i4::from(v);
+        }
+    }
+
+    fn initialize_table(&mut self) {
+        let mut phase: f64 = 0.0;
+        for e in self.table.iter_mut() {
+            let v = (phase * 2.0 * std::f64::consts::PI).sin() * i4::max();
+            *e = i4::from(v);
+            phase += 1.0 / WAVETABLE_SIZE as f64;
         }
     }
 }
