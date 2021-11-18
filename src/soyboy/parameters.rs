@@ -22,6 +22,9 @@ pub enum Parameter {
     OscSqSweepPeriod,
     // noise oscillator
     OscNsInterval,
+    // wavetable oscillator
+    OscWtTableIndex,
+    OscWtTableValue,
 }
 
 impl TryFrom<u32> for Parameter {
@@ -52,6 +55,10 @@ impl TryFrom<u32> for Parameter {
             Ok(Parameter::OscSqSweepPeriod)
         } else if id == Parameter::OscNsInterval as u32 {
             Ok(Parameter::OscNsInterval)
+        } else if id == Parameter::OscWtTableIndex as u32 {
+            Ok(Parameter::OscWtTableIndex)
+        } else if id == Parameter::OscWtTableValue as u32 {
+            Ok(Parameter::OscWtTableValue)
         } else {
             Err(())
         }
@@ -469,6 +476,40 @@ pub fn make_noise_oscillator_parameters(params: &mut HashMap<Parameter, SoyBoyPa
     );
 }
 
+pub fn make_wavetable_oscillator_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
+    static OSC_WT_TABLE_INDEX: IntegerParameter = IntegerParameter { min: 0, max: 31 };
+    params.insert(
+        Parameter::OscWtTableIndex,
+        SoyBoyParameter {
+            r#type: ParameterType::Integer,
+            parameter: ParameterInfo {
+                int: OSC_WT_TABLE_INDEX,
+            },
+            title: "OscWt: Table index".to_string(),
+            short_title: "Table index".to_string(),
+            unit_name: "".to_string(),
+            step_count: OSC_WT_TABLE_INDEX.max - OSC_WT_TABLE_INDEX.min - 1,
+            default_value: 0.0,
+        },
+    );
+
+    static OSC_WT_TABLE_VALUE: IntegerParameter = IntegerParameter { min: -15, max: 16 };
+    params.insert(
+        Parameter::OscWtTableValue,
+        SoyBoyParameter {
+            r#type: ParameterType::Integer,
+            parameter: ParameterInfo {
+                int: OSC_WT_TABLE_VALUE,
+            },
+            title: "OscWt: Table value".to_string(),
+            short_title: "Table value".to_string(),
+            unit_name: "".to_string(),
+            step_count: OSC_WT_TABLE_VALUE.max - OSC_WT_TABLE_VALUE.min - 1,
+            default_value: 0.0,
+        },
+    );
+}
+
 pub fn make_envelope_generator_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
     static EG_TIME: NonLinearParameter = NonLinearParameter {
         plain_zero: 0.00,
@@ -542,6 +583,7 @@ pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
 
     make_square_oscillator_parameters(&mut params);
     make_noise_oscillator_parameters(&mut params);
+    make_wavetable_oscillator_parameters(&mut params);
 
     make_envelope_generator_parameters(&mut params);
 

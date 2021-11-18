@@ -109,6 +109,8 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::OscSqSweepAmount => self.square_osc.set_param(param, value),
             Parameter::OscSqSweepPeriod => self.square_osc.set_param(param, value),
             Parameter::OscNsInterval => self.noise_osc.set_param(param, value),
+            Parameter::OscWtTableIndex => self.wavetable_osc.set_param(param, value),
+            Parameter::OscWtTableValue => self.wavetable_osc.set_param(param, value),
         }
     }
 
@@ -129,6 +131,8 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::OscSqSweepAmount => self.square_osc.get_param(param),
             Parameter::OscSqSweepPeriod => self.square_osc.get_param(param),
             Parameter::OscNsInterval => self.noise_osc.get_param(param),
+            Parameter::OscWtTableIndex => self.wavetable_osc.get_param(param),
+            Parameter::OscWtTableValue => self.wavetable_osc.get_param(param),
         }
     }
 }
