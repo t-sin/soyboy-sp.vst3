@@ -2,27 +2,54 @@ use crate::soyboy::{
     event::{Event, Triggered},
     parameters::{Parameter, Parametric},
     types::{i4, AudioProcessor},
-    utils::level_from_velocity,
+    utils::{frequency_from_note_number, level_from_velocity},
 };
+
+const WAVETABLE_SIZE: usize = 32;
+const WAVETABLE_SIZE_F64: f64 = WAVETABLE_SIZE as f64;
 
 pub struct WaveTableOscillator {
     phase: f64,
     freq: f64,
+    pitch: f64,
     velocity: f64,
+
+    table: [i4; WAVETABLE_SIZE],
 }
 
 impl WaveTableOscillator {
     pub fn new() -> Self {
+        let mut table = [i4::ZERO; WAVETABLE_SIZE];
+        let mut phase: f64 = 0.0;
+        for v in table.iter_mut() {
+            *v = i4::from(((phase * 2.0 * std::f64::consts::PI).sin() * i4::MAX_I8 as f64) as i8);
+            phase += 1.0 / WAVETABLE_SIZE as f64;
+        }
+
         WaveTableOscillator {
             phase: 0.0,
             freq: 0.0,
+            pitch: 0.0,
             velocity: 0.0,
+
+            table: table,
         }
     }
 }
 
 impl Triggered for WaveTableOscillator {
-    fn trigger(&mut self, _event: &Event) {}
+    fn trigger(&mut self, event: &Event) {
+        match event {
+            Event::NoteOn { note, velocity } => {
+                self.freq = frequency_from_note_number(*note);
+                self.velocity = *velocity;
+            }
+            Event::NoteOff { note: _ } => {}
+            Event::PitchBend { ratio } => {
+                self.pitch = *ratio;
+            }
+        }
+    }
 }
 
 impl Parametric<Parameter> for WaveTableOscillator {
@@ -34,10 +61,11 @@ impl Parametric<Parameter> for WaveTableOscillator {
 
 impl AudioProcessor<i4> for WaveTableOscillator {
     fn process(&mut self, sample_rate: f64) -> i4 {
-        let signal = i4::from((i4::ZERO.to_i8() as f64 * level_from_velocity(self.velocity)) as i8);
+        let signal = self.table[self.phase as usize];
+        let signal = i4::from((signal.to_i8() as f64 * level_from_velocity(self.velocity)) as i8);
 
-        let phase_diff = self.freq / sample_rate;
-        self.phase += phase_diff;
+        let phase_diff = (self.freq / sample_rate) * WAVETABLE_SIZE_F64;
+        self.phase = (self.phase + phase_diff) % WAVETABLE_SIZE_F64;
 
         signal
     }

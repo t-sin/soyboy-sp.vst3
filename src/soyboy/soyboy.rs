@@ -71,6 +71,7 @@ impl Triggered for SoyBoy {
             } => {
                 self.square_osc.trigger(event);
                 self.noise_osc.trigger(event);
+                self.wavetable_osc.trigger(event);
 
                 self.envelope_gen.trigger(event);
             }
@@ -79,6 +80,7 @@ impl Triggered for SoyBoy {
             }
             Event::PitchBend { ratio: _ } => {
                 self.square_osc.trigger(event);
+                self.wavetable_osc.trigger(event);
             }
         }
     }
