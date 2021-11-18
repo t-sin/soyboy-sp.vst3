@@ -24,7 +24,7 @@ I want to do some chiptunes on GNU/Linux.
         - [x] periods for random number generation
     - [ ] wave table oscillator
         - ???
-    - [ ] pitch bend
+    - [x] pitch bend
     - [x] note velocity
     - [ ] note stutter (note delay)
     - [ ] DAC simulation
