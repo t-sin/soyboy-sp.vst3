@@ -45,23 +45,6 @@ pub struct SoyBoy {
     selected_osc: OscillatorType,
 }
 
-impl AudioProcessor<Signal> for SoyBoy {
-    fn process(&mut self, sample_rate: f64) -> Signal {
-        let sq_osc = self.square_osc.process(sample_rate).to_f64();
-        let n_osc = self.noise_osc.process(sample_rate).to_f64();
-        let osc = match self.selected_osc {
-            OscillatorType::Square => sq_osc,
-            OscillatorType::Noise => n_osc,
-            OscillatorType::WaveTable => 0.0,
-        };
-
-        let env = self.envelope_gen.process(sample_rate);
-
-        let signal = osc * env * 0.25 * level(self.master_volume);
-        (signal, signal)
-    }
-}
-
 impl SoyBoy {
     pub fn new() -> SoyBoy {
         SoyBoy {
@@ -142,5 +125,22 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::OscSqSweepPeriod => self.square_osc.get_param(param),
             Parameter::OscNsInterval => self.noise_osc.get_param(param),
         }
+    }
+}
+
+impl AudioProcessor<Signal> for SoyBoy {
+    fn process(&mut self, sample_rate: f64) -> Signal {
+        let sq_osc = self.square_osc.process(sample_rate).to_f64();
+        let n_osc = self.noise_osc.process(sample_rate).to_f64();
+        let osc = match self.selected_osc {
+            OscillatorType::Square => sq_osc,
+            OscillatorType::Noise => n_osc,
+            OscillatorType::WaveTable => 0.0,
+        };
+
+        let env = self.envelope_gen.process(sample_rate);
+
+        let signal = osc * env * 0.25 * level(self.master_volume);
+        (signal, signal)
     }
 }
