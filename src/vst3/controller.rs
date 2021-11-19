@@ -14,8 +14,8 @@ use vst3_sys::{
     },
     utils::VstPtr,
     vst::{
-        kRootUnitId, IEditController, IUnitInfo, ParameterFlags, ParameterInfo, ProgramListInfo,
-        TChar, UnitInfo,
+        kRootUnitId, CtrlNumber, IEditController, IMidiMapping, IUnitInfo, ParamID, ParameterFlags,
+        ParameterInfo, ProgramListInfo, TChar, UnitInfo,
     },
     ComPtr, VST3,
 };
@@ -23,7 +23,7 @@ use vst3_sys::{
 use crate::soyboy::parameters::{Normalizable, Parameter, SoyBoyParameter};
 use crate::vst3::{plugin_data, utils};
 
-#[VST3(implements(IEditController, IUnitInfo))]
+#[VST3(implements(IEditController, IUnitInfo, IMidiMapping))]
 pub struct SoyBoyController {
     soyboy_params: HashMap<Parameter, SoyBoyParameter>,
     vst3_params: RefCell<HashMap<u32, ParameterInfo>>,
@@ -90,6 +90,28 @@ impl IPluginBase for SoyBoyController {
 
     unsafe fn terminate(&self) -> tresult {
         kResultOk
+    }
+}
+
+impl IMidiMapping for SoyBoyController {
+    unsafe fn get_midi_controller_assignment(
+        &self,
+        _bus_index: i32,
+        _channel: i16,
+        midi_cc_number: CtrlNumber,
+        param_id: *mut ParamID,
+    ) -> tresult {
+        match midi_cc_number {
+            // kPitchBend
+            // cf.
+            // - https://www.utsbox.com/?p=1109
+            // - https://steinbergmedia.github.io/vst3_doc/vstinterfaces/namespaceSteinberg_1_1Vst.html#a70ee68a13248febed5047cfa0fddf4e6
+            129 => {
+                *param_id = Parameter::Pitch as u32;
+                kResultTrue
+            }
+            _ => kResultFalse,
+        }
     }
 }
 
