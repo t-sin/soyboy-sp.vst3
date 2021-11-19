@@ -1,6 +1,7 @@
 use std::convert::TryFrom;
 
 use crate::soyboy::{
+    dac::DAConverter,
     envelope_generator::EnvelopeGenerator,
     event::{Event, Triggered},
     noise::NoiseOscillator,
@@ -40,6 +41,7 @@ pub struct SoyBoy {
     square_osc: SquareWaveOscillator,
     noise_osc: NoiseOscillator,
     wavetable_osc: WaveTableOscillator,
+    dac: DAConverter,
     envelope_gen: EnvelopeGenerator,
 
     master_volume: f64,
@@ -53,6 +55,7 @@ impl SoyBoy {
             square_osc: SquareWaveOscillator::new(),
             noise_osc: NoiseOscillator::new(),
             wavetable_osc: WaveTableOscillator::new(),
+            dac: DAConverter::new(22_000.0, 0.005),
             envelope_gen: EnvelopeGenerator::new(),
 
             master_volume: 1.0,
@@ -144,11 +147,11 @@ impl AudioProcessor<Signal> for SoyBoy {
             OscillatorType::Noise => self.noise_osc.process(sample_rate),
             OscillatorType::WaveTable => self.wavetable_osc.process(sample_rate),
         };
+        let osc = self.dac.process(sample_rate, osc);
+
         let env = self.envelope_gen.process(sample_rate);
 
-        static VOLUME: f64 = 0.25;
-        let v = osc * env * VOLUME * level(self.master_volume);
-        let v: f64 = v.into();
+        let v = osc * env * level(self.master_volume);
         (v, v)
     }
 }
