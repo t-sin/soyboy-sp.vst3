@@ -28,7 +28,7 @@ I want to do some chiptunes on GNU/Linux.
     - [x] pitch bend
     - [x] note velocity
     - [ ] note stutter (note delay)
-    - [ ] DAC simulation
+    - [x] DAC simulation
 
 ## References
 
