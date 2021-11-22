@@ -52,7 +52,7 @@ impl NoteStutter {
 
         if self.depth != 0.0 && self.time_count > self.time {
             self.time_count = 0.0;
-            self.velocity -= 1.0 - self.depth;
+            self.velocity -= 1.0 - self.depth / 100.0;
 
             if self.velocity < 0.0 {
                 self.velocity = 0.0;

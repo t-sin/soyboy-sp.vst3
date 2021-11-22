@@ -431,7 +431,10 @@ fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
             default_value: 0.05,
         },
     );
-    static STUTTER_DEPTH: LinearParameter = LinearParameter { min: 0.0, max: 1.0 };
+    static STUTTER_DEPTH: LinearParameter = LinearParameter {
+        min: 0.0,
+        max: 100.0,
+    };
     params.insert(
         Parameter::StutterDepth,
         SoyBoyParameter {
