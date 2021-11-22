@@ -147,11 +147,9 @@ impl AudioProcessor<Signal> for SoyBoy {
             OscillatorType::Noise => self.noise_osc.process(sample_rate),
             OscillatorType::WaveTable => self.wavetable_osc.process(sample_rate),
         };
-        let osc = self.dac.process(sample_rate, osc);
-
         let env = self.envelope_gen.process(sample_rate);
 
-        let v = osc * env * level(self.master_volume);
+        let v = self.dac.process(sample_rate, osc * env) * level(self.master_volume);
         (v, v)
     }
 }
