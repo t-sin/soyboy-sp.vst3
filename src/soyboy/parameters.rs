@@ -9,6 +9,7 @@ pub enum Parameter {
     // global parameter
     MasterVolume = 0,
     PitchBend,
+    Detune,
     OscillatorType,
     // envelope generator
     EgAttack,
@@ -37,6 +38,8 @@ impl TryFrom<u32> for Parameter {
             Ok(Parameter::OscillatorType)
         } else if id == Parameter::PitchBend as u32 {
             Ok(Parameter::PitchBend)
+        } else if id == Parameter::Detune as u32 {
+            Ok(Parameter::Detune)
         } else if id == Parameter::EgAttack as u32 {
             Ok(Parameter::EgAttack)
         } else if id == Parameter::EgDecay as u32 {
@@ -349,9 +352,25 @@ fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
         },
     );
 
-    static GLOBAL_PITCH: IntegerParameter = IntegerParameter {
+    static GLOBAL_DETUNE: IntegerParameter = IntegerParameter {
         min: -200,
         max: 200,
+    };
+    params.insert(
+        Parameter::Detune,
+        SoyBoyParameter {
+            r#type: ParameterType::Integer,
+            parameter: ParameterInfo { int: GLOBAL_DETUNE },
+            title: "Detune".to_string(),
+            short_title: "Detune".to_string(),
+            unit_name: "cent".to_string(),
+            step_count: GLOBAL_DETUNE.max.abs() + GLOBAL_DETUNE.min.abs(),
+            default_value: 0.0,
+        },
+    );
+    static GLOBAL_PITCH: IntegerParameter = IntegerParameter {
+        min: -4800,
+        max: 4800,
     };
     params.insert(
         Parameter::PitchBend,

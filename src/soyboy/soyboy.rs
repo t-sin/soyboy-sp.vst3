@@ -46,6 +46,7 @@ pub struct SoyBoy {
 
     master_volume: f64,
     pitch: i16,
+    detune: i16,
     selected_osc: OscillatorType,
 }
 
@@ -60,6 +61,7 @@ impl SoyBoy {
 
             master_volume: 1.0,
             pitch: 0,
+            detune: 0,
             selected_osc: OscillatorType::Square,
         }
     }
@@ -95,7 +97,12 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::MasterVolume => self.master_volume = value,
             Parameter::PitchBend => {
                 self.pitch = value as i16;
-                let ratio = ratio_from_cents(self.pitch);
+                let ratio = ratio_from_cents(self.pitch + self.detune);
+                self.trigger(&Event::PitchBend { ratio: ratio });
+            }
+            Parameter::Detune => {
+                self.detune = value as i16;
+                let ratio = ratio_from_cents(self.pitch + self.detune);
                 self.trigger(&Event::PitchBend { ratio: ratio });
             }
             Parameter::OscillatorType => {
@@ -121,6 +128,7 @@ impl Parametric<Parameter> for SoyBoy {
         match param {
             Parameter::MasterVolume => self.master_volume,
             Parameter::PitchBend => self.pitch as f64,
+            Parameter::Detune => self.detune as f64,
             Parameter::OscillatorType => {
                 let v = self.selected_osc as u32;
                 v.into()
