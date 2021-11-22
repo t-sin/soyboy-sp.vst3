@@ -163,6 +163,7 @@ pub enum SquareWaveDuty {
     Ratio12_5 = 0,
     Ratio25,
     Ratio50,
+    Ratio75,
 }
 
 impl TryFrom<u32> for SquareWaveDuty {
@@ -175,6 +176,8 @@ impl TryFrom<u32> for SquareWaveDuty {
             Ok(SquareWaveDuty::Ratio25)
         } else if id == SquareWaveDuty::Ratio50 as u32 {
             Ok(SquareWaveDuty::Ratio50)
+        } else if id == SquareWaveDuty::Ratio75 as u32 {
+            Ok(SquareWaveDuty::Ratio75)
         } else {
             Err(())
         }
@@ -187,6 +190,7 @@ impl SquareWaveDuty {
             SquareWaveDuty::Ratio12_5 => 0.125,
             SquareWaveDuty::Ratio25 => 0.25,
             SquareWaveDuty::Ratio50 => 0.5,
+            SquareWaveDuty::Ratio75 => 0.75,
         }
     }
 }

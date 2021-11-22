@@ -404,7 +404,7 @@ fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
 }
 
 pub fn make_square_oscillator_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
-    static SQUARE_OSCILLATOR_DUTY_LIST: [&str; 3] = ["12.5%", "25%", "50%"];
+    static SQUARE_OSCILLATOR_DUTY_LIST: [&str; 4] = ["12.5%", "25%", "50%", "75%"];
     static OSC_SQ_DUTY: ListParameter = ListParameter {
         elements: &SQUARE_OSCILLATOR_DUTY_LIST,
     };
