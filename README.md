@@ -27,7 +27,7 @@ I want to do some chiptunes on GNU/Linux.
         - [x] modify wave table with index parameter
     - [x] pitch bend
     - [x] note velocity
-    - [ ] note stutter (note delay)
+    - [x] note stutter (note delay)
     - [x] DAC simulation
 
 ## References
