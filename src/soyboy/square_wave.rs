@@ -4,7 +4,7 @@ use crate::soyboy::{
     event::{Event, Triggered},
     parameters::{Parameter, Parametric},
     types::{i4, AudioProcessor},
-    utils::{frequency_from_note_number, level_from_velocity, pulse},
+    utils::{frequency_from_note_number, pulse},
 };
 
 #[derive(Debug, Copy, Clone)]
@@ -197,7 +197,6 @@ impl SquareWaveDuty {
 
 pub struct SquareWaveOscillator {
     phase: f64,
-    velocity: f64,
     freq: f64,
 
     duty: SquareWaveDuty,
@@ -209,7 +208,6 @@ impl SquareWaveOscillator {
     pub fn new() -> Self {
         SquareWaveOscillator {
             phase: 0.0,
-            velocity: 0.0,
             freq: 440.0,
 
             duty: SquareWaveDuty::Ratio50,
@@ -226,12 +224,11 @@ impl SquareWaveOscillator {
 impl Triggered for SquareWaveOscillator {
     fn trigger(&mut self, event: &Event) {
         match event {
-            Event::NoteOn { note, velocity } => {
+            Event::NoteOn { note, velocity: _ } => {
                 self.freq = frequency_from_note_number(*note);
 
                 self.sweep.shadow_freq = self.freq;
                 self.sweep.clipped = false;
-                self.velocity = *velocity;
             }
             Event::NoteOff { note: _ } => {}
             Event::PitchBend { ratio } => {
@@ -248,8 +245,7 @@ impl AudioProcessor<i4> for SquareWaveOscillator {
         let signal = if self.freq == 0.0 {
             i4::from(i4::zero())
         } else {
-            let v = pulse(self.phase, self.duty.to_ratio());
-            v * level_from_velocity(self.velocity)
+            pulse(self.phase, self.duty.to_ratio())
         };
 
         if self.sweep.clipped {

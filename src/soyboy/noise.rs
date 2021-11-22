@@ -4,13 +4,11 @@ use crate::soyboy::{
     event::{Event, Triggered},
     parameters::{Parameter, Parametric},
     types::{i4, AudioProcessor},
-    utils,
 };
 
 const TABLE_SIZE: usize = 1024 * 8;
 
 pub struct NoiseOscillator {
-    velocity: f64,
     interval_msec: f64,
     sec_counter: f64,
     table: [i4; TABLE_SIZE],
@@ -25,7 +23,6 @@ impl NoiseOscillator {
         }
 
         NoiseOscillator {
-            velocity: 0.0,
             interval_msec: 0.1,
             sec_counter: 0.0,
             table: table,
@@ -42,17 +39,17 @@ impl AudioProcessor<i4> for NoiseOscillator {
         }
         self.sec_counter += 1.0 / sample_rate;
 
-        let v = self.table[self.table_index] * utils::level_from_velocity(self.velocity);
-        i4::from(v)
+        i4::from(self.table[self.table_index])
     }
 }
 
 impl Triggered for NoiseOscillator {
     fn trigger(&mut self, event: &Event) {
         match event {
-            Event::NoteOn { note: _, velocity } => {
-                self.velocity = *velocity;
-            }
+            Event::NoteOn {
+                note: _,
+                velocity: _,
+            } => {}
 
             _ => (),
         }

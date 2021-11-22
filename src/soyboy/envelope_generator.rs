@@ -2,7 +2,7 @@ use crate::soyboy::{
     event::{Event, Triggered},
     parameters::{Parameter, Parametric},
     types::AudioProcessor,
-    utils::{discrete_loudness, linear},
+    utils::{discrete_loudness, level_from_velocity, linear},
 };
 
 #[derive(Debug)]
@@ -20,6 +20,7 @@ pub struct EnvelopeGenerator {
     pub sustain: f64,
     pub release: f64,
 
+    velocity: f64,
     state: EnvelopeState,
     elapsed_samples: u64,
     last_value: f64,
@@ -34,6 +35,7 @@ impl EnvelopeGenerator {
             sustain: 0.3,
             release: 0.1,
 
+            velocity: 0.0,
             state: EnvelopeState::Off,
             elapsed_samples: 1,
             last_value: 0.0,
@@ -109,17 +111,17 @@ impl AudioProcessor<f64> for EnvelopeGenerator {
         self.last_value = v;
         self.elapsed_samples += 1;
 
-        discrete_loudness(v)
+        discrete_loudness(v * level_from_velocity(self.velocity))
     }
 }
 
 impl Triggered for EnvelopeGenerator {
     fn trigger(&mut self, event: &Event) {
         match event {
-            Event::NoteOn {
-                note: _,
-                velocity: _,
-            } => self.set_state(EnvelopeState::Attack),
+            Event::NoteOn { note: _, velocity } => {
+                self.set_state(EnvelopeState::Attack);
+                self.velocity = *velocity;
+            }
             Event::NoteOff { note: _ } => self.set_state(EnvelopeState::Release),
             _ => (),
         }

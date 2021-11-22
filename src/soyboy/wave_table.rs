@@ -4,7 +4,7 @@ use crate::soyboy::{
     event::{Event, Triggered},
     parameters::{Parameter, Parametric},
     types::{i4, AudioProcessor},
-    utils::{frequency_from_note_number, level_from_velocity},
+    utils::frequency_from_note_number,
 };
 
 const WAVETABLE_SIZE: usize = 32;
@@ -14,7 +14,6 @@ pub struct WaveTableOscillator {
     phase: f64,
     freq: f64,
     pitch: f64,
-    velocity: f64,
 
     table: [i4; WAVETABLE_SIZE],
     index: usize,
@@ -26,7 +25,6 @@ impl WaveTableOscillator {
             phase: 0.0,
             freq: 0.0,
             pitch: 0.0,
-            velocity: 0.0,
 
             table: [i4::from(0.0); WAVETABLE_SIZE],
             index: 0,
@@ -56,9 +54,8 @@ impl WaveTableOscillator {
 impl Triggered for WaveTableOscillator {
     fn trigger(&mut self, event: &Event) {
         match event {
-            Event::NoteOn { note, velocity } => {
+            Event::NoteOn { note, velocity: _ } => {
                 self.freq = frequency_from_note_number(*note);
-                self.velocity = *velocity;
             }
             Event::NoteOff { note: _ } => {}
             Event::PitchBend { ratio } => {
@@ -88,7 +85,7 @@ impl Parametric<Parameter> for WaveTableOscillator {
 
 impl AudioProcessor<i4> for WaveTableOscillator {
     fn process(&mut self, sample_rate: f64) -> i4 {
-        let v = self.table[self.phase as usize] * level_from_velocity(self.velocity);
+        let v = self.table[self.phase as usize];
 
         let phase_diff = ((self.freq * self.pitch) / sample_rate) * WAVETABLE_SIZE_F64;
         self.phase = (self.phase + phase_diff) % WAVETABLE_SIZE_F64;
