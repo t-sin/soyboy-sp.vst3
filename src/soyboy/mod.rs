@@ -3,6 +3,7 @@ mod envelope_generator;
 mod noise;
 mod soyboy;
 mod square_wave;
+mod stutter;
 mod types;
 mod utils;
 mod wave_table;

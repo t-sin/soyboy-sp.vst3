@@ -7,6 +7,7 @@ use crate::soyboy::{
     noise::NoiseOscillator,
     parameters::{Parameter, Parametric},
     square_wave::SquareWaveOscillator,
+    stutter::NoteStutter,
     types::AudioProcessor,
     utils::{level, ratio_from_cents},
     wave_table::WaveTableOscillator,
@@ -43,6 +44,7 @@ pub struct SoyBoy {
     wavetable_osc: WaveTableOscillator,
     dac: DAConverter,
     envelope_gen: EnvelopeGenerator,
+    note_stutter: NoteStutter,
 
     master_volume: f64,
     pitch: i16,
@@ -58,6 +60,7 @@ impl SoyBoy {
             wavetable_osc: WaveTableOscillator::new(),
             dac: DAConverter::new(22_000.0, 0.005),
             envelope_gen: EnvelopeGenerator::new(),
+            note_stutter: NoteStutter::new(),
 
             master_volume: 1.0,
             pitch: 0,
@@ -74,11 +77,15 @@ impl Triggered for SoyBoy {
                 note: _,
                 velocity: _,
             } => {
-                self.square_osc.trigger(event);
-                self.noise_osc.trigger(event);
-                self.wavetable_osc.trigger(event);
-
-                self.envelope_gen.trigger(event);
+                self.note_stutter.trigger(
+                    event,
+                    &mut [
+                        &mut self.square_osc,
+                        &mut self.noise_osc,
+                        &mut self.wavetable_osc,
+                        &mut self.envelope_gen,
+                    ],
+                );
             }
             Event::NoteOff { note: _ } => {
                 self.envelope_gen.trigger(event);
@@ -110,6 +117,8 @@ impl Parametric<Parameter> for SoyBoy {
                     self.selected_osc = r#type
                 }
             }
+            Parameter::StutterTime => self.note_stutter.set_param(param, value),
+            Parameter::StutterDepth => self.note_stutter.set_param(param, value),
             Parameter::EgAttack => self.envelope_gen.set_param(param, value),
             Parameter::EgDecay => self.envelope_gen.set_param(param, value),
             Parameter::EgSustain => self.envelope_gen.set_param(param, value),
@@ -133,6 +142,8 @@ impl Parametric<Parameter> for SoyBoy {
                 let v = self.selected_osc as u32;
                 v.into()
             }
+            Parameter::StutterTime => self.note_stutter.get_param(param),
+            Parameter::StutterDepth => self.note_stutter.get_param(param),
             Parameter::EgAttack => self.envelope_gen.get_param(param),
             Parameter::EgDecay => self.envelope_gen.get_param(param),
             Parameter::EgSustain => self.envelope_gen.get_param(param),
@@ -150,6 +161,16 @@ impl Parametric<Parameter> for SoyBoy {
 
 impl AudioProcessor<Signal> for SoyBoy {
     fn process(&mut self, sample_rate: f64) -> Signal {
+        self.note_stutter.process(
+            sample_rate,
+            &mut [
+                &mut self.square_osc,
+                &mut self.noise_osc,
+                &mut self.wavetable_osc,
+                &mut self.envelope_gen,
+            ],
+        );
+
         let osc = match self.selected_osc {
             OscillatorType::Square => self.square_osc.process(sample_rate),
             OscillatorType::Noise => self.noise_osc.process(sample_rate),

@@ -11,6 +11,9 @@ pub enum Parameter {
     PitchBend,
     Detune,
     OscillatorType,
+    // note stutter
+    StutterTime,
+    StutterDepth,
     // envelope generator
     EgAttack,
     EgDecay,
@@ -40,6 +43,10 @@ impl TryFrom<u32> for Parameter {
             Ok(Parameter::PitchBend)
         } else if id == Parameter::Detune as u32 {
             Ok(Parameter::Detune)
+        } else if id == Parameter::StutterTime as u32 {
+            Ok(Parameter::StutterTime)
+        } else if id == Parameter::StutterDepth as u32 {
+            Ok(Parameter::StutterDepth)
         } else if id == Parameter::EgAttack as u32 {
             Ok(Parameter::EgAttack)
         } else if id == Parameter::EgDecay as u32 {
@@ -398,6 +405,44 @@ fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
             short_title: "Osc type".to_string(),
             unit_name: "".to_string(),
             step_count: (SELECTED_OSC.denormalize(1.0)) as i32,
+            default_value: 0.0,
+        },
+    );
+
+    static STUTTER_TIME: NonLinearParameter = NonLinearParameter {
+        plain_zero: 0.001,
+        plain_min: 0.002,
+        plain_max: 1.0,
+        plain_one: 1.0,
+        factor: 2.0,
+        diverge: true,
+    };
+    params.insert(
+        Parameter::StutterTime,
+        SoyBoyParameter {
+            r#type: ParameterType::NonLinear,
+            parameter: ParameterInfo {
+                non_linear: STUTTER_TIME,
+            },
+            title: "Stutter time".to_string(),
+            short_title: "Stutter time".to_string(),
+            unit_name: "s".to_string(),
+            step_count: 0,
+            default_value: 0.05,
+        },
+    );
+    static STUTTER_DEPTH: LinearParameter = LinearParameter { min: 0.0, max: 1.0 };
+    params.insert(
+        Parameter::StutterDepth,
+        SoyBoyParameter {
+            r#type: ParameterType::Linear,
+            parameter: ParameterInfo {
+                linear: STUTTER_DEPTH,
+            },
+            title: "Stutter Depth".to_string(),
+            short_title: "Stutter Depth".to_string(),
+            unit_name: "%".to_string(),
+            step_count: 0,
             default_value: 0.0,
         },
     );
