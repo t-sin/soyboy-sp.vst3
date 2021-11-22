@@ -93,7 +93,7 @@ impl Parametric<Parameter> for SoyBoy {
     fn set_param(&mut self, param: &Parameter, value: f64) {
         match param {
             Parameter::MasterVolume => self.master_volume = value,
-            Parameter::Pitch => {
+            Parameter::PitchBend => {
                 self.pitch = value as i16;
                 let ratio = ratio_from_cents(self.pitch);
                 self.trigger(&Event::PitchBend { ratio: ratio });
@@ -120,7 +120,7 @@ impl Parametric<Parameter> for SoyBoy {
     fn get_param(&self, param: &Parameter) -> f64 {
         match param {
             Parameter::MasterVolume => self.master_volume,
-            Parameter::Pitch => self.pitch as f64,
+            Parameter::PitchBend => self.pitch as f64,
             Parameter::OscillatorType => {
                 let v = self.selected_osc as u32;
                 v.into()

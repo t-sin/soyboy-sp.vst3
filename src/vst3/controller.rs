@@ -107,7 +107,7 @@ impl IMidiMapping for SoyBoyController {
             // - https://www.utsbox.com/?p=1109
             // - https://steinbergmedia.github.io/vst3_doc/vstinterfaces/namespaceSteinberg_1_1Vst.html#a70ee68a13248febed5047cfa0fddf4e6
             129 => {
-                *param_id = Parameter::Pitch as u32;
+                *param_id = Parameter::PitchBend as u32;
                 kResultTrue
             }
             _ => kResultFalse,
