@@ -13,6 +13,8 @@ I want to do some chiptunes on GNU/Linux.
     - [x] signal processing
     - [x] controllable parameters
     - [ ] Original GUI?
+        - [x] design UI
+        - [ ] implement UI
 - [ ] plugin features
     - [x] square wave osillator
         - [x] oscillate with fixed duty ratio
