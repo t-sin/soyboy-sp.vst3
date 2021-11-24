@@ -1,8 +1,10 @@
 # SoyBoy SP - A GameBoy instrument
 
+I want to do some chiptunes on GNU/Linux.
+
 ![SoyBoy SP](edamame-logo.gif)
 
-I want to do some chiptunes on GNU/Linux.
+[*Edamame* is the Humboldt penguin living in Tobu Zoo](https://twitter.com/tobuzoo7/status/9824885097253273610).
 
 ## TODOs
 
