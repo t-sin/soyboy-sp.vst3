@@ -4,7 +4,7 @@ I want to do some chiptunes on GNU/Linux.
 
 ![SoyBoy SP](edamame-logo.gif)
 
-[*Edamame* is the Humboldt penguin living in Tobu Zoo](https://twitter.com/tobuzoo7/status/9824885097253273610).
+[*Edamame* is the Humboldt penguin living in Tobu Zoo](https://twitter.com/tobuzoo7/status/982488509725327361).
 
 ## TODOs
 
