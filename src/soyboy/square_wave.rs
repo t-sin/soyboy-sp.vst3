@@ -4,159 +4,8 @@ use crate::soyboy::{
     event::{Event, Triggered},
     parameters::{Parameter, Parametric},
     types::{i4, AudioProcessor},
-    utils::{frequency_from_note_number, pulse},
+    utils::pulse,
 };
-
-#[derive(Debug, Copy, Clone)]
-pub enum SweepType {
-    None = 0,
-    Up,
-    Down,
-    Triangle,
-}
-
-impl TryFrom<u32> for SweepType {
-    type Error = ();
-
-    fn try_from(id: u32) -> Result<Self, Self::Error> {
-        if id == SweepType::None as u32 {
-            Ok(SweepType::None)
-        } else if id == SweepType::Up as u32 {
-            Ok(SweepType::Up)
-        } else if id == SweepType::Down as u32 {
-            Ok(SweepType::Down)
-        } else if id == SweepType::Triangle as u32 {
-            Ok(SweepType::Triangle)
-        } else {
-            Err(())
-        }
-    }
-}
-
-pub struct SweepOscillator {
-    shadow_freq: f64,
-    sweep_timer_sec: f64,
-
-    clipped: bool,
-    sweep_type: SweepType,
-    sweep_amount: f64,
-    sweep_period: f64,
-}
-
-impl SweepOscillator {
-    fn new() -> Self {
-        SweepOscillator {
-            shadow_freq: 0.0,
-            sweep_timer_sec: 0.0,
-
-            clipped: false,
-            sweep_type: SweepType::None,
-            sweep_amount: 0.0,
-            sweep_period: 0.0,
-        }
-    }
-
-    fn check_frequency_clip(&mut self) {
-        if self.shadow_freq > 10000.0 {
-            self.clipped = true;
-            self.shadow_freq = 0.0;
-        } else if self.shadow_freq < 10.0 {
-            self.clipped = true;
-            self.shadow_freq = 0.0;
-        }
-    }
-}
-
-impl AudioProcessor<f64> for SweepOscillator {
-    fn process(&mut self, sample_rate: f64) -> f64 {
-        if self.sweep_amount == 0.0 || self.sweep_period == 0.0 {
-            return 0.0;
-        }
-
-        self.sweep_timer_sec += 1.0 / sample_rate;
-
-        let sweep_timer_interval = 1.0 / SWEEP_TIMER_FREQUENCY;
-        let fmod = self.shadow_freq * 2.0f64.powf(self.sweep_amount - 8.1);
-
-        match self.sweep_type {
-            SweepType::None => 0.0,
-            SweepType::Up => {
-                let interval = sweep_timer_interval * self.sweep_period;
-
-                if self.sweep_timer_sec > interval {
-                    self.sweep_timer_sec = 0.0;
-                    self.shadow_freq += fmod;
-
-                    self.check_frequency_clip();
-                    fmod
-                } else {
-                    0.0
-                }
-            }
-            SweepType::Down => {
-                let interval = sweep_timer_interval * self.sweep_period;
-
-                if self.sweep_timer_sec > interval {
-                    self.sweep_timer_sec = 0.0;
-                    self.shadow_freq -= fmod;
-
-                    self.check_frequency_clip();
-                    -fmod
-                } else {
-                    0.0
-                }
-            }
-            SweepType::Triangle => {
-                let quater_period = self.sweep_period * 1.0 / SWEEP_TIMER_FREQUENCY;
-                let fmod = 2.0f64.powf(self.sweep_amount - 8.1) / self.sweep_period;
-
-                self.check_frequency_clip();
-
-                if self.sweep_timer_sec < quater_period {
-                    fmod
-                } else if self.sweep_timer_sec < quater_period * 3.0 {
-                    -fmod
-                } else if self.sweep_timer_sec >= quater_period * 4.0 {
-                    self.sweep_timer_sec = 0.0;
-                    fmod
-                } else {
-                    fmod
-                }
-            }
-        }
-    }
-}
-
-impl Parametric<Parameter> for SweepOscillator {
-    fn set_param(&mut self, param: &Parameter, value: f64) {
-        match param {
-            Parameter::OscSqSweepType => {
-                self.sweep_timer_sec = 0.0;
-                if let Ok(sweep_type) = SweepType::try_from(value as u32) {
-                    self.sweep_type = sweep_type;
-                } else {
-                    ()
-                }
-            }
-            Parameter::OscSqSweepAmount => {
-                self.sweep_amount = value;
-            }
-            Parameter::OscSqSweepPeriod => {
-                self.sweep_period = value;
-            }
-            _ => (),
-        }
-    }
-
-    fn get_param(&self, param: &Parameter) -> f64 {
-        match param {
-            Parameter::OscSqSweepType => (self.sweep_type as u32).into(),
-            Parameter::OscSqSweepAmount => self.sweep_amount,
-            Parameter::OscSqSweepPeriod => self.sweep_period,
-            _ => 0.0,
-        }
-    }
-}
 
 #[derive(Debug, Copy, Clone)]
 pub enum SquareWaveDuty {
@@ -197,10 +46,9 @@ impl SquareWaveDuty {
 
 pub struct SquareWaveOscillator {
     phase: f64,
-    freq: f64,
+    pub freq: f64,
 
     duty: SquareWaveDuty,
-    sweep: SweepOscillator,
     pitch: f64,
 }
 
@@ -208,10 +56,9 @@ impl SquareWaveOscillator {
     pub fn new() -> Self {
         SquareWaveOscillator {
             phase: 0.0,
-            freq: 440.0,
+            freq: 0.0,
 
             duty: SquareWaveDuty::Ratio50,
-            sweep: SweepOscillator::new(),
             pitch: 0.0,
         }
     }
@@ -224,21 +71,13 @@ impl SquareWaveOscillator {
 impl Triggered for SquareWaveOscillator {
     fn trigger(&mut self, event: &Event) {
         match event {
-            Event::NoteOn { note, velocity: _ } => {
-                self.freq = frequency_from_note_number(*note);
-
-                self.sweep.shadow_freq = self.freq;
-                self.sweep.clipped = false;
-            }
-            Event::NoteOff { note: _ } => {}
             Event::PitchBend { ratio } => {
                 self.pitch = *ratio;
             }
+            _ => (),
         }
     }
 }
-
-const SWEEP_TIMER_FREQUENCY: f64 = 128.0;
 
 impl AudioProcessor<i4> for SquareWaveOscillator {
     fn process(&mut self, sample_rate: f64) -> i4 {
@@ -247,12 +86,6 @@ impl AudioProcessor<i4> for SquareWaveOscillator {
         } else {
             pulse(self.phase, self.duty.to_ratio())
         };
-
-        if self.sweep.clipped {
-            self.freq = 0.0;
-        } else {
-            self.freq += self.sweep.process(sample_rate);
-        }
 
         let phase_diff = (self.freq * self.pitch) / sample_rate;
         self.phase += phase_diff;
@@ -271,9 +104,6 @@ impl Parametric<Parameter> for SquareWaveOscillator {
                     ()
                 }
             }
-            Parameter::OscSqSweepType => self.sweep.set_param(param, value),
-            Parameter::OscSqSweepAmount => self.sweep.set_param(param, value),
-            Parameter::OscSqSweepPeriod => self.sweep.set_param(param, value),
             _ => (),
         }
     }
@@ -281,9 +111,6 @@ impl Parametric<Parameter> for SquareWaveOscillator {
     fn get_param(&self, param: &Parameter) -> f64 {
         match param {
             Parameter::OscSqDuty => (self.duty as u32).into(),
-            Parameter::OscSqSweepType => self.sweep.get_param(param),
-            Parameter::OscSqSweepAmount => self.sweep.get_param(param),
-            Parameter::OscSqSweepPeriod => self.sweep.get_param(param),
             _ => 0.0,
         }
     }

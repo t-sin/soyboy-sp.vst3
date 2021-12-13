@@ -4,7 +4,6 @@ use crate::soyboy::{
     event::{Event, Triggered},
     parameters::{Parameter, Parametric},
     types::{i4, AudioProcessor},
-    utils::frequency_from_note_number,
 };
 
 const WAVETABLE_SIZE: usize = 32;
@@ -12,8 +11,8 @@ const WAVETABLE_SIZE_F64: f64 = WAVETABLE_SIZE as f64;
 
 pub struct WaveTableOscillator {
     phase: f64,
-    freq: f64,
     pitch: f64,
+    pub freq: f64,
 
     table: [i4; WAVETABLE_SIZE],
     index: usize,
@@ -54,13 +53,10 @@ impl WaveTableOscillator {
 impl Triggered for WaveTableOscillator {
     fn trigger(&mut self, event: &Event) {
         match event {
-            Event::NoteOn { note, velocity: _ } => {
-                self.freq = frequency_from_note_number(*note);
-            }
-            Event::NoteOff { note: _ } => {}
             Event::PitchBend { ratio } => {
                 self.pitch = *ratio;
             } //Event::SetTable { idx } => {}
+            _ => (),
         }
     }
 }

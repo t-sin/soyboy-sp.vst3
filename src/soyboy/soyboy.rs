@@ -8,8 +8,9 @@ use crate::soyboy::{
     parameters::{Parameter, Parametric},
     square_wave::SquareWaveOscillator,
     stutter::NoteStutter,
+    sweep::SweepOscillator,
     types::AudioProcessor,
-    utils::{level, ratio_from_cents},
+    utils::{frequency_from_note_number, level, ratio_from_cents},
     wave_table::WaveTableOscillator,
 };
 
@@ -39,9 +40,12 @@ impl TryFrom<u32> for OscillatorType {
 }
 
 pub struct SoyBoy {
+    freq: f64,
+
     square_osc: SquareWaveOscillator,
     noise_osc: NoiseOscillator,
     wavetable_osc: WaveTableOscillator,
+    sweep_osc: SweepOscillator,
     dac: DAConverter,
     envelope_gen: EnvelopeGenerator,
     note_stutter: NoteStutter,
@@ -55,9 +59,12 @@ pub struct SoyBoy {
 impl SoyBoy {
     pub fn new() -> SoyBoy {
         SoyBoy {
+            freq: 0.0,
+
             square_osc: SquareWaveOscillator::new(),
             noise_osc: NoiseOscillator::new(),
             wavetable_osc: WaveTableOscillator::new(),
+            sweep_osc: SweepOscillator::new(),
             dac: DAConverter::new(22_000.0, 0.005),
             envelope_gen: EnvelopeGenerator::new(),
             note_stutter: NoteStutter::new(),
@@ -73,10 +80,13 @@ impl SoyBoy {
 impl Triggered for SoyBoy {
     fn trigger(&mut self, event: &Event) {
         match event {
-            Event::NoteOn {
-                note: _,
-                velocity: _,
-            } => {
+            Event::NoteOn { note, velocity: _ } => {
+                self.freq = frequency_from_note_number(*note);
+                self.square_osc.freq = self.freq;
+                self.wavetable_osc.freq = self.freq;
+                self.sweep_osc
+                    .trigger(&Event::SweepReset { freq: self.freq });
+
                 self.note_stutter.trigger(
                     event,
                     &mut [
@@ -94,6 +104,7 @@ impl Triggered for SoyBoy {
                 self.square_osc.trigger(event);
                 self.wavetable_osc.trigger(event);
             }
+            _ => (),
         }
     }
 }
@@ -124,9 +135,9 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::EgSustain => self.envelope_gen.set_param(param, value),
             Parameter::EgRelease => self.envelope_gen.set_param(param, value),
             Parameter::OscSqDuty => self.square_osc.set_param(param, value),
-            Parameter::OscSqSweepType => self.square_osc.set_param(param, value),
-            Parameter::OscSqSweepAmount => self.square_osc.set_param(param, value),
-            Parameter::OscSqSweepPeriod => self.square_osc.set_param(param, value),
+            Parameter::OscSqSweepType => self.sweep_osc.set_param(param, value),
+            Parameter::OscSqSweepAmount => self.sweep_osc.set_param(param, value),
+            Parameter::OscSqSweepPeriod => self.sweep_osc.set_param(param, value),
             Parameter::OscNsInterval => self.noise_osc.set_param(param, value),
             Parameter::OscWtTableIndex => self.wavetable_osc.set_param(param, value),
             Parameter::OscWtTableValue => self.wavetable_osc.set_param(param, value),
@@ -149,9 +160,9 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::EgSustain => self.envelope_gen.get_param(param),
             Parameter::EgRelease => self.envelope_gen.get_param(param),
             Parameter::OscSqDuty => self.square_osc.get_param(param),
-            Parameter::OscSqSweepType => self.square_osc.get_param(param),
-            Parameter::OscSqSweepAmount => self.square_osc.get_param(param),
-            Parameter::OscSqSweepPeriod => self.square_osc.get_param(param),
+            Parameter::OscSqSweepType => self.sweep_osc.get_param(param),
+            Parameter::OscSqSweepAmount => self.sweep_osc.get_param(param),
+            Parameter::OscSqSweepPeriod => self.sweep_osc.get_param(param),
             Parameter::OscNsInterval => self.noise_osc.get_param(param),
             Parameter::OscWtTableIndex => self.wavetable_osc.get_param(param),
             Parameter::OscWtTableValue => self.wavetable_osc.get_param(param),
@@ -161,6 +172,12 @@ impl Parametric<Parameter> for SoyBoy {
 
 impl AudioProcessor<Signal> for SoyBoy {
     fn process(&mut self, sample_rate: f64) -> Signal {
+        if self.sweep_osc.is_clipped() {
+            self.freq = 0.0;
+        } else {
+            self.freq += self.sweep_osc.process(sample_rate);
+        }
+
         self.note_stutter.process(
             sample_rate,
             &mut [

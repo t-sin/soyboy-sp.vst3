@@ -43,7 +43,7 @@ impl NoteStutter {
                     t.trigger(&Event::NoteOff { note: *note });
                 }
             }
-            Event::PitchBend { ratio: _ } => {}
+            _ => (),
         }
     }
 

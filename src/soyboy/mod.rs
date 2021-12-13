@@ -4,6 +4,7 @@ mod noise;
 mod soyboy;
 mod square_wave;
 mod stutter;
+mod sweep;
 mod types;
 mod utils;
 mod wave_table;
