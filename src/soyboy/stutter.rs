@@ -24,30 +24,26 @@ impl NoteStutter {
         }
     }
 
-    pub fn trigger(&mut self, event: &Event, triggered: &mut [&mut dyn Triggered]) {
+    pub fn trigger(&mut self, event: &Event, triggered: &mut dyn Triggered) {
         match event {
             Event::NoteOn { note, velocity } => {
                 self.note = *note;
                 self.velocity = *velocity;
 
-                for t in triggered.iter_mut() {
-                    t.trigger(&Event::NoteOn {
-                        note: self.note,
-                        velocity: self.velocity,
-                    });
-                }
+                triggered.trigger(&Event::NoteOn {
+                    note: self.note,
+                    velocity: self.velocity,
+                });
             }
             Event::NoteOff { note } => {
                 self.velocity = 0.0;
-                for t in triggered.iter_mut() {
-                    t.trigger(&Event::NoteOff { note: *note });
-                }
+                triggered.trigger(&Event::NoteOff { note: *note });
             }
             _ => (),
         }
     }
 
-    pub fn process(&mut self, sample_rate: f64, triggered: &mut [&mut dyn Triggered]) -> () {
+    pub fn process(&mut self, sample_rate: f64, triggered: &mut dyn Triggered) -> () {
         self.time_count += 1.0 / sample_rate;
 
         if self.depth != 0.0 && self.time_count > self.time {

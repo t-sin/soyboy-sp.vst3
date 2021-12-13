@@ -87,15 +87,7 @@ impl Triggered for SoyBoy {
                 self.sweep_osc
                     .trigger(&Event::SweepReset { freq: self.freq });
 
-                self.note_stutter.trigger(
-                    event,
-                    &mut [
-                        &mut self.square_osc,
-                        &mut self.noise_osc,
-                        &mut self.wavetable_osc,
-                        &mut self.envelope_gen,
-                    ],
-                );
+                self.note_stutter.trigger(event, &mut self.envelope_gen);
             }
             Event::NoteOff { note: _ } => {
                 self.envelope_gen.trigger(event);
@@ -178,15 +170,8 @@ impl AudioProcessor<Signal> for SoyBoy {
             self.freq += self.sweep_osc.process(sample_rate);
         }
 
-        self.note_stutter.process(
-            sample_rate,
-            &mut [
-                &mut self.square_osc,
-                &mut self.noise_osc,
-                &mut self.wavetable_osc,
-                &mut self.envelope_gen,
-            ],
-        );
+        self.note_stutter
+            .process(sample_rate, &mut self.envelope_gen);
 
         let osc = match self.selected_osc {
             OscillatorType::Square => self.square_osc.process(sample_rate),
