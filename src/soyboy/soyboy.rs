@@ -57,8 +57,8 @@ pub struct SoyBoy {
 }
 
 impl SoyBoy {
-    pub fn new() -> SoyBoy {
-        SoyBoy {
+    pub fn new() -> Self {
+        Self {
             freq: 0.0,
 
             square_osc: SquareWaveOscillator::new(),
