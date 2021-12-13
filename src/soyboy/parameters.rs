@@ -11,6 +11,10 @@ pub enum Parameter {
     PitchBend,
     Detune,
     OscillatorType,
+    // frequency sweep
+    SweepType,
+    SweepAmount,
+    SweepPeriod,
     // note stutter
     StutterTime,
     StutterDepth,
@@ -21,9 +25,6 @@ pub enum Parameter {
     EgRelease,
     // square wave oscillator
     OscSqDuty,
-    OscSqSweepType,
-    OscSqSweepAmount,
-    OscSqSweepPeriod,
     // noise oscillator
     OscNsInterval,
     // wavetable oscillator
@@ -43,6 +44,12 @@ impl TryFrom<u32> for Parameter {
             Ok(Parameter::PitchBend)
         } else if id == Parameter::Detune as u32 {
             Ok(Parameter::Detune)
+        } else if id == Parameter::SweepType as u32 {
+            Ok(Parameter::SweepType)
+        } else if id == Parameter::SweepAmount as u32 {
+            Ok(Parameter::SweepAmount)
+        } else if id == Parameter::SweepPeriod as u32 {
+            Ok(Parameter::SweepPeriod)
         } else if id == Parameter::StutterTime as u32 {
             Ok(Parameter::StutterTime)
         } else if id == Parameter::StutterDepth as u32 {
@@ -57,12 +64,6 @@ impl TryFrom<u32> for Parameter {
             Ok(Parameter::EgRelease)
         } else if id == Parameter::OscSqDuty as u32 {
             Ok(Parameter::OscSqDuty)
-        } else if id == Parameter::OscSqSweepType as u32 {
-            Ok(Parameter::OscSqSweepType)
-        } else if id == Parameter::OscSqSweepAmount as u32 {
-            Ok(Parameter::OscSqSweepAmount)
-        } else if id == Parameter::OscSqSweepPeriod as u32 {
-            Ok(Parameter::OscSqSweepPeriod)
         } else if id == Parameter::OscNsInterval as u32 {
             Ok(Parameter::OscNsInterval)
         } else if id == Parameter::OscWtTableIndex as u32 {
@@ -409,6 +410,49 @@ fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
         },
     );
 
+    static SWEEP_TYPE_LIST: [&str; 4] = ["None", "Up", "Down", "Tri"];
+    static SWEEP_TYPE: ListParameter = ListParameter {
+        elements: &SWEEP_TYPE_LIST,
+    };
+    params.insert(
+        Parameter::SweepType,
+        SoyBoyParameter {
+            r#type: ParameterType::List,
+            parameter: ParameterInfo { list: SWEEP_TYPE },
+            title: "Sweep Type".to_string(),
+            short_title: "Sweep Type".to_string(),
+            unit_name: "".to_string(),
+            step_count: (SWEEP_TYPE.denormalize(1.0)) as i32,
+            default_value: 0.0,
+        },
+    );
+    static SWEEP_AMOUNT: IntegerParameter = IntegerParameter { min: 0, max: 8 };
+    params.insert(
+        Parameter::SweepAmount,
+        SoyBoyParameter {
+            r#type: ParameterType::Integer,
+            parameter: ParameterInfo { int: SWEEP_AMOUNT },
+            title: "Sweep Amount".to_string(),
+            short_title: "Sweep Amount".to_string(),
+            unit_name: "".to_string(),
+            step_count: SWEEP_AMOUNT.max - SWEEP_AMOUNT.min,
+            default_value: 0.0,
+        },
+    );
+    static SWEEP_PERIOD: IntegerParameter = IntegerParameter { min: 0, max: 8 };
+    params.insert(
+        Parameter::SweepPeriod,
+        SoyBoyParameter {
+            r#type: ParameterType::Integer,
+            parameter: ParameterInfo { int: SWEEP_PERIOD },
+            title: "Sweep period".to_string(),
+            short_title: "Sweep period".to_string(),
+            unit_name: "".to_string(),
+            step_count: SWEEP_PERIOD.max - SWEEP_PERIOD.min - 1,
+            default_value: 0.0,
+        },
+    );
+
     static STUTTER_TIME: NonLinearParameter = NonLinearParameter {
         plain_zero: 0.001,
         plain_min: 0.002,
@@ -466,54 +510,6 @@ pub fn make_square_oscillator_parameters(params: &mut HashMap<Parameter, SoyBoyP
             unit_name: "".to_string(),
             step_count: (OSC_SQ_DUTY.denormalize(1.0)) as i32,
             default_value: 2.0,
-        },
-    );
-    static SQUARE_OSCILLATOR_SWEEP_TYPE_LIST: [&str; 4] = ["None", "Up", "Down", "Tri"];
-    static OSC_SQ_SWEEP_TYPE: ListParameter = ListParameter {
-        elements: &SQUARE_OSCILLATOR_SWEEP_TYPE_LIST,
-    };
-    params.insert(
-        Parameter::OscSqSweepType,
-        SoyBoyParameter {
-            r#type: ParameterType::List,
-            parameter: ParameterInfo {
-                list: OSC_SQ_SWEEP_TYPE,
-            },
-            title: "OscSq: Sweep Type".to_string(),
-            short_title: "Sweep Type".to_string(),
-            unit_name: "".to_string(),
-            step_count: (OSC_SQ_SWEEP_TYPE.denormalize(1.0)) as i32,
-            default_value: 0.0,
-        },
-    );
-    static OSC_SQ_SWEEP_AMOUNT: IntegerParameter = IntegerParameter { min: 0, max: 8 };
-    params.insert(
-        Parameter::OscSqSweepAmount,
-        SoyBoyParameter {
-            r#type: ParameterType::Integer,
-            parameter: ParameterInfo {
-                int: OSC_SQ_SWEEP_AMOUNT,
-            },
-            title: "OscSq: Sweep Amount".to_string(),
-            short_title: "Sweep Amount".to_string(),
-            unit_name: "".to_string(),
-            step_count: OSC_SQ_SWEEP_AMOUNT.max - OSC_SQ_SWEEP_AMOUNT.min,
-            default_value: 0.0,
-        },
-    );
-    static OSC_SQ_SWEEP_PERIOD: IntegerParameter = IntegerParameter { min: 0, max: 8 };
-    params.insert(
-        Parameter::OscSqSweepPeriod,
-        SoyBoyParameter {
-            r#type: ParameterType::Integer,
-            parameter: ParameterInfo {
-                int: OSC_SQ_SWEEP_PERIOD,
-            },
-            title: "OscSq: Sweep period".to_string(),
-            short_title: "Sweep period".to_string(),
-            unit_name: "".to_string(),
-            step_count: OSC_SQ_SWEEP_PERIOD.max - OSC_SQ_SWEEP_PERIOD.min - 1,
-            default_value: 0.0,
         },
     );
 }

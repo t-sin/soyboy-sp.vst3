@@ -151,7 +151,7 @@ impl Triggered for SweepOscillator {
 impl Parametric<Parameter> for SweepOscillator {
     fn set_param(&mut self, param: &Parameter, value: f64) {
         match param {
-            Parameter::OscSqSweepType => {
+            Parameter::SweepType => {
                 self.sweep_timer_sec = 0.0;
                 if let Ok(sweep_type) = SweepType::try_from(value as u32) {
                     self.sweep_type = sweep_type;
@@ -159,10 +159,10 @@ impl Parametric<Parameter> for SweepOscillator {
                     ()
                 }
             }
-            Parameter::OscSqSweepAmount => {
+            Parameter::SweepAmount => {
                 self.sweep_amount = value;
             }
-            Parameter::OscSqSweepPeriod => {
+            Parameter::SweepPeriod => {
                 self.sweep_period = value;
             }
             _ => (),
@@ -171,9 +171,9 @@ impl Parametric<Parameter> for SweepOscillator {
 
     fn get_param(&self, param: &Parameter) -> f64 {
         match param {
-            Parameter::OscSqSweepType => (self.sweep_type as u32).into(),
-            Parameter::OscSqSweepAmount => self.sweep_amount,
-            Parameter::OscSqSweepPeriod => self.sweep_period,
+            Parameter::SweepType => (self.sweep_type as u32).into(),
+            Parameter::SweepAmount => self.sweep_amount,
+            Parameter::SweepPeriod => self.sweep_period,
             _ => 0.0,
         }
     }

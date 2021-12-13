@@ -120,6 +120,9 @@ impl Parametric<Parameter> for SoyBoy {
                     self.selected_osc = r#type
                 }
             }
+            Parameter::SweepType => self.sweep_osc.set_param(param, value),
+            Parameter::SweepAmount => self.sweep_osc.set_param(param, value),
+            Parameter::SweepPeriod => self.sweep_osc.set_param(param, value),
             Parameter::StutterTime => self.note_stutter.set_param(param, value),
             Parameter::StutterDepth => self.note_stutter.set_param(param, value),
             Parameter::EgAttack => self.envelope_gen.set_param(param, value),
@@ -127,9 +130,6 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::EgSustain => self.envelope_gen.set_param(param, value),
             Parameter::EgRelease => self.envelope_gen.set_param(param, value),
             Parameter::OscSqDuty => self.square_osc.set_param(param, value),
-            Parameter::OscSqSweepType => self.sweep_osc.set_param(param, value),
-            Parameter::OscSqSweepAmount => self.sweep_osc.set_param(param, value),
-            Parameter::OscSqSweepPeriod => self.sweep_osc.set_param(param, value),
             Parameter::OscNsInterval => self.noise_osc.set_param(param, value),
             Parameter::OscWtTableIndex => self.wavetable_osc.set_param(param, value),
             Parameter::OscWtTableValue => self.wavetable_osc.set_param(param, value),
@@ -145,6 +145,9 @@ impl Parametric<Parameter> for SoyBoy {
                 let v = self.selected_osc as u32;
                 v.into()
             }
+            Parameter::SweepType => self.sweep_osc.get_param(param),
+            Parameter::SweepAmount => self.sweep_osc.get_param(param),
+            Parameter::SweepPeriod => self.sweep_osc.get_param(param),
             Parameter::StutterTime => self.note_stutter.get_param(param),
             Parameter::StutterDepth => self.note_stutter.get_param(param),
             Parameter::EgAttack => self.envelope_gen.get_param(param),
@@ -152,9 +155,6 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::EgSustain => self.envelope_gen.get_param(param),
             Parameter::EgRelease => self.envelope_gen.get_param(param),
             Parameter::OscSqDuty => self.square_osc.get_param(param),
-            Parameter::OscSqSweepType => self.sweep_osc.get_param(param),
-            Parameter::OscSqSweepAmount => self.sweep_osc.get_param(param),
-            Parameter::OscSqSweepPeriod => self.sweep_osc.get_param(param),
             Parameter::OscNsInterval => self.noise_osc.get_param(param),
             Parameter::OscWtTableIndex => self.wavetable_osc.get_param(param),
             Parameter::OscWtTableValue => self.wavetable_osc.get_param(param),
