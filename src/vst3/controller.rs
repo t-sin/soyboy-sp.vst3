@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
 
-use std::ffi::CStr;
 use std::os::raw::c_void;
 use std::ptr::null_mut;
 
@@ -256,8 +255,7 @@ impl IEditController for SoyBoyController {
     }
 
     unsafe fn create_view(&self, name: FIDString) -> *mut c_void {
-        let name = CStr::from_ptr(name).to_string_lossy().into_owned();
-        if name == "editor" {
+        if utils::fidstring_to_string(name) == "editor" {
             self as &dyn IPlugView as *const dyn IPlugView as *mut c_void
         } else {
             null_mut()

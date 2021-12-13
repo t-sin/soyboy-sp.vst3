@@ -1,12 +1,16 @@
 use std::{
+    ffi::CStr,
     os::raw::{c_char, c_short, c_void},
     ptr::copy_nonoverlapping,
 };
 use widestring::U16CString;
 
-use vst3_sys::vst::{
-    BusDirections, BusFlags, BusInfo, BusTypes, DataEvent, Event, EventData, EventTypes,
-    MediaTypes, ParameterInfo, String128, TChar,
+use vst3_sys::{
+    base::FIDString,
+    vst::{
+        BusDirections, BusFlags, BusInfo, BusTypes, DataEvent, Event, EventData, EventTypes,
+        MediaTypes, ParameterInfo, String128, TChar,
+    },
 };
 
 pub unsafe fn strcpy(src: &str, dst: *mut c_char) {
@@ -51,6 +55,10 @@ pub fn tchar_to_string(src: *const TChar) -> String {
     } else {
         "".to_string()
     }
+}
+
+pub fn fidstring_to_string(src: FIDString) -> String {
+    unsafe { CStr::from_ptr(src).to_string_lossy().into_owned() }
 }
 
 const K_AUDIO: i32 = MediaTypes::kAudio as i32;
