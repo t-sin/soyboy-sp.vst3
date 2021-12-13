@@ -7,6 +7,7 @@ mod stutter;
 mod sweep;
 mod types;
 mod utils;
+mod voice;
 mod wave_table;
 
 pub mod event;
