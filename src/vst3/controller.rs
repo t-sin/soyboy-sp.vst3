@@ -3,15 +3,17 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
 
+use std::ffi::CStr;
 use std::os::raw::c_void;
 use std::ptr::null_mut;
 
 use vst3_com::sys::GUID;
 use vst3_sys::{
     base::{
-        kInvalidArgument, kResultFalse, kResultOk, kResultTrue, tresult, FIDString, IBStream,
-        IPluginBase,
+        char16, kInvalidArgument, kResultFalse, kResultOk, kResultTrue, tresult, FIDString,
+        IBStream, IPluginBase, TBool,
     },
+    gui::{IPlugView, ViewRect},
     utils::SharedVstPtr,
     vst::{
         kRootUnitId, CtrlNumber, IComponentHandler, IEditController, IMidiMapping, IUnitInfo,
@@ -23,7 +25,7 @@ use vst3_sys::{
 use crate::soyboy::parameters::{Normalizable, Parameter, SoyBoyParameter};
 use crate::vst3::{plugin_data, utils};
 
-#[VST3(implements(IEditController, IUnitInfo, IMidiMapping))]
+#[VST3(implements(IEditController, IUnitInfo, IMidiMapping, IPlugView))]
 pub struct SoyBoyController {
     soyboy_params: HashMap<Parameter, SoyBoyParameter>,
     vst3_params: RefCell<HashMap<u32, ParameterInfo>>,
@@ -253,8 +255,13 @@ impl IEditController for SoyBoyController {
         kResultOk
     }
 
-    unsafe fn create_view(&self, _name: FIDString) -> *mut c_void {
-        null_mut()
+    unsafe fn create_view(&self, name: FIDString) -> *mut c_void {
+        let name = CStr::from_ptr(name).to_string_lossy().into_owned();
+        if name == "editor" {
+            self as &dyn IPlugView as *const dyn IPlugView as *mut c_void
+        } else {
+            null_mut()
+        }
     }
 }
 
@@ -329,5 +336,44 @@ impl IUnitInfo for SoyBoyController {
         _data: SharedVstPtr<dyn IBStream>,
     ) -> i32 {
         kResultFalse
+    }
+}
+
+impl IPlugView for SoyBoyController {
+    unsafe fn is_platform_type_supported(&self, type_: FIDString) -> tresult {
+        kResultOk
+    }
+    unsafe fn attached(&self, parent: *mut c_void, type_: FIDString) -> tresult {
+        kResultOk
+    }
+    unsafe fn removed(&self) -> tresult {
+        kResultOk
+    }
+    unsafe fn on_wheel(&self, distance: f32) -> tresult {
+        kResultOk
+    }
+    unsafe fn on_key_down(&self, key: char16, key_code: i16, modifiers: i16) -> tresult {
+        kResultOk
+    }
+    unsafe fn on_key_up(&self, key: char16, key_code: i16, modifiers: i16) -> tresult {
+        kResultOk
+    }
+    unsafe fn get_size(&self, size: *mut ViewRect) -> tresult {
+        kResultOk
+    }
+    unsafe fn on_size(&self, new_size: *mut ViewRect) -> tresult {
+        kResultOk
+    }
+    unsafe fn on_focus(&self, state: TBool) -> tresult {
+        kResultOk
+    }
+    unsafe fn set_frame(&self, frame: *mut c_void) -> tresult {
+        kResultOk
+    }
+    unsafe fn can_resize(&self) -> tresult {
+        kResultOk
+    }
+    unsafe fn check_size_constraint(&self, rect: *mut ViewRect) -> tresult {
+        kResultOk
     }
 }
