@@ -33,7 +33,7 @@ I want to do some chiptunes on GNU/Linux.
     - [x] note velocity
     - [x] note stutter (note delay)
     - [x] DAC simulation
-    - [ ] frequency sweep for all oscillators
+    - [x] frequency sweep for all oscillators
     - [ ] make soyboy a single voice unit (preparation for be a polyphonic synth)
 
 ## References
