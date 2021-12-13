@@ -39,7 +39,7 @@ impl TryFrom<u32> for OscillatorType {
     }
 }
 
-pub struct SoyBoy {
+pub struct VoiceUnit {
     freq: f64,
 
     square_osc: SquareWaveOscillator,
@@ -50,13 +50,12 @@ pub struct SoyBoy {
     envelope_gen: EnvelopeGenerator,
     note_stutter: NoteStutter,
 
-    master_volume: f64,
     pitch: i16,
     detune: i16,
     selected_osc: OscillatorType,
 }
 
-impl SoyBoy {
+impl VoiceUnit {
     pub fn new() -> Self {
         Self {
             freq: 0.0,
@@ -69,7 +68,6 @@ impl SoyBoy {
             envelope_gen: EnvelopeGenerator::new(),
             note_stutter: NoteStutter::new(),
 
-            master_volume: 1.0,
             pitch: 0,
             detune: 0,
             selected_osc: OscillatorType::Square,
@@ -77,7 +75,7 @@ impl SoyBoy {
     }
 }
 
-impl Triggered for SoyBoy {
+impl Triggered for VoiceUnit {
     fn trigger(&mut self, event: &Event) {
         match event {
             Event::NoteOn { note, velocity: _ } => {
@@ -101,10 +99,9 @@ impl Triggered for SoyBoy {
     }
 }
 
-impl Parametric<Parameter> for SoyBoy {
+impl Parametric<Parameter> for VoiceUnit {
     fn set_param(&mut self, param: &Parameter, value: f64) {
         match param {
-            Parameter::MasterVolume => self.master_volume = value,
             Parameter::PitchBend => {
                 self.pitch = value as i16;
                 let ratio = ratio_from_cents(self.pitch + self.detune);
@@ -133,12 +130,12 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::OscNsInterval => self.noise_osc.set_param(param, value),
             Parameter::OscWtTableIndex => self.wavetable_osc.set_param(param, value),
             Parameter::OscWtTableValue => self.wavetable_osc.set_param(param, value),
+            _ => (),
         }
     }
 
     fn get_param(&self, param: &Parameter) -> f64 {
         match param {
-            Parameter::MasterVolume => self.master_volume,
             Parameter::PitchBend => self.pitch as f64,
             Parameter::Detune => self.detune as f64,
             Parameter::OscillatorType => {
@@ -158,12 +155,13 @@ impl Parametric<Parameter> for SoyBoy {
             Parameter::OscNsInterval => self.noise_osc.get_param(param),
             Parameter::OscWtTableIndex => self.wavetable_osc.get_param(param),
             Parameter::OscWtTableValue => self.wavetable_osc.get_param(param),
+            _ => 0.0,
         }
     }
 }
 
-impl AudioProcessor<Signal> for SoyBoy {
-    fn process(&mut self, sample_rate: f64) -> Signal {
+impl AudioProcessor<f64> for VoiceUnit {
+    fn process(&mut self, sample_rate: f64) -> f64 {
         if self.sweep_osc.is_clipped() {
             self.freq = 0.0;
         } else {
@@ -180,7 +178,50 @@ impl AudioProcessor<Signal> for SoyBoy {
         };
         let env = self.envelope_gen.process(sample_rate);
 
-        let v = self.dac.process(sample_rate, osc * env) * level(self.master_volume);
+        self.dac.process(sample_rate, osc * env)
+    }
+}
+
+pub struct SoyBoy {
+    voice: VoiceUnit,
+
+    master_volume: f64,
+}
+
+impl SoyBoy {
+    pub fn new() -> Self {
+        Self {
+            voice: VoiceUnit::new(),
+
+            master_volume: 1.0,
+        }
+    }
+}
+
+impl Triggered for SoyBoy {
+    fn trigger(&mut self, event: &Event) {
+        self.voice.trigger(event);
+    }
+}
+
+impl Parametric<Parameter> for SoyBoy {
+    fn set_param(&mut self, param: &Parameter, value: f64) {
+        match param {
+            Parameter::MasterVolume => self.master_volume = value,
+            param => self.voice.set_param(param, value),
+        }
+    }
+
+    fn get_param(&self, param: &Parameter) -> f64 {
+        match param {
+            Parameter::MasterVolume => self.master_volume,
+            param => self.voice.get_param(param),
+        }
+    }
+}
+impl AudioProcessor<Signal> for SoyBoy {
+    fn process(&mut self, sample_rate: f64) -> Signal {
+        let v = self.voice.process(sample_rate) * level(self.master_volume);
         (v, v)
     }
 }
