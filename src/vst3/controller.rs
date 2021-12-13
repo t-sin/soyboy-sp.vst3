@@ -339,39 +339,61 @@ impl IUnitInfo for SoyBoyController {
 
 impl IPlugView for SoyBoyController {
     unsafe fn is_platform_type_supported(&self, type_: FIDString) -> tresult {
+        println!("aaaaaaaaaaaaa");
+        let type_ = utils::fidstring_to_string(type_);
+
+        // TODO: currently supports GUI only on GNU/Linux
+        if type_ == "X11EmbedWindowID" {
+            println!("aaaaaaaaaaaaa");
+            kResultOk
+        } else {
+            kResultFalse
+        }
+    }
+
+    unsafe fn attached(&self, _parent: *mut c_void, _type_: FIDString) -> tresult {
+        println!("aaaaaaaaaa");
         kResultOk
     }
-    unsafe fn attached(&self, parent: *mut c_void, type_: FIDString) -> tresult {
-        kResultOk
-    }
+
     unsafe fn removed(&self) -> tresult {
+        println!("aaaaaaaaaaaaa");
         kResultOk
     }
-    unsafe fn on_wheel(&self, distance: f32) -> tresult {
+    unsafe fn on_wheel(&self, _distance: f32) -> tresult {
+        println!("aaaaaaaaaaaaa");
         kResultOk
     }
-    unsafe fn on_key_down(&self, key: char16, key_code: i16, modifiers: i16) -> tresult {
+    unsafe fn on_key_down(&self, _key: char16, _key_code: i16, _modifiers: i16) -> tresult {
+        println!("aaaaaaaaaaaaa");
         kResultOk
     }
-    unsafe fn on_key_up(&self, key: char16, key_code: i16, modifiers: i16) -> tresult {
+    unsafe fn on_key_up(&self, _key: char16, _key_code: i16, _modifiers: i16) -> tresult {
+        println!("aaaaaaaaaaaaa");
         kResultOk
     }
-    unsafe fn get_size(&self, size: *mut ViewRect) -> tresult {
+    unsafe fn get_size(&self, _size: *mut ViewRect) -> tresult {
+        println!("aaaaaaaaaaaaa");
         kResultOk
     }
-    unsafe fn on_size(&self, new_size: *mut ViewRect) -> tresult {
+    unsafe fn on_size(&self, _new_size: *mut ViewRect) -> tresult {
+        println!("aaaaaaaaaaaaa");
         kResultOk
     }
-    unsafe fn on_focus(&self, state: TBool) -> tresult {
+    unsafe fn on_focus(&self, _state: TBool) -> tresult {
+        println!("aaaaaaaaaaaaa");
         kResultOk
     }
-    unsafe fn set_frame(&self, frame: *mut c_void) -> tresult {
+    unsafe fn set_frame(&self, _frame: *mut c_void) -> tresult {
+        println!("aaaaaaaaaaaaa");
         kResultOk
     }
     unsafe fn can_resize(&self) -> tresult {
+        println!("aaaaaaaaaaaaa");
         kResultOk
     }
-    unsafe fn check_size_constraint(&self, rect: *mut ViewRect) -> tresult {
+    unsafe fn check_size_constraint(&self, _rect: *mut ViewRect) -> tresult {
+        println!("aaaaaaaaaaaaa");
         kResultOk
     }
 }
