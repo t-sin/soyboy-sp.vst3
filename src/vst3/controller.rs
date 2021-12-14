@@ -9,10 +9,10 @@ use std::ptr::null_mut;
 use vst3_com::sys::GUID;
 use vst3_sys::{
     base::{
-        char16, kInvalidArgument, kResultFalse, kResultOk, kResultTrue, tresult, FIDString,
-        IBStream, IPluginBase, TBool,
+        kInvalidArgument, kResultFalse, kResultOk, kResultTrue, tresult, FIDString, IBStream,
+        IPluginBase,
     },
-    gui::{IPlugView, ViewRect},
+    gui::IPlugView,
     utils::SharedVstPtr,
     vst::{
         kRootUnitId, CtrlNumber, IComponentHandler, IEditController, IMidiMapping, IUnitInfo,
@@ -22,13 +22,14 @@ use vst3_sys::{
 };
 
 use crate::soyboy::parameters::{Normalizable, Parameter, SoyBoyParameter};
-use crate::vst3::{plugin_data, utils};
+use crate::vst3::{gui::SoyBoyGUI, plugin_data, utils};
 
-#[VST3(implements(IEditController, IUnitInfo, IMidiMapping, IPlugView))]
+#[VST3(implements(IEditController, IUnitInfo, IMidiMapping))]
 pub struct SoyBoyController {
     soyboy_params: HashMap<Parameter, SoyBoyParameter>,
     vst3_params: RefCell<HashMap<u32, ParameterInfo>>,
     param_values: RefCell<HashMap<u32, f64>>,
+    gui: RefCell<Box<SoyBoyGUI>>,
 }
 
 impl SoyBoyController {
@@ -66,8 +67,9 @@ impl SoyBoyController {
     pub unsafe fn new(soyboy_params: HashMap<Parameter, SoyBoyParameter>) -> Box<SoyBoyController> {
         let vst3_params = RefCell::new(HashMap::new());
         let param_vals = RefCell::new(HashMap::new());
+        let gui = RefCell::new(SoyBoyGUI::new());
 
-        SoyBoyController::allocate(soyboy_params, vst3_params, param_vals)
+        SoyBoyController::allocate(soyboy_params, vst3_params, param_vals, gui)
     }
 }
 
@@ -256,7 +258,7 @@ impl IEditController for SoyBoyController {
 
     unsafe fn create_view(&self, name: FIDString) -> *mut c_void {
         if utils::fidstring_to_string(name) == "editor" {
-            self as &dyn IPlugView as *const dyn IPlugView as *mut c_void
+            self.gui.borrow_mut().as_ref() as &dyn IPlugView as *const dyn IPlugView as *mut c_void
         } else {
             null_mut()
         }
@@ -334,66 +336,5 @@ impl IUnitInfo for SoyBoyController {
         _data: SharedVstPtr<dyn IBStream>,
     ) -> i32 {
         kResultFalse
-    }
-}
-
-impl IPlugView for SoyBoyController {
-    unsafe fn is_platform_type_supported(&self, type_: FIDString) -> tresult {
-        println!("aaaaaaaaaaaaa");
-        let type_ = utils::fidstring_to_string(type_);
-
-        // TODO: currently supports GUI only on GNU/Linux
-        if type_ == "X11EmbedWindowID" {
-            println!("aaaaaaaaaaaaa");
-            kResultOk
-        } else {
-            kResultFalse
-        }
-    }
-
-    unsafe fn attached(&self, _parent: *mut c_void, _type_: FIDString) -> tresult {
-        println!("aaaaaaaaaa");
-        kResultOk
-    }
-
-    unsafe fn removed(&self) -> tresult {
-        println!("aaaaaaaaaaaaa");
-        kResultOk
-    }
-    unsafe fn on_wheel(&self, _distance: f32) -> tresult {
-        println!("aaaaaaaaaaaaa");
-        kResultOk
-    }
-    unsafe fn on_key_down(&self, _key: char16, _key_code: i16, _modifiers: i16) -> tresult {
-        println!("aaaaaaaaaaaaa");
-        kResultOk
-    }
-    unsafe fn on_key_up(&self, _key: char16, _key_code: i16, _modifiers: i16) -> tresult {
-        println!("aaaaaaaaaaaaa");
-        kResultOk
-    }
-    unsafe fn get_size(&self, _size: *mut ViewRect) -> tresult {
-        println!("aaaaaaaaaaaaa");
-        kResultOk
-    }
-    unsafe fn on_size(&self, _new_size: *mut ViewRect) -> tresult {
-        println!("aaaaaaaaaaaaa");
-        kResultOk
-    }
-    unsafe fn on_focus(&self, _state: TBool) -> tresult {
-        println!("aaaaaaaaaaaaa");
-        kResultOk
-    }
-    unsafe fn set_frame(&self, _frame: *mut c_void) -> tresult {
-        println!("aaaaaaaaaaaaa");
-        kResultOk
-    }
-    unsafe fn can_resize(&self) -> tresult {
-        println!("aaaaaaaaaaaaa");
-        kResultOk
-    }
-    unsafe fn check_size_constraint(&self, _rect: *mut ViewRect) -> tresult {
-        println!("aaaaaaaaaaaaa");
-        kResultOk
     }
 }
