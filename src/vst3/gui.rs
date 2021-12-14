@@ -7,7 +7,17 @@ use vst3_sys::{
     VST3,
 };
 
+use eframe::{egui, epi};
+
 use crate::vst3::utils;
+
+struct EguiApp {}
+
+impl EguiApp {
+    fn new() -> Box<Self> {
+        Box::new(Self {})
+    }
+}
 
 #[VST3(implements(IPlugView, IPlugFrame))]
 pub struct SoyBoyGUI {}
@@ -16,6 +26,14 @@ impl SoyBoyGUI {
     pub fn new() -> Box<Self> {
         SoyBoyGUI::allocate()
     }
+}
+
+impl epi::App for EguiApp {
+    fn name(&self) -> &str {
+        "SoyBoy SP"
+    }
+
+    fn update(&mut self, _ctx: &egui::CtxRef, _frame: &mut epi::Frame<'_>) {}
 }
 
 impl IPlugFrame for SoyBoyGUI {
@@ -50,9 +68,10 @@ impl IPlugView for SoyBoyGUI {
         }
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     unsafe fn attached(&self, _parent: *mut c_void, _type_: FIDString) -> tresult {
         println!("attached");
-        kResultOk
+        eframe::run_native(EguiApp::new(), eframe::NativeOptions::default())
     }
 
     unsafe fn removed(&self) -> tresult {
