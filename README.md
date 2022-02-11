@@ -49,4 +49,4 @@ I want to do some chiptunes on GNU/Linux.
 
 ## License
 
-???
+This project is lisenced under the GPLv3 because of [Steinberg's licensing poricy](https://developer.steinberg.help/display/VST/VST+3+Licensing).
