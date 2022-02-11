@@ -11,11 +11,8 @@ crate-type = ["cdylib"]
 [dev-dependencies]
 
 [dependencies]
-# WORKARROUND FOR VELOCITY TYPE
-#vst3-sys = { version = "0.1.0", git = "https://github.com/RustAudio/vst3-sys" }
-#vst3-com = { version = "0.1.0", git = "https://github.com/RustAudio/vst3-sys" }
-vst3-sys = { branch = "fix-wrong-type-of-note-velocity", git = "https://github.com/t-sin/vst3-sys" }
-vst3-com = { branch = "fix-wrong-type-of-note-velocity", git = "https://github.com/t-sin/vst3-sys" }
+vst3-sys = { version = "0.1.0", git = "https://github.com/RustAudio/vst3-sys" }
+vst3-com = { version = "0.1.0", git = "https://github.com/RustAudio/vst3-sys" }
 
 rand = "0.8.4"
 widestring = "0.4.0"

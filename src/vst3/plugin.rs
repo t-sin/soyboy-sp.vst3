@@ -11,12 +11,13 @@ use vst3_sys::{
         kInvalidArgument, kResultFalse, kResultOk, kResultTrue, tresult, IBStream, IPluginBase,
         TBool,
     },
+    utils::SharedVstPtr,
     vst::{
         AudioBusBuffers, BusDirections, BusFlags, BusInfo, BusTypes, EventTypes, IAudioProcessor,
         IComponent, IEventList, IParamValueQueue, IParameterChanges, MediaTypes, ProcessData,
         ProcessSetup, RoutingInfo, K_SAMPLE32, K_SAMPLE64,
     },
-    ComPtr, VST3,
+    VST3,
 };
 
 use crate::soyboy::{
@@ -192,13 +193,16 @@ impl IComponent for SoyBoyPlugin {
         kResultOk
     }
 
-    unsafe fn set_state(&self, state: *mut c_void) -> tresult {
+    unsafe fn set_state(&self, state: SharedVstPtr<dyn IBStream>) -> tresult {
         if state.is_null() {
             return kResultFalse;
         }
 
-        let state = state as *mut *mut _;
-        let state: ComPtr<dyn IBStream> = ComPtr::new(state);
+        let state = state.upgrade();
+        if state.is_none() {
+            return kResultFalse;
+        }
+        let state = state.unwrap();
 
         let mut num_bytes_read = 0;
         for param in Parameter::iter() {
@@ -218,13 +222,16 @@ impl IComponent for SoyBoyPlugin {
         kResultOk
     }
 
-    unsafe fn get_state(&self, state: *mut c_void) -> tresult {
+    unsafe fn get_state(&self, state: SharedVstPtr<dyn IBStream>) -> tresult {
         if state.is_null() {
             return kResultFalse;
         }
 
-        let state = state as *mut *mut _;
-        let state: ComPtr<dyn IBStream> = ComPtr::new(state);
+        let state = state.upgrade();
+        if state.is_none() {
+            return kResultFalse;
+        }
+        let state = state.unwrap();
 
         let mut num_bytes_written = 0;
         for param in Parameter::iter() {

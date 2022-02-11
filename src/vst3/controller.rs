@@ -12,12 +12,12 @@ use vst3_sys::{
         kInvalidArgument, kResultFalse, kResultOk, kResultTrue, tresult, FIDString, IBStream,
         IPluginBase,
     },
-    utils::VstPtr,
+    utils::SharedVstPtr,
     vst::{
-        kRootUnitId, CtrlNumber, IEditController, IMidiMapping, IUnitInfo, ParamID, ParameterFlags,
-        ParameterInfo, ProgramListInfo, TChar, UnitInfo,
+        kRootUnitId, CtrlNumber, IComponentHandler, IEditController, IMidiMapping, IUnitInfo,
+        ParamID, ParameterFlags, ParameterInfo, ProgramListInfo, TChar, UnitInfo,
     },
-    ComPtr, VST3,
+    VST3,
 };
 
 use crate::soyboy::parameters::{Normalizable, Parameter, SoyBoyParameter};
@@ -116,13 +116,16 @@ impl IMidiMapping for SoyBoyController {
 }
 
 impl IEditController for SoyBoyController {
-    unsafe fn set_component_state(&self, state: *mut c_void) -> tresult {
+    unsafe fn set_component_state(&self, state: SharedVstPtr<dyn IBStream>) -> tresult {
         if state.is_null() {
             return kResultFalse;
         }
 
-        let state = state as *mut *mut _;
-        let state: ComPtr<dyn IBStream> = ComPtr::new(state);
+        let state = state.upgrade();
+        if state.is_none() {
+            return kResultFalse;
+        }
+        let state = state.unwrap();
 
         let mut num_bytes_read = 0;
         for param in Parameter::iter() {
@@ -136,11 +139,11 @@ impl IEditController for SoyBoyController {
         kResultOk
     }
 
-    unsafe fn set_state(&self, _state: *mut c_void) -> tresult {
+    unsafe fn set_state(&self, _state: SharedVstPtr<dyn IBStream>) -> tresult {
         kResultOk
     }
 
-    unsafe fn get_state(&self, _state: *mut c_void) -> tresult {
+    unsafe fn get_state(&self, _state: SharedVstPtr<dyn IBStream>) -> tresult {
         kResultOk
     }
 
@@ -243,7 +246,10 @@ impl IEditController for SoyBoyController {
         }
     }
 
-    unsafe fn set_component_handler(&self, _handler: *mut c_void) -> tresult {
+    unsafe fn set_component_handler(
+        &self,
+        _handler: SharedVstPtr<dyn IComponentHandler>,
+    ) -> tresult {
         kResultOk
     }
 
@@ -320,7 +326,7 @@ impl IUnitInfo for SoyBoyController {
         &self,
         _list_or_unit: i32,
         _program_index: i32,
-        _data: VstPtr<dyn IBStream>,
+        _data: SharedVstPtr<dyn IBStream>,
     ) -> i32 {
         kResultFalse
     }
