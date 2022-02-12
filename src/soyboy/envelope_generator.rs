@@ -113,6 +113,8 @@ impl AudioProcessor<f64> for EnvelopeGenerator {
 
         discrete_loudness(v * level_from_velocity(self.velocity))
     }
+
+    fn set_freq(&mut self, _freq: f64) {}
 }
 
 impl Triggered for EnvelopeGenerator {

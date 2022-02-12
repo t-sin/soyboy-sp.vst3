@@ -92,6 +92,10 @@ impl AudioProcessor<i4> for SquareWaveOscillator {
 
         signal
     }
+
+    fn set_freq(&mut self, freq: f64) {
+        self.freq = freq;
+    }
 }
 
 impl Parametric<Parameter> for SquareWaveOscillator {

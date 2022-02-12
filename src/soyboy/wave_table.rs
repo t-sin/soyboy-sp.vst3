@@ -88,4 +88,8 @@ impl AudioProcessor<i4> for WaveTableOscillator {
 
         i4::from(v)
     }
+
+    fn set_freq(&mut self, freq: f64) {
+        self.freq = freq;
+    }
 }

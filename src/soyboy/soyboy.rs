@@ -50,4 +50,6 @@ impl AudioProcessor<Signal> for SoyBoy {
         let v = self.voice.process(sample_rate) * level(self.master_volume);
         (v, v)
     }
+
+    fn set_freq(&mut self, _freq: f64) {}
 }

@@ -78,8 +78,6 @@ impl Triggered for VoiceUnit {
         match event {
             Event::NoteOn { note, velocity: _ } => {
                 self.freq = frequency_from_note_number(*note);
-                self.square_osc.freq = self.freq;
-                self.wavetable_osc.freq = self.freq;
                 self.sweep_osc
                     .trigger(&Event::SweepReset { freq: self.freq });
 
@@ -170,12 +168,23 @@ impl AudioProcessor<f64> for VoiceUnit {
             .process(sample_rate, &mut self.envelope_gen);
 
         let osc = match self.selected_osc {
-            OscillatorType::Square => self.square_osc.process(sample_rate),
-            OscillatorType::Noise => self.noise_osc.process(sample_rate),
-            OscillatorType::WaveTable => self.wavetable_osc.process(sample_rate),
+            OscillatorType::Square => {
+                self.square_osc.set_freq(self.freq);
+                self.square_osc.process(sample_rate)
+            }
+            OscillatorType::Noise => {
+                self.noise_osc.set_freq(self.freq);
+                self.noise_osc.process(sample_rate)
+            }
+            OscillatorType::WaveTable => {
+                self.wavetable_osc.set_freq(self.freq);
+                self.wavetable_osc.process(sample_rate)
+            }
         };
         let env = self.envelope_gen.process(sample_rate);
 
         self.dac.process(sample_rate, osc * env)
     }
+
+    fn set_freq(&mut self, _freq: f64) {}
 }

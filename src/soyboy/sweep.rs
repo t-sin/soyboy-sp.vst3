@@ -130,6 +130,8 @@ impl AudioProcessor<f64> for SweepOscillator {
             }
         }
     }
+
+    fn set_freq(&mut self, _freq: f64) {}
 }
 
 impl Triggered for SweepOscillator {

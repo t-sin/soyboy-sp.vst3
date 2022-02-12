@@ -41,6 +41,8 @@ impl AudioProcessor<i4> for NoiseOscillator {
 
         i4::from(self.table[self.table_index])
     }
+
+    fn set_freq(&mut self, _freq: f64) {}
 }
 
 impl Triggered for NoiseOscillator {
