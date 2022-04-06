@@ -262,6 +262,13 @@ impl IEditController for SoyBoyController {
 
     unsafe fn create_view(&self, name: FIDString) -> *mut c_void {
         if utils::fidstring_to_string(name) == "editor" {
+            // MEMO: When I implement IPlugView as IEditController itself but self in here
+            //       is not mutable, so I wrote a complex casting and it does not works
+            //       (the VST host doesn't seem it as IPlugVIew)
+            //       (because of mutabillity difference? or complex casting? I don't know)
+            //
+            //       So I decided IPlugView as new object (in gui.rs). In this way, the VST3 host
+            //       recognizes IPlugView and proceeds GUI initialization sequence.
             self.gui.borrow_mut().deref_mut().as_mut() as *const dyn IPlugView as *mut c_void
         } else {
             null_mut()
