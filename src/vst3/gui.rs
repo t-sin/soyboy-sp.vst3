@@ -9,6 +9,9 @@ use vst3_sys::{
 
 use crate::vst3::utils;
 
+const SCREEN_WIDTH: u32 = 800;
+const SCREEN_HEIGHT: u32 = 600;
+
 #[VST3(implements(IPlugView, IPlugFrame))]
 pub struct SoyBoyGUI {}
 
@@ -22,9 +25,14 @@ impl IPlugFrame for SoyBoyGUI {
     unsafe fn resize_view(
         &self,
         _view: SharedVstPtr<dyn IPlugView>,
-        _new_size: *mut ViewRect,
+        new_size: *mut ViewRect,
     ) -> tresult {
         println!("IPlugFrame::reqise_view()");
+        (*new_size).left = 0;
+        (*new_size).top = 0;
+        (*new_size).right = SCREEN_WIDTH as i32;
+        (*new_size).bottom = SCREEN_HEIGHT as i32;
+
         kResultOk
     }
 }
@@ -63,8 +71,12 @@ impl IPlugView for SoyBoyGUI {
         println!("IPlugView::on_key_up()");
         kResultOk
     }
-    unsafe fn get_size(&self, _size: *mut ViewRect) -> tresult {
+    unsafe fn get_size(&self, size: *mut ViewRect) -> tresult {
         println!("IPlugView::get_size()");
+        (*size).left = 0;
+        (*size).top = 0;
+        (*size).right = SCREEN_WIDTH as i32;
+        (*size).bottom = SCREEN_HEIGHT as i32;
         kResultOk
     }
     unsafe fn on_size(&self, _new_size: *mut ViewRect) -> tresult {
@@ -75,8 +87,10 @@ impl IPlugView for SoyBoyGUI {
         println!("IPlugView::on_focus()");
         kResultOk
     }
-    unsafe fn set_frame(&self, _frame: *mut c_void) -> tresult {
+    unsafe fn set_frame(&self, frame: *mut c_void) -> tresult {
         println!("IPlugView::set_frame()");
+        let frame = frame as *mut _;
+        *frame = self as &dyn IPlugFrame;
         kResultOk
     }
     unsafe fn can_resize(&self) -> tresult {
