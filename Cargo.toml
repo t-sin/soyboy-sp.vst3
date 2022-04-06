@@ -14,7 +14,5 @@ crate-type = ["cdylib"]
 vst3-sys = { version = "0.1.0", git = "https://github.com/RustAudio/vst3-sys" }
 vst3-com = { version = "0.1.0", git = "https://github.com/RustAudio/vst3-sys" }
 
-egui_sdl2_gl = "0.16.0"
-
 rand = "0.8.4"
 widestring = "0.4.0"
