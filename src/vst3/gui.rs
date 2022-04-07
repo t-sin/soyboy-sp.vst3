@@ -232,6 +232,8 @@ impl IPlugView for SoyBoyGUI {
 
     unsafe fn removed(&self) -> tresult {
         println!("IPlugView::removed()");
+        let old_handle = self.handle.replace(None);
+        let _ = old_handle.unwrap().join();
         kResultOk
     }
     unsafe fn on_wheel(&self, _distance: f32) -> tresult {
