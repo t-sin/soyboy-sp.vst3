@@ -1,14 +1,25 @@
 use std::cell::RefCell;
 use std::os::raw::c_void;
-use std::ptr::null_mut;
+use std::rc::Rc;
 use std::thread;
-use std::time::Instant;
 
 use vst3_sys::{
     base::{char16, kResultFalse, kResultOk, tresult, FIDString, TBool},
     gui::{IPlugFrame, IPlugView, ViewRect},
     utils::SharedVstPtr,
     VST3,
+};
+
+use egui_glow::{
+    egui_winit::{egui, winit},
+    glow, EguiGlow,
+};
+use glutin::{
+    event::{Event, WindowEvent},
+    event_loop::{ControlFlow, EventLoop, EventLoopBuilder},
+    platform::unix::{EventLoopBuilderExtUnix, WindowBuilderExtUnix},
+    window::WindowBuilder,
+    PossiblyCurrent, WindowedContext,
 };
 
 use crate::vst3::utils;
@@ -25,35 +36,140 @@ struct GUIThread {
     slider: f64,
     // window stuff
     quit: bool,
+    needs_repaint: bool,
     // egui stuff
+    egui_glow: EguiGlow,
+    window: WindowedContext<PossiblyCurrent>,
+    glow_context: Rc<glow::Context>,
 }
 
+// originally from here:
+//   https://github.com/emilk/egui/blob/7cd285ecbc2d319f1feac7b9fd9464d06a5ccf77/egui_glow/examples/pure_glow.rs
 impl GUIThread {
-    fn setup(_parent: ParentWindow) -> Self {
-        GUIThread {
+    fn setup(parent: ParentWindow) -> (Self, EventLoop<()>) {
+        let parent_id: usize = if parent.0.is_null() {
+            0
+        } else {
+            parent.0 as usize
+        };
+        let event_loop = EventLoopBuilder::new().with_any_thread(true).build();
+
+        let window_builder = WindowBuilder::new()
+            .with_x11_parent(parent_id.try_into().unwrap())
+            .with_resizable(true)
+            .with_inner_size(winit::dpi::LogicalSize {
+                width: 800.0f32,
+                height: 600.0f32,
+            })
+            .with_title("egui_glow example");
+
+        let window = unsafe {
+            glutin::ContextBuilder::new()
+                .with_depth_buffer(0)
+                .with_srgb(true)
+                .with_stencil_buffer(0)
+                .with_vsync(true)
+                .build_windowed(window_builder, &event_loop)
+                .unwrap()
+                .make_current()
+                .unwrap()
+        };
+
+        let glow_context =
+            unsafe { glow::Context::from_loader_function(|s| window.get_proc_address(s)) };
+        let glow_context = Rc::new(glow_context);
+
+        let egui_glow = EguiGlow::new(window.window(), glow_context.clone());
+
+        let thread = GUIThread {
             slider: 0.0,
             quit: false,
+            needs_repaint: false,
+            egui_glow: egui_glow,
+            window: window,
+            glow_context: glow_context,
+        };
+
+        (thread, event_loop)
+    }
+
+    fn draw(&mut self, control_flow: &mut ControlFlow) {
+        let mut clear_color = [0.1, 0.1, 0.1];
+
+        *control_flow = if self.quit {
+            ControlFlow::Exit
+        } else if self.needs_repaint {
+            self.window.window().request_redraw();
+            ControlFlow::Poll
+        } else {
+            ControlFlow::Wait
+        };
+
+        self.needs_repaint = self.egui_glow.run(self.window.window(), |egui_ctx| {
+            egui::SidePanel::left("my_side_panel").show(egui_ctx, |ui| {
+                ui.heading("Hello World!");
+                if ui.button("Quit").clicked() {
+                    self.quit = true;
+                }
+                ui.color_edit_button_rgb(&mut clear_color);
+            });
+        });
+
+        // OpenGL drawing
+        {
+            unsafe {
+                use glow::HasContext as _;
+                self.glow_context
+                    .clear_color(clear_color[0], clear_color[1], clear_color[2], 1.0);
+                self.glow_context.clear(glow::COLOR_BUFFER_BIT);
+            }
+
+            self.egui_glow.paint(self.window.window());
+
+            // draw things on top of egui here
+
+            self.window.swap_buffers().unwrap();
         }
     }
 
-    fn update(&mut self) {}
+    fn proc_events(&mut self, event: Event<()>, control_flow: &mut ControlFlow) {
+        match event {
+            // Platform-dependent event handlers to workaround a winit bug
+            // See: https://github.com/rust-windowing/winit/issues/987
+            // See: https://github.com/rust-windowing/winit/issues/1619
+            Event::RedrawEventsCleared if cfg!(windows) => self.draw(control_flow),
+            Event::RedrawRequested(_) if !cfg!(windows) => self.draw(control_flow),
 
-    fn construct_gui(&mut self) {}
+            Event::WindowEvent { event, .. } => {
+                if matches!(event, WindowEvent::CloseRequested | WindowEvent::Destroyed) {
+                    *control_flow = ControlFlow::Exit;
+                }
 
-    fn draw(&mut self) {}
+                if let WindowEvent::Resized(physical_size) = &event {
+                    self.window.resize(*physical_size);
+                } else if let WindowEvent::ScaleFactorChanged { new_inner_size, .. } = &event {
+                    self.window.resize(**new_inner_size);
+                }
+
+                self.egui_glow.on_event(&event);
+
+                self.window.window().request_redraw(); // TODO: ask egui if the events warrants a repaint instead
+            }
+            Event::LoopDestroyed => {
+                self.egui_glow.destroy();
+            }
+
+            _ => (),
+        }
+    }
 
     fn run_loop(parent: ParentWindow) {
-        let mut thread = GUIThread::setup(parent);
+        let (mut thread, event_loop) = GUIThread::setup(parent);
 
-        loop {
-            thread.update();
-            thread.construct_gui();
-            thread.draw();
-
-            if thread.quit {
-                break;
-            }
-        }
+        event_loop.run(move |event, _, control_flow| {
+            thread.draw(control_flow);
+            thread.proc_events(event, control_flow);
+        });
     }
 }
 
