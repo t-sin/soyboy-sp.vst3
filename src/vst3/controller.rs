@@ -263,6 +263,12 @@ impl IEditController for SoyBoyController {
     unsafe fn create_view(&self, name: FIDString) -> *mut c_void {
         if utils::fidstring_to_string(name) == "editor" {
             println!("IEditController::create_view()");
+
+            // MEMO: When re-open the plugin window, the VST3 host calls this IEditController::create_view() but
+            //       self.gui have did borrow_mut() and casted as *mut c_void in previous call, it goes non-safe,
+            //       so we make a fresh GUI object for a new IEditController::create_view() call.
+            (*self.gui.borrow_mut()) = SoyBoyGUI::new();
+
             // MEMO: When I implement IPlugView as IEditController itself but self in here
             //       is not mutable, so I wrote a complex casting and it does not works
             //       (the VST host doesn't seem it as IPlugVIew)
@@ -270,7 +276,6 @@ impl IEditController for SoyBoyController {
             //
             //       So I decided IPlugView as new object (in gui.rs). In this way, the VST3 host
             //       recognizes IPlugView and proceeds GUI initialization sequence.
-            (*self.gui.borrow_mut()) = SoyBoyGUI::new();
             self.gui.borrow_mut().deref_mut().as_mut() as *const dyn IPlugView as *mut c_void
         } else {
             null_mut()
