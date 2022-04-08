@@ -72,7 +72,7 @@ impl GUIThread {
 
         let window_builder = WindowBuilder::new()
             .with_x11_parent(parent_id.try_into().unwrap())
-            .with_resizable(true)
+            .with_resizable(false)
             .with_inner_size(winit::dpi::LogicalSize {
                 width: 800.0f32,
                 height: 600.0f32,
@@ -185,11 +185,11 @@ impl GUIThread {
                     self.quit = true;
                 }
 
-                if let WindowEvent::Resized(physical_size) = &event {
-                    self.window.resize(*physical_size);
-                } else if let WindowEvent::ScaleFactorChanged { new_inner_size, .. } = &event {
-                    self.window.resize(**new_inner_size);
-                }
+                // if let WindowEvent::Resized(physical_size) = &event {
+                //     self.window.resize(*physical_size);
+                // } else if let WindowEvent::ScaleFactorChanged { new_inner_size, .. } = &event {
+                //     self.window.resize(**new_inner_size);
+                // }
 
                 self.egui_glow.on_event(&event);
                 self.window.window().request_redraw(); // TODO: ask egui if the events warrants a repaint instead
@@ -335,7 +335,7 @@ impl IPlugView for SoyBoyGUI {
     }
     unsafe fn can_resize(&self) -> tresult {
         println!("IPlugView::can_resize()");
-        kResultOk
+        kResultFalse
     }
     unsafe fn check_size_constraint(&self, _rect: *mut ViewRect) -> tresult {
         println!("IPlugView::check_size_constraint()");
