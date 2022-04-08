@@ -14,6 +14,7 @@ use vst3_sys::{
     VST3,
 };
 
+use egui_extras::image::RetainedImage;
 use egui_glow::{
     egui_winit::{egui, winit},
     glow, EguiGlow,
@@ -31,8 +32,8 @@ use glutin::{
 
 use crate::vst3::utils;
 
-const SCREEN_WIDTH: u32 = 800;
-const SCREEN_HEIGHT: u32 = 600;
+const SCREEN_WIDTH: u32 = 680;
+const SCREEN_HEIGHT: u32 = 560;
 
 struct ParentWindow(*mut c_void);
 unsafe impl Send for ParentWindow {}
@@ -43,7 +44,9 @@ enum GUIMessage {
 }
 
 struct GUIThread {
-    // SoyBoy specific
+    // SoyBoy resources
+    bg_img: RetainedImage,
+    // SoyBoy states
     slider: f64,
     // window stuff
     quit: bool,
@@ -74,8 +77,8 @@ impl GUIThread {
             .with_x11_parent(parent_id.try_into().unwrap())
             .with_resizable(false)
             .with_inner_size(winit::dpi::LogicalSize {
-                width: 800.0f32,
-                height: 600.0f32,
+                width: SCREEN_WIDTH as f32,
+                height: SCREEN_HEIGHT as f32,
             })
             .with_title("egui_glow example");
 
@@ -94,10 +97,16 @@ impl GUIThread {
         let glow_context =
             unsafe { glow::Context::from_loader_function(|s| window.get_proc_address(s)) };
         let glow_context = Rc::new(glow_context);
-
         let egui_glow = EguiGlow::new(window.window(), glow_context.clone());
 
+        let bg_img = RetainedImage::from_image_bytes(
+            "soyboy-bg",
+            include_bytes!("../../doc/soyboy-ui-mock2.png"),
+        )
+        .unwrap();
+
         let thread = GUIThread {
+            bg_img: bg_img,
             slider: 0.0,
             quit: false,
             needs_repaint: false,
@@ -111,14 +120,20 @@ impl GUIThread {
     }
 
     fn draw(&mut self) {
-        let mut clear_color = [0.1, 0.1, 0.1];
+        let clear_color = [0.1, 0.1, 0.1];
+        let frame = egui::containers::Frame::default().inner_margin(egui::style::Margin {
+            left: 0.0,
+            right: 0.0,
+            top: 0.0,
+            bottom: 0.0,
+        });
 
         self.needs_repaint = self.egui_glow.run(self.window.window(), |egui_ctx| {
-            egui::SidePanel::left("my_side_panel").show(egui_ctx, |ui| {
-                ui.heading("Hello World!");
-                if ui.button("Quit").clicked() {}
-                ui.color_edit_button_rgb(&mut clear_color);
-            });
+            egui::CentralPanel::default()
+                .frame(frame)
+                .show(egui_ctx, |ui| {
+                    self.bg_img.show(ui);
+                });
         });
 
         // OpenGL drawing
