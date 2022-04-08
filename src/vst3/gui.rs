@@ -35,6 +35,9 @@ use crate::vst3::utils;
 const SCREEN_WIDTH: u32 = 680;
 const SCREEN_HEIGHT: u32 = 560;
 
+// images
+const IMG_BG: &[u8] = include_bytes!("../../doc/soyboy-ui-mock2.png");
+
 struct ParentWindow(*mut c_void);
 unsafe impl Send for ParentWindow {}
 unsafe impl Sync for ParentWindow {}
@@ -99,14 +102,8 @@ impl GUIThread {
         let glow_context = Rc::new(glow_context);
         let egui_glow = EguiGlow::new(window.window(), glow_context.clone());
 
-        let bg_img = RetainedImage::from_image_bytes(
-            "soyboy-bg",
-            include_bytes!("../../doc/soyboy-ui-mock2.png"),
-        )
-        .unwrap();
-
         let thread = GUIThread {
-            bg_img: bg_img,
+            bg_img: RetainedImage::from_image_bytes("soyboy-bg", IMG_BG).unwrap(),
             slider: 0.0,
             quit: false,
             needs_repaint: false,
