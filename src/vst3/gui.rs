@@ -36,7 +36,16 @@ const SCREEN_WIDTH: u32 = 680;
 const SCREEN_HEIGHT: u32 = 560;
 
 // images
-const IMG_BG: &[u8] = include_bytes!("../../doc/soyboy-ui-mock2.png");
+const IMG_LOGO: &[u8] = include_bytes!("../../resources/logo.png");
+const IMG_LABEL_GLOBAL: &[u8] = include_bytes!("../../resources/label-global.png");
+const IMG_LABEL_SQUARE: &[u8] = include_bytes!("../../resources/label-osc-square.png");
+const IMG_LABEL_NOISE: &[u8] = include_bytes!("../../resources/label-osc-noise.png");
+const IMG_LABEL_WAVETABLE: &[u8] = include_bytes!("../../resources/label-osc-wavetable.png");
+const IMG_LABEL_ENVELOPE: &[u8] = include_bytes!("../../resources/label-envelope.png");
+const IMG_LABEL_SWEEP: &[u8] = include_bytes!("../../resources/label-sweep.png");
+const IMG_LABEL_STUTTER: &[u8] = include_bytes!("../../resources/label-stutter.png");
+const IMG_BUTTON_RESET_RANDOM: &[u8] = include_bytes!("../../resources/button-reset-random.png");
+const IMG_BUTTON_RESET_SINE: &[u8] = include_bytes!("../../resources/button-reset-sine.png");
 
 struct ParentWindow(*mut c_void);
 unsafe impl Send for ParentWindow {}
@@ -48,7 +57,16 @@ enum GUIMessage {
 
 struct GUIThread {
     // SoyBoy resources
-    bg_img: RetainedImage,
+    img_logo: RetainedImage,
+    img_label_global: RetainedImage,
+    img_label_square: RetainedImage,
+    img_label_noise: RetainedImage,
+    img_label_wavetable: RetainedImage,
+    img_label_envelope: RetainedImage,
+    img_label_sweep: RetainedImage,
+    img_label_stutter: RetainedImage,
+    img_button_reset_random: RetainedImage,
+    img_button_reset_sine: RetainedImage,
     // SoyBoy states
     slider: f64,
     // window stuff
@@ -103,7 +121,46 @@ impl GUIThread {
         let egui_glow = EguiGlow::new(window.window(), glow_context.clone());
 
         let thread = GUIThread {
-            bg_img: RetainedImage::from_image_bytes("soyboy-bg", IMG_BG).unwrap(),
+            img_logo: RetainedImage::from_image_bytes("soyboy:logo", IMG_LOGO).unwrap(),
+            img_label_global: RetainedImage::from_image_bytes(
+                "soyboy:label:global",
+                IMG_LABEL_GLOBAL,
+            )
+            .unwrap(),
+            img_label_square: RetainedImage::from_image_bytes(
+                "soyboy:label:square",
+                IMG_LABEL_SQUARE,
+            )
+            .unwrap(),
+            img_label_noise: RetainedImage::from_image_bytes("soyboy:label:noise", IMG_LABEL_NOISE)
+                .unwrap(),
+            img_label_wavetable: RetainedImage::from_image_bytes(
+                "soyboy:label:wavetable",
+                IMG_LABEL_WAVETABLE,
+            )
+            .unwrap(),
+            img_label_envelope: RetainedImage::from_image_bytes(
+                "soyboy:label:envelope",
+                IMG_LABEL_ENVELOPE,
+            )
+            .unwrap(),
+            img_label_sweep: RetainedImage::from_image_bytes("soyboy:label:sweep", IMG_LABEL_SWEEP)
+                .unwrap(),
+            img_label_stutter: RetainedImage::from_image_bytes(
+                "soyboy:label:stutter",
+                IMG_LABEL_STUTTER,
+            )
+            .unwrap(),
+            img_button_reset_random: RetainedImage::from_image_bytes(
+                "soyboy:button:reset-random",
+                IMG_BUTTON_RESET_RANDOM,
+            )
+            .unwrap(),
+            img_button_reset_sine: RetainedImage::from_image_bytes(
+                "soyboy:button:reset-sine",
+                IMG_BUTTON_RESET_SINE,
+            )
+            .unwrap(),
             slider: 0.0,
             quit: false,
             needs_repaint: false,
@@ -117,19 +174,68 @@ impl GUIThread {
     }
 
     fn draw(&mut self) {
-        let frame = egui::containers::Frame::default().inner_margin(egui::style::Margin {
-            left: 0.0,
-            right: 0.0,
-            top: 0.0,
-            bottom: 0.0,
-        });
-
         self.needs_repaint = self.egui_glow.run(self.window.window(), |egui_ctx| {
-            egui::CentralPanel::default()
-                .frame(frame)
-                .show(egui_ctx, |ui| {
-                    self.bg_img.show(ui);
-                });
+            let show_img = |name: &str, img: &RetainedImage, x: u32, y: u32| {
+                egui::Area::new(name)
+                    .fixed_pos(egui::Pos2 {
+                        x: x as f32,
+                        y: y as f32,
+                    })
+                    .show(egui_ctx, |ui| {
+                        img.show(ui);
+                    });
+            };
+
+            // background
+            egui::Area::new("background").show(egui_ctx, |ui| {
+                ui.painter().rect_filled(
+                    egui::Rect {
+                        min: egui::Pos2 { x: 0.0, y: 0.0 },
+                        max: egui::Pos2 {
+                            x: SCREEN_WIDTH as f32,
+                            y: SCREEN_HEIGHT as f32,
+                        },
+                    },
+                    egui::Rounding {
+                        nw: 0.0,
+                        ne: 0.0,
+                        sw: 0.0,
+                        se: 0.0,
+                    },
+                    egui::Color32::from_rgb(0xab, 0xbb, 0xa8),
+                );
+            });
+
+            // logo
+            show_img("logo", &self.img_logo, 6, 6);
+
+            // labels
+            {
+                // left side
+                show_img("label: global", &self.img_label_global, 24, 86);
+                show_img("label: square", &self.img_label_square, 24, 216);
+                show_img("label: noise", &self.img_label_noise, 24, 280);
+                show_img("label: wavetable", &self.img_label_wavetable, 24, 408);
+
+                // right side
+                show_img("label: envelope", &self.img_label_envelope, 352, 12);
+                show_img("label: sweep", &self.img_label_sweep, 352, 184);
+                show_img("label: stutter", &self.img_label_stutter, 352, 316);
+            }
+
+            // buttons
+            show_img(
+                "button: reset wavetable at random",
+                &self.img_button_reset_random,
+                206,
+                526,
+            );
+            show_img(
+                "button: reset wavetable as sine",
+                &self.img_button_reset_sine,
+                274,
+                526,
+            );
         });
 
         // OpenGL drawing
