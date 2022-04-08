@@ -117,7 +117,6 @@ impl GUIThread {
     }
 
     fn draw(&mut self) {
-        let clear_color = [0.1, 0.1, 0.1];
         let frame = egui::containers::Frame::default().inner_margin(egui::style::Margin {
             left: 0.0,
             right: 0.0,
@@ -135,13 +134,6 @@ impl GUIThread {
 
         // OpenGL drawing
         {
-            unsafe {
-                use glow::HasContext as _;
-                self.glow_context
-                    .clear_color(clear_color[0], clear_color[1], clear_color[2], 1.0);
-                self.glow_context.clear(glow::COLOR_BUFFER_BIT);
-            }
-
             self.egui_glow.paint(self.window.window());
 
             // draw things on top of egui here
