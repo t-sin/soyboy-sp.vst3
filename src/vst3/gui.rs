@@ -234,24 +234,21 @@ impl GUIThread {
 #[VST3(implements(IPlugView, IPlugFrame))]
 pub struct SoyBoyGUI {
     handle: RefCell<Option<thread::JoinHandle<()>>>,
-    sender: Arc<Mutex<Sender<GUIMessage>>>,
-    receiver: Arc<Mutex<Receiver<GUIMessage>>>,
+    sender: RefCell<Option<Sender<GUIMessage>>>,
 }
 
 impl SoyBoyGUI {
     pub fn new() -> Box<Self> {
         let handle = RefCell::new(None);
-        let (send, resv) = channel();
-        let send = Arc::new(Mutex::new(send));
-        let recv = Arc::new(Mutex::new(resv));
+        let sender = RefCell::new(None);
 
-        SoyBoyGUI::allocate(handle, send, recv)
+        SoyBoyGUI::allocate(handle, sender)
     }
 
     fn start_gui(&self, parent: ParentWindow) {
         let (send, resv) = channel();
         let recv = Arc::new(Mutex::new(resv));
-        (*self.sender.lock().unwrap()) = send;
+        (*self.sender.borrow_mut()) = Some(send);
 
         let handle = thread::spawn(move || {
             GUIThread::run_loop(parent, recv);
@@ -305,10 +302,14 @@ impl IPlugView for SoyBoyGUI {
     unsafe fn removed(&self) -> tresult {
         println!("IPlugView::removed()");
         let old_handle = self.handle.replace(None);
-        let _ = self.sender.lock().unwrap().send(GUIMessage::Terminate);
+        let _ = (*self.sender.borrow())
+            .as_ref()
+            .unwrap()
+            .send(GUIMessage::Terminate);
         println!("sended terminate.");
         let res = old_handle.unwrap().join();
         println!("joined: {:?}", res);
+        let _ = self.sender.replace(None);
         kResultOk
     }
     unsafe fn on_wheel(&self, _distance: f32) -> tresult {
