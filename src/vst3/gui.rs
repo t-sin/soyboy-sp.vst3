@@ -174,13 +174,16 @@ impl GUIThread {
     }
 
     fn draw(&mut self) {
+        // println!(
+        //     "cursor pos = {:?}",
+        //     self.egui_glow.egui_ctx.input().pointer.interact_pos()
+        // );
+
         self.needs_repaint = self.egui_glow.run(self.window.window(), |egui_ctx| {
-            let show_img = |name: &str, img: &RetainedImage, x: u32, y: u32| {
+            let show_img = |name: &str, img: &RetainedImage, x: f32, y: f32| {
                 egui::Area::new(name)
-                    .fixed_pos(egui::Pos2 {
-                        x: x as f32,
-                        y: y as f32,
-                    })
+                    .fixed_pos(egui::pos2(x, y))
+                    .interactable(false)
                     .show(egui_ctx, |ui| {
                         img.show(ui);
                     });
@@ -190,37 +193,29 @@ impl GUIThread {
             egui::Area::new("background").show(egui_ctx, |ui| {
                 ui.painter().rect_filled(
                     egui::Rect {
-                        min: egui::Pos2 { x: 0.0, y: 0.0 },
-                        max: egui::Pos2 {
-                            x: SCREEN_WIDTH as f32,
-                            y: SCREEN_HEIGHT as f32,
-                        },
+                        min: egui::pos2(0.0, 0.0),
+                        max: egui::pos2(SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32),
                     },
-                    egui::Rounding {
-                        nw: 0.0,
-                        ne: 0.0,
-                        sw: 0.0,
-                        se: 0.0,
-                    },
+                    egui::Rounding::none(),
                     egui::Color32::from_rgb(0xab, 0xbb, 0xa8),
                 );
             });
 
             // logo
-            show_img("logo", &self.img_logo, 6, 6);
+            show_img("logo", &self.img_logo, 6.0, 6.0);
 
             // labels
             {
                 // left side
-                show_img("label: global", &self.img_label_global, 24, 86);
-                show_img("label: square", &self.img_label_square, 24, 216);
-                show_img("label: noise", &self.img_label_noise, 24, 280);
-                show_img("label: wavetable", &self.img_label_wavetable, 24, 408);
+                show_img("label: global", &self.img_label_global, 24.0, 86.0);
+                show_img("label: square", &self.img_label_square, 24.0, 216.0);
+                show_img("label: noise", &self.img_label_noise, 24.0, 280.0);
+                show_img("label: wavetable", &self.img_label_wavetable, 24.0, 408.0);
 
                 // right side
-                show_img("label: envelope", &self.img_label_envelope, 352, 12);
-                show_img("label: sweep", &self.img_label_sweep, 352, 184);
-                show_img("label: stutter", &self.img_label_stutter, 352, 316);
+                show_img("label: envelope", &self.img_label_envelope, 352.0, 12.0);
+                show_img("label: sweep", &self.img_label_sweep, 352.0, 184.0);
+                show_img("label: stutter", &self.img_label_stutter, 352.0, 316.0);
             }
 
             // buttons
