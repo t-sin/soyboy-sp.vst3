@@ -51,6 +51,54 @@ struct ParentWindow(*mut c_void);
 unsafe impl Send for ParentWindow {}
 unsafe impl Sync for ParentWindow {}
 
+struct Button<'a> {
+    image: &'a RetainedImage,
+    sense: egui::Sense,
+    x: f32,
+    y: f32,
+}
+
+impl<'a> Button<'a> {
+    fn new(image: &'a RetainedImage, x: f32, y: f32) -> Self {
+        Self {
+            image: image,
+            sense: egui::Sense {
+                click: true,
+                drag: false,
+                focusable: false,
+            },
+            x: x,
+            y: y,
+        }
+    }
+
+    fn rect(&self) -> egui::Rect {
+        let size = self.image.size();
+        egui::Rect {
+            min: egui::pos2(self.x, self.y),
+            max: egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
+        }
+    }
+}
+
+impl<'a> egui::widgets::Widget for Button<'a> {
+    fn ui(self, ui: &mut egui::Ui) -> egui::Response {
+        let size = self.image.size();
+        let rect = egui::Rect {
+            min: egui::pos2(self.x, self.y),
+            max: egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
+        };
+
+        let response = ui.allocate_rect(rect, self.sense);
+        if ui.is_rect_visible(rect) {
+            let img = egui::widgets::Image::new(self.image.texture_id(ui.ctx()), rect.size());
+            img.paint_at(ui, rect);
+        }
+
+        response
+    }
+}
+
 enum GUIMessage {
     Terminate,
 }
@@ -188,6 +236,25 @@ impl GUIThread {
                         img.show(ui);
                     });
             };
+            let show_button = |name: &str, button: Button, do_click: &dyn Fn()| {
+                let rect = button.rect();
+                egui::Area::new(name)
+                    .fixed_pos(rect.min)
+                    .movable(false)
+                    .show(egui_ctx, |ui| {
+                        let resp = ui.add(button);
+                        if resp.hovered() {
+                            ui.painter().rect_filled(
+                                rect,
+                                egui::Rounding::none(),
+                                egui::Color32::from_rgba_unmultiplied(0xab, 0xbb, 0xa8, 100),
+                            );
+                        }
+                        if resp.clicked() {
+                            do_click();
+                        };
+                    });
+            };
 
             // background
             egui::Area::new("background").show(egui_ctx, |ui| {
@@ -219,17 +286,19 @@ impl GUIThread {
             }
 
             // buttons
-            show_img(
-                "button: reset wavetable at random",
-                &self.img_button_reset_random,
-                206,
-                526,
+            show_button(
+                "button: reset wavetable random",
+                Button::new(&self.img_button_reset_random, 206.0, 526.0),
+                &|| {
+                    println!("reset random!!!");
+                },
             );
-            show_img(
+            show_button(
                 "button: reset wavetable as sine",
-                &self.img_button_reset_sine,
-                274,
-                526,
+                Button::new(&self.img_button_reset_sine, 274.0, 526.0),
+                &|| {
+                    println!("reset sine!!!");
+                },
             );
         });
 
