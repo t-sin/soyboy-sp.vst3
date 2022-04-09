@@ -361,6 +361,7 @@ impl GUIThread {
                 "button: reset wavetable random",
                 Button::new(&self.img_button_reset_random, 206.0, 526.0),
                 &|| {
+                    // TODO: write a code reset plugin's wavetable
                     println!("reset random!!!");
                 },
             );
@@ -368,6 +369,7 @@ impl GUIThread {
                 "button: reset wavetable as sine",
                 Button::new(&self.img_button_reset_sine, 274.0, 526.0),
                 &|| {
+                    // TODO: write a code reset plugin's wavetable
                     println!("reset sine!!!");
                 },
             );
