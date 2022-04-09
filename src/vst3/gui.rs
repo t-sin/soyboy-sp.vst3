@@ -6,6 +6,7 @@ use std::sync::{
     Arc, Mutex,
 };
 use std::thread;
+use std::time;
 
 use vst3_sys::{
     base::{char16, kResultFalse, kResultOk, tresult, FIDString, TBool},
@@ -96,6 +97,7 @@ impl egui::widgets::Widget for Label {
 struct Button<'a> {
     image: &'a RetainedImage,
     sense: egui::Sense,
+    clicked_at: time::Instant,
     x: f32,
     y: f32,
 }
@@ -104,11 +106,8 @@ impl<'a> Button<'a> {
     fn new(image: &'a RetainedImage, x: f32, y: f32) -> Self {
         Self {
             image: image,
-            sense: egui::Sense {
-                click: true,
-                drag: false,
-                focusable: false,
-            },
+            sense: egui::Sense::click().union(egui::Sense::hover()),
+            clicked_at: time::Instant::now(),
             x: x,
             y: y,
         }
@@ -124,14 +123,28 @@ impl<'a> Button<'a> {
 }
 
 impl<'a> egui::widgets::Widget for Button<'a> {
-    fn ui(self, ui: &mut egui::Ui) -> egui::Response {
+    fn ui(mut self, ui: &mut egui::Ui) -> egui::Response {
         let size = self.image.size();
-        let rect = egui::Rect {
-            min: egui::pos2(self.x, self.y),
-            max: egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
+        //        println!("elapsed from clicked is {:?}", self.clicked_at.elapsed());
+        let rect = if self.clicked_at.elapsed() < time::Duration::from_millis(500) {
+            egui::Rect {
+                min: egui::pos2(self.x + 12.0, self.y + 2.0),
+                max: egui::pos2(self.x + size[0] as f32 + 2.0, self.y + size[1] as f32 + 2.0),
+            }
+        } else {
+            egui::Rect {
+                min: egui::pos2(self.x, self.y),
+                max: egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
+            }
         };
 
         let response = ui.allocate_rect(rect, self.sense);
+
+        if response.clicked() {
+            println!("clicked");
+            self.clicked_at = time::Instant::now();
+        }
+
         if ui.is_rect_visible(rect) {
             let img = egui::widgets::Image::new(self.image.texture_id(ui.ctx()), rect.size());
             img.paint_at(ui, rect);
