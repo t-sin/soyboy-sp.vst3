@@ -385,9 +385,6 @@ impl GUIThread {
         let (mut thread, mut event_loop) = GUIThread::setup(parent, receiver);
 
         event_loop.run_return(move |event, _, control_flow| {
-            if !thread.quit {
-                thread.draw()
-            };
             thread.proc_events(event, control_flow);
         });
     }
