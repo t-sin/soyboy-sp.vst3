@@ -17,12 +17,12 @@ use vst3_sys::{
 
 use egui_extras::image::RetainedImage;
 use egui_glow::{
-    egui_winit::{egui, winit},
+    egui_winit::{egui, egui::Widget, winit},
     glow, EguiGlow,
 };
 use glutin::{
     event::{Event, WindowEvent},
-    event_loop::{ControlFlow, EventLoop, EventLoopBuilder},
+    event_loop::{ControlFlow, EventLoop, EventLoopBuilder, EventLoopProxy},
     platform::{
         run_return::EventLoopExtRunReturn,
         unix::{EventLoopBuilderExtUnix, WindowBuilderExtUnix},
@@ -32,6 +32,34 @@ use glutin::{
 };
 
 use crate::vst3::utils;
+
+#[derive(Clone, Debug)]
+struct Toggle {
+    value: bool,
+    prev_value: bool,
+}
+
+impl Toggle {
+    fn new(v: bool, prev: bool) -> Self {
+        Self {
+            value: v,
+            prev_value: prev,
+        }
+    }
+
+    fn val(&self) -> bool {
+        self.value
+    }
+
+    fn set(&mut self, v: bool) {
+        self.prev_value = self.value;
+        self.value = v;
+    }
+
+    fn toggled(&self) -> bool {
+        self.value != self.prev_value
+    }
+}
 
 const SCREEN_WIDTH: u32 = 680;
 const SCREEN_HEIGHT: u32 = 560;
@@ -51,6 +79,12 @@ const IMG_BUTTON_RESET_SINE: &[u8] = include_bytes!("../../resources/button-rese
 struct ParentWindow(*mut c_void);
 unsafe impl Send for ParentWindow {}
 unsafe impl Sync for ParentWindow {}
+
+trait Behavior {
+    fn update(&mut self) -> bool;
+    fn show(&mut self, ui: &mut egui::Ui) -> egui::Response;
+    fn rect(&self) -> egui::Rect;
+}
 
 #[derive(Clone)]
 struct Label {
@@ -79,7 +113,7 @@ impl Label {
     }
 }
 
-impl egui::widgets::Widget for Label {
+impl Widget for Label {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
         let rect = self.rect();
 
@@ -98,53 +132,30 @@ impl egui::widgets::Widget for Label {
 struct Button {
     image: Rc<RetainedImage>,
     sense: egui::Sense,
-    clicked_at: time::Instant,
-    x: f32,
-    y: f32,
+    clicked: bool,
+    rect: egui::Rect,
 }
 
 impl Button {
-    fn new(image: Rc<RetainedImage>, x: f32, y: f32) -> Self {
+    fn new(image: Rc<RetainedImage>, clicked: bool, rect: egui::Rect) -> Self {
         Self {
             image: image,
             sense: egui::Sense::click().union(egui::Sense::hover()),
-            clicked_at: time::Instant::now(),
-            x: x,
-            y: y,
-        }
-    }
-
-    fn rect(&self) -> egui::Rect {
-        let size = self.image.size();
-        egui::Rect {
-            min: egui::pos2(self.x, self.y),
-            max: egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
+            clicked: clicked,
+            rect: rect,
         }
     }
 }
 
-impl egui::widgets::Widget for Button {
-    fn ui(mut self, ui: &mut egui::Ui) -> egui::Response {
-        let size = self.image.size();
-        //        println!("elapsed from clicked is {:?}", self.clicked_at.elapsed());
-        let rect = if self.clicked_at.elapsed() < time::Duration::from_millis(500) {
-            egui::Rect {
-                min: egui::pos2(self.x + 12.0, self.y + 2.0),
-                max: egui::pos2(self.x + size[0] as f32 + 2.0, self.y + size[1] as f32 + 2.0),
-            }
+impl Widget for &mut Button {
+    fn ui(self, ui: &mut egui::Ui) -> egui::Response {
+        let rect = if self.clicked {
+            self.rect.translate(egui::vec2(2.0, 2.0))
         } else {
-            egui::Rect {
-                min: egui::pos2(self.x, self.y),
-                max: egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
-            }
+            self.rect
         };
 
         let response = ui.allocate_rect(rect, self.sense);
-
-        if response.clicked() {
-            println!("clicked");
-            self.clicked_at = time::Instant::now();
-        }
 
         if ui.is_rect_visible(rect) {
             let img = egui::widgets::Image::new(self.image.texture_id(ui.ctx()), rect.size());
@@ -163,8 +174,64 @@ impl egui::widgets::Widget for Button {
     }
 }
 
+#[derive(Clone)]
+struct StatefulButton {
+    image: Rc<RetainedImage>,
+    clicked_at: time::Instant,
+    clicked: Toggle,
+    x: f32,
+    y: f32,
+}
+
+impl StatefulButton {
+    fn new(image: Rc<RetainedImage>, x: f32, y: f32) -> Self {
+        Self {
+            image: image,
+            clicked_at: time::Instant::now(),
+            clicked: Toggle::new(false, false),
+            x: x,
+            y: y,
+        }
+    }
+}
+
+impl Behavior for StatefulButton {
+    fn rect(&self) -> egui::Rect {
+        let size = self.image.size();
+        egui::Rect {
+            min: egui::pos2(self.x, self.y),
+            max: egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
+        }
+    }
+
+    fn update(&mut self) -> bool {
+        if self.clicked_at.elapsed() <= time::Duration::from_millis(100) {
+            self.clicked.set(true);
+        } else {
+            self.clicked.set(false);
+        }
+
+        self.clicked.toggled()
+    }
+
+    fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
+        let mut widget = Button::new(self.image.clone(), self.clicked.val(), self.rect());
+        let response = widget.ui(ui);
+
+        if response.clicked() {
+            self.clicked_at = time::Instant::now();
+        }
+
+        response
+    }
+}
+
 enum GUIMessage {
     Terminate,
+}
+
+enum GUIEvent {
+    Redraw,
 }
 
 struct GUIThread {
@@ -177,8 +244,8 @@ struct GUIThread {
     label_envelope: Label,
     label_sweep: Label,
     label_stutter: Label,
-    button_reset_random: Button,
-    button_reset_sine: Button,
+    button_reset_random: StatefulButton,
+    button_reset_sine: StatefulButton,
     // SoyBoy states
     slider: f64,
     // window stuff
@@ -198,13 +265,15 @@ impl GUIThread {
     fn setup(
         parent: ParentWindow,
         receiver: Arc<Mutex<Receiver<GUIMessage>>>,
-    ) -> (Self, EventLoop<()>) {
+    ) -> (Self, EventLoop<GUIEvent>) {
         let parent_id: usize = if parent.0.is_null() {
             0
         } else {
             parent.0 as usize
         };
-        let event_loop = EventLoopBuilder::new().with_any_thread(true).build();
+        let event_loop = EventLoopBuilder::<GUIEvent>::with_user_event()
+            .with_any_thread(true)
+            .build();
 
         let window_builder = WindowBuilder::new()
             .with_x11_parent(parent_id.try_into().unwrap())
@@ -226,6 +295,8 @@ impl GUIThread {
                 .make_current()
                 .unwrap()
         };
+
+        println!("scale factor = {}", window.window().scale_factor());
 
         let glow_context =
             unsafe { glow::Context::from_loader_function(|s| window.get_proc_address(s)) };
@@ -292,7 +363,7 @@ impl GUIThread {
                 352.0,
                 316.0,
             ),
-            button_reset_random: Button::new(
+            button_reset_random: StatefulButton::new(
                 Rc::new(
                     RetainedImage::from_image_bytes(
                         "soyboy:button:reset-random",
@@ -303,7 +374,7 @@ impl GUIThread {
                 206.0,
                 526.0,
             ),
-            button_reset_sine: Button::new(
+            button_reset_sine: StatefulButton::new(
                 Rc::new(
                     RetainedImage::from_image_bytes(
                         "soyboy:button:reset-sine",
@@ -326,6 +397,19 @@ impl GUIThread {
         (thread, event_loop)
     }
 
+    fn update(&mut self, proxy: EventLoopProxy<GUIEvent>) {
+        let mut stateful = [&mut self.button_reset_random];
+        let mut needs_redraw = false;
+
+        for widget in stateful.iter_mut() {
+            needs_redraw |= widget.update();
+        }
+
+        if needs_redraw {
+            let _ = proxy.send_event(GUIEvent::Redraw);
+        }
+    }
+
     fn draw(&mut self) {
         // println!(
         //     "cursor pos = {:?}",
@@ -340,13 +424,13 @@ impl GUIThread {
                     .interactable(false)
                     .show(egui_ctx, |ui| ui.add(label));
             };
-            let show_button = |name: &str, button: Button, do_click: &dyn Fn()| {
+            let show_button = |name: &str, button: &mut StatefulButton, do_click: &dyn Fn()| {
                 let rect = button.rect();
                 egui::Area::new(name)
                     .fixed_pos(rect.min)
                     .movable(false)
                     .show(egui_ctx, |ui| {
-                        let resp = ui.add(button);
+                        let resp = button.show(ui);
                         if resp.clicked() {
                             do_click();
                         };
@@ -385,7 +469,7 @@ impl GUIThread {
             // buttons
             show_button(
                 "button: reset wavetable random",
-                self.button_reset_random.clone(),
+                &mut self.button_reset_random,
                 &|| {
                     // TODO: write a code reset plugin's wavetable
                     println!("reset random!!!");
@@ -393,7 +477,7 @@ impl GUIThread {
             );
             show_button(
                 "button: reset wavetable as sine",
-                self.button_reset_sine.clone(),
+                &mut self.button_reset_sine,
                 &|| {
                     // TODO: write a code reset plugin's wavetable
                     println!("reset sine!!!");
@@ -411,7 +495,7 @@ impl GUIThread {
         }
     }
 
-    fn proc_events(&mut self, event: Event<()>, control_flow: &mut ControlFlow) {
+    fn proc_events(&mut self, event: Event<GUIEvent>, control_flow: &mut ControlFlow) {
         match self.receiver.lock().unwrap().try_recv() {
             Ok(message) => match message {
                 GUIMessage::Terminate => {
@@ -430,29 +514,23 @@ impl GUIThread {
             },
         }
 
+        let mut redraw = || {
+            self.draw();
+            if self.needs_repaint {
+                self.window.window().request_redraw();
+                *control_flow = ControlFlow::Poll;
+            } else {
+                //*control_flow = ControlFlow::Wait;
+                *control_flow = ControlFlow::Poll;
+            }
+        };
+
         match event {
             // Platform-dependent event handlers to workaround a winit bug
             // See: https://github.com/rust-windowing/winit/issues/987
             // See: https://github.com/rust-windowing/winit/issues/1619
-            Event::RedrawEventsCleared if cfg!(windows) => {
-                self.draw();
-                if self.needs_repaint {
-                    self.window.window().request_redraw();
-                    *control_flow = ControlFlow::Poll;
-                } else {
-                    *control_flow = ControlFlow::Wait;
-                }
-            }
-            Event::RedrawRequested(_) if !cfg!(windows) => {
-                self.draw();
-                if self.needs_repaint {
-                    self.window.window().request_redraw();
-                    *control_flow = ControlFlow::Poll;
-                } else {
-                    *control_flow = ControlFlow::Wait;
-                }
-            }
-
+            Event::RedrawEventsCleared if cfg!(windows) => redraw(),
+            Event::RedrawRequested(_) if !cfg!(windows) => redraw(),
             Event::WindowEvent { event, .. } => {
                 if matches!(event, WindowEvent::CloseRequested | WindowEvent::Destroyed) {
                     self.quit = true;
@@ -471,7 +549,9 @@ impl GUIThread {
                 println!("LoopDestroyed is signaled.");
                 self.egui_glow.destroy();
             }
-
+            Event::UserEvent(gui_event) => match gui_event {
+                GUIEvent::Redraw => redraw(),
+            },
             _ => (),
         }
 
@@ -482,8 +562,10 @@ impl GUIThread {
 
     fn run_loop(parent: ParentWindow, receiver: Arc<Mutex<Receiver<GUIMessage>>>) {
         let (mut thread, mut event_loop) = GUIThread::setup(parent, receiver);
+        let proxy = event_loop.create_proxy();
 
         event_loop.run_return(move |event, _, control_flow| {
+            thread.update(proxy.clone());
             thread.proc_events(event, control_flow);
         });
     }
