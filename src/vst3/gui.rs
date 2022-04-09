@@ -9,7 +9,7 @@ use std::thread;
 
 use vst3_sys::{
     base::{char16, kResultFalse, kResultOk, tresult, FIDString, TBool},
-    gui::{IPlugFrame, IPlugView, ViewRect},
+    gui::{IPlugFrame, IPlugView, IPlugViewContentScaleSupport, ViewRect},
     utils::SharedVstPtr,
     VST3,
 };
@@ -393,18 +393,20 @@ impl GUIThread {
     }
 }
 
-#[VST3(implements(IPlugView, IPlugFrame))]
+#[VST3(implements(IPlugView, IPlugFrame, IPlugViewContentScaleSupport))]
 pub struct SoyBoyGUI {
+    scale_factor: RefCell<f32>,
     handle: RefCell<Option<thread::JoinHandle<()>>>,
     sender: RefCell<Option<Sender<GUIMessage>>>,
 }
 
 impl SoyBoyGUI {
     pub fn new() -> Box<Self> {
+        let scale_factor = RefCell::new(1.0);
         let handle = RefCell::new(None);
         let sender = RefCell::new(None);
 
-        SoyBoyGUI::allocate(handle, sender)
+        SoyBoyGUI::allocate(scale_factor, handle, sender)
     }
 
     fn start_gui(&self, parent: ParentWindow) {
@@ -431,6 +433,17 @@ impl IPlugFrame for SoyBoyGUI {
         (*new_size).right = SCREEN_WIDTH as i32;
         (*new_size).bottom = SCREEN_HEIGHT as i32;
 
+        kResultOk
+    }
+}
+
+impl IPlugViewContentScaleSupport for SoyBoyGUI {
+    unsafe fn set_scale_factor(&self, scale_factor: f32) -> tresult {
+        println!(
+            "IPlugViewContentScaleSupport::set_scale_factor({})",
+            scale_factor
+        );
+        (*self.scale_factor.borrow_mut()) = scale_factor;
         kResultOk
     }
 }
