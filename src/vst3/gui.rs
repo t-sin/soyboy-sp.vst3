@@ -93,6 +93,14 @@ impl<'a> egui::widgets::Widget for Button<'a> {
         if ui.is_rect_visible(rect) {
             let img = egui::widgets::Image::new(self.image.texture_id(ui.ctx()), rect.size());
             img.paint_at(ui, rect);
+
+            if response.hovered() {
+                ui.painter().rect_filled(
+                    rect,
+                    egui::Rounding::none(),
+                    egui::Color32::from_rgba_unmultiplied(0xab, 0xbb, 0xa8, 100),
+                );
+            }
         }
 
         response
@@ -243,13 +251,6 @@ impl GUIThread {
                     .movable(false)
                     .show(egui_ctx, |ui| {
                         let resp = ui.add(button);
-                        if resp.hovered() {
-                            ui.painter().rect_filled(
-                                rect,
-                                egui::Rounding::none(),
-                                egui::Color32::from_rgba_unmultiplied(0xab, 0xbb, 0xa8, 100),
-                            );
-                        }
                         if resp.clicked() {
                             do_click();
                         };
