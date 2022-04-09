@@ -94,16 +94,17 @@ impl egui::widgets::Widget for Label {
     }
 }
 
-struct Button<'a> {
-    image: &'a RetainedImage,
+#[derive(Clone)]
+struct Button {
+    image: Rc<RetainedImage>,
     sense: egui::Sense,
     clicked_at: time::Instant,
     x: f32,
     y: f32,
 }
 
-impl<'a> Button<'a> {
-    fn new(image: &'a RetainedImage, x: f32, y: f32) -> Self {
+impl Button {
+    fn new(image: Rc<RetainedImage>, x: f32, y: f32) -> Self {
         Self {
             image: image,
             sense: egui::Sense::click().union(egui::Sense::hover()),
@@ -122,7 +123,7 @@ impl<'a> Button<'a> {
     }
 }
 
-impl<'a> egui::widgets::Widget for Button<'a> {
+impl egui::widgets::Widget for Button {
     fn ui(mut self, ui: &mut egui::Ui) -> egui::Response {
         let size = self.image.size();
         //        println!("elapsed from clicked is {:?}", self.clicked_at.elapsed());
@@ -176,8 +177,8 @@ struct GUIThread {
     label_envelope: Label,
     label_sweep: Label,
     label_stutter: Label,
-    img_button_reset_random: RetainedImage,
-    img_button_reset_sine: RetainedImage,
+    button_reset_random: Button,
+    button_reset_sine: Button,
     // SoyBoy states
     slider: f64,
     // window stuff
@@ -291,16 +292,28 @@ impl GUIThread {
                 352.0,
                 316.0,
             ),
-            img_button_reset_random: RetainedImage::from_image_bytes(
-                "soyboy:button:reset-random",
-                IMG_BUTTON_RESET_RANDOM,
-            )
-            .unwrap(),
-            img_button_reset_sine: RetainedImage::from_image_bytes(
-                "soyboy:button:reset-sine",
-                IMG_BUTTON_RESET_SINE,
-            )
-            .unwrap(),
+            button_reset_random: Button::new(
+                Rc::new(
+                    RetainedImage::from_image_bytes(
+                        "soyboy:button:reset-random",
+                        IMG_BUTTON_RESET_RANDOM,
+                    )
+                    .unwrap(),
+                ),
+                206.0,
+                526.0,
+            ),
+            button_reset_sine: Button::new(
+                Rc::new(
+                    RetainedImage::from_image_bytes(
+                        "soyboy:button:reset-sine",
+                        IMG_BUTTON_RESET_SINE,
+                    )
+                    .unwrap(),
+                ),
+                274.0,
+                526.0,
+            ),
             slider: 0.0,
             quit: false,
             needs_repaint: false,
@@ -372,7 +385,7 @@ impl GUIThread {
             // buttons
             show_button(
                 "button: reset wavetable random",
-                Button::new(&self.img_button_reset_random, 206.0, 526.0),
+                self.button_reset_random.clone(),
                 &|| {
                     // TODO: write a code reset plugin's wavetable
                     println!("reset random!!!");
@@ -380,7 +393,7 @@ impl GUIThread {
             );
             show_button(
                 "button: reset wavetable as sine",
-                Button::new(&self.img_button_reset_sine, 274.0, 526.0),
+                self.button_reset_sine.clone(),
                 &|| {
                     // TODO: write a code reset plugin's wavetable
                     println!("reset sine!!!");
