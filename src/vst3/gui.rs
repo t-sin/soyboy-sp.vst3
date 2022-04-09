@@ -258,7 +258,7 @@ impl GUIThread {
                 Rc::new(
                     RetainedImage::from_image_bytes("soyboy:label:noise", IMG_LABEL_NOISE).unwrap(),
                 ),
-                240.0,
+                24.0,
                 280.0,
             ),
             label_wavetable: Label::new(
