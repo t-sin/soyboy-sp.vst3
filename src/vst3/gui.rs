@@ -226,6 +226,90 @@ impl Behavior for StatefulButton {
     }
 }
 
+struct Slider {
+    sense: egui::Sense,
+    rect: egui::Rect,
+    bipolar: bool,
+    value: f64,
+}
+
+impl Slider {
+    fn new(value: f64, bipolar: bool, rect: egui::Rect) -> Self {
+        Self {
+            sense: egui::Sense::drag(),
+            rect: rect,
+            bipolar: bipolar,
+            value: value,
+        }
+    }
+}
+
+impl Widget for Slider {
+    fn ui(self, ui: &mut egui::Ui) -> egui::Response {
+        let response = ui.allocate_rect(self.rect, self.sense);
+
+        if ui.is_rect_visible(self.rect) {
+            if self.bipolar {
+                if self.value < 0.5 {
+                } else {
+                }
+            } else {
+                let w = self.rect.max.x - self.rect.min.x;
+                ui.painter().rect_filled(
+                    egui::Rect {
+                        min: self.rect.min,
+                        max: egui::pos2(self.rect.min.x + w * self.value as f32, self.rect.max.y),
+                    },
+                    egui::Rounding::none(),
+                    egui::Color32::from_rgb(0xff, 0x00, 0xff),
+                );
+            }
+        }
+
+        response
+    }
+}
+
+struct SliderBehavior {
+    bipolar: bool,
+    value: f64,
+    x: f32,
+    y: f32,
+}
+
+impl SliderBehavior {
+    fn new(value: f64, bipolar: bool, x: f32, y: f32) -> Self {
+        Self {
+            value: value,
+            bipolar: bipolar,
+            x: x,
+            y: y,
+        }
+    }
+}
+
+impl Behavior for SliderBehavior {
+    fn update(&mut self) -> bool {
+        false
+    }
+
+    fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
+        let widget = Slider::new(self.value, self.bipolar, self.rect());
+        let response = ui.add(widget);
+
+        response
+    }
+
+    fn rect(&self) -> egui::Rect {
+        static W: f32 = 200.0;
+        static H: f32 = 50.0;
+        egui::Rect {
+            min: egui::pos2(self.x, self.y),
+            max: egui::pos2(self.x + W, self.y + H),
+        }
+    }
+}
+
 enum GUIMessage {
     Terminate,
 }
@@ -246,8 +330,7 @@ struct GUIThread {
     label_stutter: Label,
     button_reset_random: StatefulButton,
     button_reset_sine: StatefulButton,
-    // SoyBoy states
-    slider: f64,
+    slider_test: SliderBehavior,
     // window stuff
     quit: bool,
     needs_repaint: bool,
@@ -385,7 +468,7 @@ impl GUIThread {
                 274.0,
                 526.0,
             ),
-            slider: 0.0,
+            slider_test: SliderBehavior::new(0.0, false, 200.0, 200.0),
             quit: false,
             needs_repaint: false,
             receiver: receiver,
@@ -436,6 +519,15 @@ impl GUIThread {
                         };
                     });
             };
+            let show_slider = |name: &str, slider: &mut SliderBehavior| {
+                let rect = slider.rect();
+                egui::Area::new(name)
+                    .fixed_pos(rect.min)
+                    .movable(false)
+                    .show(egui_ctx, |ui| {
+                        let _resp = slider.show(ui);
+                    });
+            };
 
             // background
             egui::Area::new("background").show(egui_ctx, |ui| {
@@ -483,6 +575,9 @@ impl GUIThread {
                     println!("reset sine!!!");
                 },
             );
+
+            // sliders
+            show_slider("slider: test", &mut self.slider_test);
         });
 
         // OpenGL drawing
