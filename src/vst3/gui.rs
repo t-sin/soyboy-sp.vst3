@@ -76,6 +76,7 @@ const IMG_LABEL_SWEEP: &[u8] = include_bytes!("../../resources/label-sweep.png")
 const IMG_LABEL_STUTTER: &[u8] = include_bytes!("../../resources/label-stutter.png");
 const IMG_BUTTON_RESET_RANDOM: &[u8] = include_bytes!("../../resources/button-reset-random.png");
 const IMG_BUTTON_RESET_SINE: &[u8] = include_bytes!("../../resources/button-reset-sine.png");
+const IMG_SLIDER_BORDER: &[u8] = include_bytes!("../../resources/slider-border.png");
 
 struct ParentWindow(*mut c_void);
 unsafe impl Send for ParentWindow {}
@@ -228,6 +229,7 @@ impl Behavior for StatefulButton {
 }
 
 struct Slider {
+    border_img: Rc<RetainedImage>,
     sense: egui::Sense,
     rect: egui::Rect,
     bipolar: bool,
@@ -235,8 +237,9 @@ struct Slider {
 }
 
 impl Slider {
-    fn new(value: f64, bipolar: bool, rect: egui::Rect) -> Self {
+    fn new(border_img: Rc<RetainedImage>, value: f64, bipolar: bool, rect: egui::Rect) -> Self {
         Self {
+            border_img: border_img,
             sense: egui::Sense::drag(),
             rect: rect,
             bipolar: bipolar,
@@ -250,26 +253,26 @@ impl Widget for Slider {
         let response = ui.allocate_rect(self.rect, self.sense);
 
         if ui.is_rect_visible(self.rect) {
+            let w = self.rect.max.x - 2.0 - self.rect.min.x + 2.0;
+
             if self.bipolar {
                 if self.value < 0.5 {
                 } else {
                 }
             } else {
-                let w = self.rect.max.x - self.rect.min.x;
-                ui.painter().rect_stroke(
-                    self.rect,
-                    egui::Rounding::none(),
-                    egui::Stroke::new(1.0, egui::Color32::from_rgb(0x00, 0x00, 0x00)),
-                );
                 ui.painter().rect_filled(
                     egui::Rect {
                         min: self.rect.min,
                         max: egui::pos2(self.rect.min.x + w * self.value as f32, self.rect.max.y),
                     },
                     egui::Rounding::none(),
-                    egui::Color32::from_rgb(0xff, 0x00, 0xff),
+                    egui::Color32::from_rgb(0x33, 0x3f, 0x32),
                 );
             }
+
+            let img =
+                egui::widgets::Image::new(self.border_img.texture_id(ui.ctx()), self.rect.size());
+            img.paint_at(ui, self.rect);
         }
 
         response
@@ -277,6 +280,7 @@ impl Widget for Slider {
 }
 
 struct SliderBehavior {
+    border_img: Rc<RetainedImage>,
     bipolar: bool,
     value: f64,
     x: f32,
@@ -284,8 +288,9 @@ struct SliderBehavior {
 }
 
 impl SliderBehavior {
-    fn new(value: f64, bipolar: bool, x: f32, y: f32) -> Self {
+    fn new(border_img: Rc<RetainedImage>, value: f64, bipolar: bool, x: f32, y: f32) -> Self {
         Self {
+            border_img: border_img,
             value: value,
             bipolar: bipolar,
             x: x,
@@ -300,7 +305,12 @@ impl Behavior for SliderBehavior {
     }
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
-        let widget = Slider::new(self.value, self.bipolar, self.rect());
+        let widget = Slider::new(
+            self.border_img.clone(),
+            self.value,
+            self.bipolar,
+            self.rect(),
+        );
         let response = ui.add(widget);
 
         if response.dragged() {
@@ -320,12 +330,11 @@ impl Behavior for SliderBehavior {
     }
 
     fn rect(&self) -> egui::Rect {
-        static W: f32 = 200.0;
-        static H: f32 = 50.0;
-        egui::Rect {
-            min: egui::pos2(self.x, self.y),
-            max: egui::pos2(self.x + W, self.y + H),
-        }
+        let size = self.border_img.size();
+        egui::Rect::from_two_pos(
+            egui::pos2(self.x, self.y),
+            egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
+        )
     }
 }
 
@@ -349,7 +358,7 @@ struct GUIThread {
     label_stutter: Label,
     button_reset_random: StatefulButton,
     button_reset_sine: StatefulButton,
-    slider_test: SliderBehavior,
+    slider_volume: SliderBehavior,
     // window stuff
     quit: bool,
     needs_repaint: bool,
@@ -404,6 +413,10 @@ impl GUIThread {
             unsafe { glow::Context::from_loader_function(|s| window.get_proc_address(s)) };
         let glow_context = Rc::new(glow_context);
         let egui_glow = EguiGlow::new(window.window(), glow_context.clone());
+
+        let img_slider_border = Rc::new(
+            RetainedImage::from_image_bytes("soyboy:slider:border", IMG_SLIDER_BORDER).unwrap(),
+        );
 
         let thread = GUIThread {
             label_logo: Label::new(
@@ -487,7 +500,7 @@ impl GUIThread {
                 274.0,
                 526.0,
             ),
-            slider_test: SliderBehavior::new(0.2, false, 200.0, 200.0),
+            slider_volume: SliderBehavior::new(img_slider_border, 0.0, false, 60.0, 102.0),
             quit: false,
             needs_repaint: false,
             receiver: receiver,
@@ -596,7 +609,7 @@ impl GUIThread {
             );
 
             // sliders
-            show_slider("slider: test", &mut self.slider_test);
+            show_slider("slider: test", &mut self.slider_volume);
         });
 
         // OpenGL drawing
