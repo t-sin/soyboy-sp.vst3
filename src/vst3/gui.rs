@@ -398,7 +398,7 @@ impl GUIThread {
     }
 
     fn update(&mut self, proxy: EventLoopProxy<GUIEvent>) {
-        let mut stateful = [&mut self.button_reset_random];
+        let mut stateful = [&mut self.button_reset_random, &mut self.button_reset_sine];
         let mut needs_redraw = false;
 
         for widget in stateful.iter_mut() {
