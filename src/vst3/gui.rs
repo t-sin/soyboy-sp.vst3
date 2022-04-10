@@ -367,7 +367,7 @@ struct GUIThread {
     // egui stuff
     egui_glow: EguiGlow,
     window: WindowedContext<PossiblyCurrent>,
-    glow_context: Rc<glow::Context>,
+    // glow_context: Rc<glow::Context>,
 }
 
 // originally from here:
@@ -506,7 +506,7 @@ impl GUIThread {
             receiver: receiver,
             egui_glow: egui_glow,
             window: window,
-            glow_context: glow_context,
+            // glow_context: glow_context,
         };
 
         (thread, event_loop)
