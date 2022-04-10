@@ -8,6 +8,7 @@ use std::sync::{
 use std::thread;
 use std::time;
 
+use num;
 use vst3_sys::{
     base::{char16, kResultFalse, kResultOk, tresult, FIDString, TBool},
     gui::{IPlugFrame, IPlugView, IPlugViewContentScaleSupport, ViewRect},
@@ -255,6 +256,11 @@ impl Widget for Slider {
                 }
             } else {
                 let w = self.rect.max.x - self.rect.min.x;
+                ui.painter().rect_stroke(
+                    self.rect,
+                    egui::Rounding::none(),
+                    egui::Stroke::new(1.0, egui::Color32::from_rgb(0x00, 0x00, 0x00)),
+                );
                 ui.painter().rect_filled(
                     egui::Rect {
                         min: self.rect.min,
@@ -296,6 +302,19 @@ impl Behavior for SliderBehavior {
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
         let widget = Slider::new(self.value, self.bipolar, self.rect());
         let response = ui.add(widget);
+
+        if response.dragged() {
+            let delta_factor = if ui.input().modifiers.shift {
+                // It may be wrong this way...
+                3000.0
+            } else {
+                300.0
+            };
+
+            let delta_x = response.drag_delta().x;
+            let delta_v = delta_x as f64 / delta_factor;
+            self.value = num::clamp(self.value + delta_v, 0.0, 1.0);
+        }
 
         response
     }
@@ -468,7 +487,7 @@ impl GUIThread {
                 274.0,
                 526.0,
             ),
-            slider_test: SliderBehavior::new(0.0, false, 200.0, 200.0),
+            slider_test: SliderBehavior::new(0.2, false, 200.0, 200.0),
             quit: false,
             needs_repaint: false,
             receiver: receiver,
