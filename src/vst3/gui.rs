@@ -165,7 +165,7 @@ impl Widget for &mut Button {
                 ui.painter().rect_filled(
                     rect,
                     egui::Rounding::none(),
-                    egui::Color32::from_rgba_unmultiplied(0xab, 0xbb, 0xa8, 100),
+                    egui::Color32::from_rgba_unmultiplied(0xab, 0xbb, 0xa8, 80),
                 );
             }
         }
