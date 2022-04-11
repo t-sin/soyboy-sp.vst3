@@ -84,6 +84,120 @@ mod widget {
         }
     }
 
+    // available characters in resources/paramval.png
+    enum Character {
+        Digit0,
+        Digit1,
+        Digit2,
+        Digit3,
+        Digit4,
+        Digit5,
+        Digit6,
+        Digit7,
+        Digit8,
+        Digit9,
+        Dot,
+        Minus,
+    }
+
+    impl Character {
+        fn from_char(ch: char) -> Option<Character> {
+            match ch {
+                '0' => Some(Character::Digit0),
+                '1' => Some(Character::Digit1),
+                '2' => Some(Character::Digit2),
+                '3' => Some(Character::Digit3),
+                '4' => Some(Character::Digit4),
+                '5' => Some(Character::Digit5),
+                '6' => Some(Character::Digit6),
+                '7' => Some(Character::Digit7),
+                '8' => Some(Character::Digit8),
+                '9' => Some(Character::Digit9),
+                '.' => Some(Character::Dot),
+                '-' => Some(Character::Minus),
+                _ => None,
+            }
+        }
+
+        fn get_region(&self) -> (egui::Vec2, egui::Vec2) {
+            match self {
+                Character::Digit0 => (egui::vec2(0.0, 0.0), egui::vec2(10.0, 14.0)),
+                Character::Digit1 => (egui::vec2(14.0, 0.0), egui::vec2(6.0, 14.0)),
+                Character::Digit2 => (egui::vec2(24.0, 0.0), egui::vec2(10.0, 14.0)),
+                Character::Digit3 => (egui::vec2(36.0, 0.0), egui::vec2(10.0, 14.0)),
+                Character::Digit4 => (egui::vec2(48.0, 0.0), egui::vec2(10.0, 14.0)),
+                Character::Digit5 => (egui::vec2(60.0, 0.0), egui::vec2(10.0, 14.0)),
+                Character::Digit6 => (egui::vec2(72.0, 0.0), egui::vec2(10.0, 14.0)),
+                Character::Digit7 => (egui::vec2(84.0, 0.0), egui::vec2(10.0, 14.0)),
+                Character::Digit8 => (egui::vec2(96.0, 0.0), egui::vec2(10.0, 14.0)),
+                Character::Digit9 => (egui::vec2(108.0, 0.0), egui::vec2(10.0, 14.0)),
+                Character::Dot => (egui::vec2(132.0, 0.0), egui::vec2(2.0, 14.0)),
+                Character::Minus => (egui::vec2(136.0, 0.0), egui::vec2(10.0, 14.0)),
+            }
+        }
+    }
+
+    // available units in resources/paramval.png
+    pub enum ParameterUnit {
+        None,
+        Decibel,
+        Cent,
+        MilliSec,
+        Sec,
+        Percent,
+    }
+
+    impl ParameterUnit {
+        fn get_region(&self) -> Option<(egui::Vec2, egui::Vec2)> {
+            match self {
+                ParameterUnit::None => None,
+                ParameterUnit::Decibel => Some((egui::vec2(0.0, 16.0), egui::vec2(22.0, 14.0))),
+                ParameterUnit::Cent => Some((egui::vec2(30.0, 16.0), egui::vec2(58.0, 14.0))),
+                ParameterUnit::MilliSec => Some((egui::vec2(96.0, 16.0), egui::vec2(22.0, 14.0))),
+                ParameterUnit::Sec => Some((egui::vec2(126.0, 16.0), egui::vec2(10.0, 14.0))),
+                ParameterUnit::Percent => Some((egui::vec2(144.0, 16.0), egui::vec2(10.0, 14.0))),
+            }
+        }
+    }
+
+    pub struct ParameterValue {
+        value: f64,
+        formatter: Box<dyn Fn(f64) -> String>,
+        unit: ParameterUnit,
+        rect: egui::Rect,
+    }
+
+    impl ParameterValue {
+        fn new(value: f64, formatter: Box<dyn Fn(f64) -> String>, unit: ParameterUnit) -> Self {
+            Self {
+                value,
+                formatter,
+                unit,
+                rect: egui::Rect {
+                    min: egui::pos2(0.0, 0.0),
+                    max: egui::pos2(0.0, 0.0),
+                },
+            }
+        }
+
+        fn layout(&self) -> Vec<Character> {
+            let s = (self.formatter)(self.value);
+            let mut chars = Vec::new();
+
+            println!("layout a value {} formatted as {}", self.value, s);
+            for ch in s.chars() {
+                match Character::from_char(ch) {
+                    Some(c) => chars.push(c),
+                    None => {
+                        println!("invalid char in the target: '{}'", ch);
+                    }
+                }
+            }
+
+            chars
+        }
+    }
+
     pub trait Behavior {
         fn update(&mut self) -> bool;
         fn show(&mut self, ui: &mut egui::Ui) -> egui::Response;
