@@ -262,13 +262,11 @@ impl Widget for Slider {
         );
 
         if ui.is_rect_visible(rect_label) {
-            // ui.colored_label(
-            //     egui::Color32::from_rgb(0x1c, 0x23, 0x1b),
-            //     egui::RichText::new("Volume").font(egui::FontId::new(
-            //         10.0,
-            //         egui::FontFamily::Name("RNTG Larger".into()),
-            //     )),
-            // );
+            ui.colored_label(
+                egui::Color32::from_rgb(0x1c, 0x23, 0x1b),
+                egui::RichText::new("Volume")
+                    .font(egui::FontId::new(14.0, egui::FontFamily::Monospace)),
+            );
         }
 
         let rect_slider = self.rect.clone().translate(egui::vec2(0.0, 8.0));
@@ -438,8 +436,9 @@ impl GUIThread {
 
         // register a pixel font 'RNTG Larger'
         let mut fonts = egui::FontDefinitions::default();
+
         fonts.font_data.insert(
-            "rntg".to_owned(),
+            "RNTG Larger".to_owned(),
             egui::FontData::from_static(FONT_RNTG_LARGER),
         );
         fonts
@@ -451,7 +450,7 @@ impl GUIThread {
             .families
             .get_mut(&egui::FontFamily::Monospace)
             .unwrap()
-            .push("RNTG Larger".to_owned());
+            .insert(0, "RNTG Larger".to_owned());
         egui_glow.egui_ctx.set_fonts(fonts);
 
         let img_slider_border = Rc::new(
