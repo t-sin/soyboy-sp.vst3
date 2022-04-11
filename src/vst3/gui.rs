@@ -6,9 +6,7 @@ use std::sync::{
     Arc, Mutex,
 };
 use std::thread;
-use std::time;
 
-use num;
 use vst3_sys::{
     base::{char16, kResultFalse, kResultOk, tresult, FIDString, TBool},
     gui::{IPlugFrame, IPlugView, IPlugViewContentScaleSupport, ViewRect},
@@ -18,7 +16,7 @@ use vst3_sys::{
 
 use egui_extras::image::RetainedImage;
 use egui_glow::{
-    egui_winit::{egui, egui::Widget, winit},
+    egui_winit::{egui, winit},
     glow, EguiGlow,
 };
 use glutin::{
@@ -33,34 +31,6 @@ use glutin::{
 };
 
 use crate::vst3::utils;
-
-#[derive(Clone, Debug)]
-struct Toggle {
-    value: bool,
-    prev_value: bool,
-}
-
-impl Toggle {
-    fn new(v: bool, prev: bool) -> Self {
-        Self {
-            value: v,
-            prev_value: prev,
-        }
-    }
-
-    fn val(&self) -> bool {
-        self.value
-    }
-
-    fn set(&mut self, v: bool) {
-        self.prev_value = self.value;
-        self.value = v;
-    }
-
-    fn toggled(&self) -> bool {
-        self.value != self.prev_value
-    }
-}
 
 const SCREEN_WIDTH: u32 = 680;
 const SCREEN_HEIGHT: u32 = 560;
@@ -78,274 +48,328 @@ const IMG_BUTTON_RESET_RANDOM: &[u8] = include_bytes!("../../resources/button-re
 const IMG_BUTTON_RESET_SINE: &[u8] = include_bytes!("../../resources/button-reset-sine.png");
 const IMG_SLIDER_BORDER: &[u8] = include_bytes!("../../resources/slider-border.png");
 
-trait Behavior {
-    fn update(&mut self) -> bool;
-    fn show(&mut self, ui: &mut egui::Ui) -> egui::Response;
-    fn rect(&self) -> egui::Rect;
-}
+mod widget {
+    use std::rc::Rc;
+    use std::time;
 
-#[derive(Clone)]
-struct ImageLabel {
-    image: Rc<RetainedImage>,
-    sense: egui::Sense,
-    x: f32,
-    y: f32,
-}
+    use egui_extras::image::RetainedImage;
+    use egui_glow::egui_winit::{egui, egui::Widget};
+    use num;
 
-impl ImageLabel {
-    fn new(image: Rc<RetainedImage>, x: f32, y: f32) -> Self {
-        Self {
-            image: image,
-            sense: egui::Sense::focusable_noninteractive(),
-            x: x,
-            y: y,
-        }
+    #[derive(Clone, Debug)]
+    pub struct Toggle {
+        value: bool,
+        prev_value: bool,
     }
 
-    fn rect(&self) -> egui::Rect {
-        let size = self.image.size();
-        egui::Rect {
-            min: egui::pos2(self.x, self.y),
-            max: egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
-        }
-    }
-}
-
-impl Widget for ImageLabel {
-    fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        let rect = self.rect();
-
-        let response = ui.allocate_rect(rect, self.sense);
-
-        if ui.is_rect_visible(rect) {
-            let img = egui::widgets::Image::new(self.image.texture_id(ui.ctx()), rect.size());
-            img.paint_at(ui, rect);
-        }
-
-        response
-    }
-}
-
-#[derive(Clone)]
-struct Button {
-    image: Rc<RetainedImage>,
-    sense: egui::Sense,
-    clicked: bool,
-    rect: egui::Rect,
-}
-
-impl Button {
-    fn new(image: Rc<RetainedImage>, clicked: bool, rect: egui::Rect) -> Self {
-        Self {
-            image: image,
-            sense: egui::Sense::click().union(egui::Sense::hover()),
-            clicked: clicked,
-            rect: rect,
-        }
-    }
-}
-
-impl Widget for &mut Button {
-    fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        let rect = if self.clicked {
-            self.rect.translate(egui::vec2(2.0, 2.0))
-        } else {
-            self.rect
-        };
-
-        let response = ui.allocate_rect(rect, self.sense);
-
-        if ui.is_rect_visible(rect) {
-            let img = egui::widgets::Image::new(self.image.texture_id(ui.ctx()), rect.size());
-            img.paint_at(ui, rect);
-
-            if response.hovered() {
-                ui.painter().rect_filled(
-                    rect,
-                    egui::Rounding::none(),
-                    egui::Color32::from_rgba_unmultiplied(0xab, 0xbb, 0xa8, 80),
-                );
+    impl Toggle {
+        fn new(v: bool, prev: bool) -> Self {
+            Self {
+                value: v,
+                prev_value: prev,
             }
         }
 
-        response
-    }
-}
-
-#[derive(Clone)]
-struct ButtonBehavior {
-    image: Rc<RetainedImage>,
-    clicked_at: time::Instant,
-    clicked: Toggle,
-    x: f32,
-    y: f32,
-}
-
-impl ButtonBehavior {
-    fn new(image: Rc<RetainedImage>, x: f32, y: f32) -> Self {
-        Self {
-            image: image,
-            clicked_at: time::Instant::now(),
-            clicked: Toggle::new(false, false),
-            x: x,
-            y: y,
+        fn val(&self) -> bool {
+            self.value
         }
-    }
-}
 
-impl Behavior for ButtonBehavior {
-    fn rect(&self) -> egui::Rect {
-        let size = self.image.size();
-        egui::Rect {
-            min: egui::pos2(self.x, self.y),
-            max: egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
+        fn set(&mut self, v: bool) {
+            self.prev_value = self.value;
+            self.value = v;
+        }
+
+        fn toggled(&self) -> bool {
+            self.value != self.prev_value
         }
     }
 
-    fn update(&mut self) -> bool {
-        if self.clicked_at.elapsed() <= time::Duration::from_millis(100) {
-            self.clicked.set(true);
-        } else {
-            self.clicked.set(false);
-        }
-
-        self.clicked.toggled()
+    pub trait Behavior {
+        fn update(&mut self) -> bool;
+        fn show(&mut self, ui: &mut egui::Ui) -> egui::Response;
+        fn rect(&self) -> egui::Rect;
     }
 
-    fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
-        let mut widget = Button::new(self.image.clone(), self.clicked.val(), self.rect());
-        let response = widget.ui(ui);
+    #[derive(Clone)]
+    pub struct ImageLabel {
+        image: Rc<RetainedImage>,
+        sense: egui::Sense,
+        x: f32,
+        y: f32,
+    }
 
-        if response.clicked() {
-            self.clicked_at = time::Instant::now();
+    impl ImageLabel {
+        pub fn new(image: Rc<RetainedImage>, x: f32, y: f32) -> Self {
+            Self {
+                image: image,
+                sense: egui::Sense::focusable_noninteractive(),
+                x: x,
+                y: y,
+            }
         }
 
-        response
-    }
-}
-
-struct Slider {
-    border_img: Rc<RetainedImage>,
-    sense: egui::Sense,
-    rect: egui::Rect,
-    bipolar: bool,
-    value: f64,
-}
-
-impl Slider {
-    fn new(border_img: Rc<RetainedImage>, value: f64, bipolar: bool, rect: egui::Rect) -> Self {
-        Self {
-            border_img: border_img,
-            sense: egui::Sense::drag(),
-            rect: rect,
-            bipolar: bipolar,
-            value: value,
+        pub fn rect(&self) -> egui::Rect {
+            let size = self.image.size();
+            egui::Rect {
+                min: egui::pos2(self.x, self.y),
+                max: egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
+            }
         }
     }
-}
 
-impl Widget for Slider {
-    fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        let rect_label = self.rect.clone();
-        let _ = ui.allocate_rect(
-            rect_label,
-            egui::Sense {
-                click: false,
-                drag: false,
-                focusable: false,
-            },
-        );
+    impl Widget for ImageLabel {
+        fn ui(self, ui: &mut egui::Ui) -> egui::Response {
+            let rect = self.rect();
 
-        if ui.is_rect_visible(rect_label) {}
+            let response = ui.allocate_rect(rect, self.sense);
 
-        let rect_slider = self.rect.clone().translate(egui::vec2(0.0, 8.0));
-        let response = ui.allocate_rect(rect_slider, self.sense);
-
-        if ui.is_rect_visible(rect_slider) {
-            let w = self.rect.max.x - 2.0 - self.rect.min.x + 2.0;
-
-            if self.bipolar {
-                if self.value < 0.5 {
-                } else {
-                }
-            } else {
-                ui.painter().rect_filled(
-                    egui::Rect {
-                        min: self.rect.min,
-                        max: egui::pos2(self.rect.min.x + w * self.value as f32, self.rect.max.y),
-                    },
-                    egui::Rounding::none(),
-                    egui::Color32::from_rgb(0x33, 0x3f, 0x32),
-                );
+            if ui.is_rect_visible(rect) {
+                let img = egui::widgets::Image::new(self.image.texture_id(ui.ctx()), rect.size());
+                img.paint_at(ui, rect);
             }
 
-            let img =
-                egui::widgets::Image::new(self.border_img.texture_id(ui.ctx()), self.rect.size());
-            img.paint_at(ui, self.rect);
-        }
-
-        response
-    }
-}
-
-struct SliderBehavior {
-    border_img: Rc<RetainedImage>,
-    bipolar: bool,
-    value: f64,
-    x: f32,
-    y: f32,
-}
-
-impl SliderBehavior {
-    fn new(border_img: Rc<RetainedImage>, value: f64, bipolar: bool, x: f32, y: f32) -> Self {
-        Self {
-            border_img: border_img,
-            value: value,
-            bipolar: bipolar,
-            x: x,
-            y: y,
+            response
         }
     }
-}
 
-impl Behavior for SliderBehavior {
-    fn update(&mut self) -> bool {
-        false
+    #[derive(Clone)]
+    pub struct Button {
+        image: Rc<RetainedImage>,
+        sense: egui::Sense,
+        clicked: bool,
+        rect: egui::Rect,
     }
 
-    fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
-        let widget = Slider::new(
-            self.border_img.clone(),
-            self.value,
-            self.bipolar,
-            self.rect(),
-        );
-        let response = ui.add(widget);
+    impl Button {
+        pub fn new(image: Rc<RetainedImage>, clicked: bool, rect: egui::Rect) -> Self {
+            Self {
+                image: image,
+                sense: egui::Sense::click().union(egui::Sense::hover()),
+                clicked: clicked,
+                rect: rect,
+            }
+        }
+    }
 
-        if response.dragged() {
-            let delta_factor = if ui.input().modifiers.shift {
-                // It may be wrong this way...
-                3000.0
+    impl Widget for &mut Button {
+        fn ui(self, ui: &mut egui::Ui) -> egui::Response {
+            let rect = if self.clicked {
+                self.rect.translate(egui::vec2(2.0, 2.0))
             } else {
-                300.0
+                self.rect
             };
 
-            let delta_x = response.drag_delta().x;
-            let delta_v = delta_x as f64 / delta_factor;
-            self.value = num::clamp(self.value + delta_v, 0.0, 1.0);
+            let response = ui.allocate_rect(rect, self.sense);
+
+            if ui.is_rect_visible(rect) {
+                let img = egui::widgets::Image::new(self.image.texture_id(ui.ctx()), rect.size());
+                img.paint_at(ui, rect);
+
+                if response.hovered() {
+                    ui.painter().rect_filled(
+                        rect,
+                        egui::Rounding::none(),
+                        egui::Color32::from_rgba_unmultiplied(0xab, 0xbb, 0xa8, 80),
+                    );
+                }
+            }
+
+            response
+        }
+    }
+
+    #[derive(Clone)]
+    pub struct ButtonBehavior {
+        image: Rc<RetainedImage>,
+        clicked_at: time::Instant,
+        clicked: Toggle,
+        x: f32,
+        y: f32,
+    }
+
+    impl ButtonBehavior {
+        pub fn new(image: Rc<RetainedImage>, x: f32, y: f32) -> Self {
+            Self {
+                image: image,
+                clicked_at: time::Instant::now(),
+                clicked: Toggle::new(false, false),
+                x: x,
+                y: y,
+            }
+        }
+    }
+
+    impl Behavior for ButtonBehavior {
+        fn rect(&self) -> egui::Rect {
+            let size = self.image.size();
+            egui::Rect {
+                min: egui::pos2(self.x, self.y),
+                max: egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
+            }
         }
 
-        response
+        fn update(&mut self) -> bool {
+            if self.clicked_at.elapsed() <= time::Duration::from_millis(100) {
+                self.clicked.set(true);
+            } else {
+                self.clicked.set(false);
+            }
+
+            self.clicked.toggled()
+        }
+
+        fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
+            let mut widget = Button::new(self.image.clone(), self.clicked.val(), self.rect());
+            let response = widget.ui(ui);
+
+            if response.clicked() {
+                self.clicked_at = time::Instant::now();
+            }
+
+            response
+        }
     }
 
-    fn rect(&self) -> egui::Rect {
-        let size = self.border_img.size();
-        egui::Rect::from_two_pos(
-            egui::pos2(self.x, self.y),
-            egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
-        )
+    pub struct Slider {
+        border_img: Rc<RetainedImage>,
+        sense: egui::Sense,
+        rect: egui::Rect,
+        bipolar: bool,
+        value: f64,
+    }
+
+    impl Slider {
+        pub fn new(
+            border_img: Rc<RetainedImage>,
+            value: f64,
+            bipolar: bool,
+            rect: egui::Rect,
+        ) -> Self {
+            Self {
+                border_img: border_img,
+                sense: egui::Sense::drag(),
+                rect: rect,
+                bipolar: bipolar,
+                value: value,
+            }
+        }
+    }
+
+    impl Widget for Slider {
+        fn ui(self, ui: &mut egui::Ui) -> egui::Response {
+            let rect_label = self.rect.clone();
+            let _ = ui.allocate_rect(
+                rect_label,
+                egui::Sense {
+                    click: false,
+                    drag: false,
+                    focusable: false,
+                },
+            );
+
+            if ui.is_rect_visible(rect_label) {}
+
+            let rect_slider = self.rect.clone().translate(egui::vec2(0.0, 8.0));
+            let response = ui.allocate_rect(rect_slider, self.sense);
+
+            if ui.is_rect_visible(rect_slider) {
+                let w = self.rect.max.x - 2.0 - self.rect.min.x + 2.0;
+
+                if self.bipolar {
+                    if self.value < 0.5 {
+                    } else {
+                    }
+                } else {
+                    ui.painter().rect_filled(
+                        egui::Rect {
+                            min: self.rect.min,
+                            max: egui::pos2(
+                                self.rect.min.x + w * self.value as f32,
+                                self.rect.max.y,
+                            ),
+                        },
+                        egui::Rounding::none(),
+                        egui::Color32::from_rgb(0x33, 0x3f, 0x32),
+                    );
+                }
+
+                let img = egui::widgets::Image::new(
+                    self.border_img.texture_id(ui.ctx()),
+                    self.rect.size(),
+                );
+                img.paint_at(ui, self.rect);
+            }
+
+            response
+        }
+    }
+
+    pub struct SliderBehavior {
+        border_img: Rc<RetainedImage>,
+        bipolar: bool,
+        value: f64,
+        x: f32,
+        y: f32,
+    }
+
+    impl SliderBehavior {
+        pub fn new(
+            border_img: Rc<RetainedImage>,
+            value: f64,
+            bipolar: bool,
+            x: f32,
+            y: f32,
+        ) -> Self {
+            Self {
+                border_img: border_img,
+                value: value,
+                bipolar: bipolar,
+                x: x,
+                y: y,
+            }
+        }
+    }
+
+    impl Behavior for SliderBehavior {
+        fn update(&mut self) -> bool {
+            false
+        }
+
+        fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
+            let widget = Slider::new(
+                self.border_img.clone(),
+                self.value,
+                self.bipolar,
+                self.rect(),
+            );
+            let response = ui.add(widget);
+
+            if response.dragged() {
+                let delta_factor = if ui.input().modifiers.shift {
+                    // It may be wrong this way...
+                    3000.0
+                } else {
+                    300.0
+                };
+
+                let delta_x = response.drag_delta().x;
+                let delta_v = delta_x as f64 / delta_factor;
+                self.value = num::clamp(self.value + delta_v, 0.0, 1.0);
+            }
+
+            response
+        }
+
+        fn rect(&self) -> egui::Rect {
+            let size = self.border_img.size();
+            egui::Rect::from_two_pos(
+                egui::pos2(self.x, self.y),
+                egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
+            )
+        }
     }
 }
+use widget::*;
 
 enum GUIMessage {
     Terminate,
