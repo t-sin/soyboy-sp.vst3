@@ -78,10 +78,6 @@ const IMG_BUTTON_RESET_RANDOM: &[u8] = include_bytes!("../../resources/button-re
 const IMG_BUTTON_RESET_SINE: &[u8] = include_bytes!("../../resources/button-reset-sine.png");
 const IMG_SLIDER_BORDER: &[u8] = include_bytes!("../../resources/slider-border.png");
 
-struct ParentWindow(*mut c_void);
-unsafe impl Send for ParentWindow {}
-unsafe impl Sync for ParentWindow {}
-
 trait Behavior {
     fn update(&mut self) -> bool;
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response;
@@ -358,6 +354,10 @@ enum GUIMessage {
 enum GUIEvent {
     Redraw,
 }
+
+struct ParentWindow(*mut c_void);
+unsafe impl Send for ParentWindow {}
+unsafe impl Sync for ParentWindow {}
 
 struct GUIThread {
     // SoyBoy resources
