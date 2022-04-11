@@ -177,7 +177,7 @@ impl Widget for &mut Button {
 }
 
 #[derive(Clone)]
-struct StatefulButton {
+struct ButtonBehavior {
     image: Rc<RetainedImage>,
     clicked_at: time::Instant,
     clicked: Toggle,
@@ -185,7 +185,7 @@ struct StatefulButton {
     y: f32,
 }
 
-impl StatefulButton {
+impl ButtonBehavior {
     fn new(image: Rc<RetainedImage>, x: f32, y: f32) -> Self {
         Self {
             image: image,
@@ -197,7 +197,7 @@ impl StatefulButton {
     }
 }
 
-impl Behavior for StatefulButton {
+impl Behavior for ButtonBehavior {
     fn rect(&self) -> egui::Rect {
         let size = self.image.size();
         egui::Rect {
@@ -369,8 +369,8 @@ struct GUIThread {
     label_envelope: Label,
     label_sweep: Label,
     label_stutter: Label,
-    button_reset_random: StatefulButton,
-    button_reset_sine: StatefulButton,
+    button_reset_random: ButtonBehavior,
+    button_reset_sine: ButtonBehavior,
     slider_volume: SliderBehavior,
     // window stuff
     quit: bool,
@@ -491,7 +491,7 @@ impl GUIThread {
                 352.0,
                 316.0,
             ),
-            button_reset_random: StatefulButton::new(
+            button_reset_random: ButtonBehavior::new(
                 Rc::new(
                     RetainedImage::from_image_bytes(
                         "soyboy:button:reset-random",
@@ -502,7 +502,7 @@ impl GUIThread {
                 206.0,
                 526.0,
             ),
-            button_reset_sine: StatefulButton::new(
+            button_reset_sine: ButtonBehavior::new(
                 Rc::new(
                     RetainedImage::from_image_bytes(
                         "soyboy:button:reset-sine",
@@ -552,7 +552,7 @@ impl GUIThread {
                     .interactable(false)
                     .show(egui_ctx, |ui| ui.add(label));
             };
-            let show_button = |name: &str, button: &mut StatefulButton, do_click: &dyn Fn()| {
+            let show_button = |name: &str, button: &mut ButtonBehavior, do_click: &dyn Fn()| {
                 let rect = button.rect();
                 egui::Area::new(name)
                     .fixed_pos(rect.min)
