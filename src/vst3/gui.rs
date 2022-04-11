@@ -89,14 +89,14 @@ trait Behavior {
 }
 
 #[derive(Clone)]
-struct Label {
+struct ImageLabel {
     image: Rc<RetainedImage>,
     sense: egui::Sense,
     x: f32,
     y: f32,
 }
 
-impl Label {
+impl ImageLabel {
     fn new(image: Rc<RetainedImage>, x: f32, y: f32) -> Self {
         Self {
             image: image,
@@ -115,7 +115,7 @@ impl Label {
     }
 }
 
-impl Widget for Label {
+impl Widget for ImageLabel {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
         let rect = self.rect();
 
@@ -361,14 +361,14 @@ enum GUIEvent {
 
 struct GUIThread {
     // SoyBoy resources
-    label_logo: Label,
-    label_global: Label,
-    label_square: Label,
-    label_noise: Label,
-    label_wavetable: Label,
-    label_envelope: Label,
-    label_sweep: Label,
-    label_stutter: Label,
+    label_logo: ImageLabel,
+    label_global: ImageLabel,
+    label_square: ImageLabel,
+    label_noise: ImageLabel,
+    label_wavetable: ImageLabel,
+    label_envelope: ImageLabel,
+    label_sweep: ImageLabel,
+    label_stutter: ImageLabel,
     button_reset_random: ButtonBehavior,
     button_reset_sine: ButtonBehavior,
     slider_volume: SliderBehavior,
@@ -432,12 +432,12 @@ impl GUIThread {
         );
 
         let thread = GUIThread {
-            label_logo: Label::new(
+            label_logo: ImageLabel::new(
                 Rc::new(RetainedImage::from_image_bytes("soyboy:logo", IMG_LOGO).unwrap()),
                 6.0,
                 6.0,
             ),
-            label_global: Label::new(
+            label_global: ImageLabel::new(
                 Rc::new(
                     RetainedImage::from_image_bytes("soyboy:label:global", IMG_LABEL_GLOBAL)
                         .unwrap(),
@@ -445,7 +445,7 @@ impl GUIThread {
                 24.0,
                 86.0,
             ),
-            label_square: Label::new(
+            label_square: ImageLabel::new(
                 Rc::new(
                     RetainedImage::from_image_bytes("soyboy:label:square", IMG_LABEL_SQUARE)
                         .unwrap(),
@@ -453,14 +453,14 @@ impl GUIThread {
                 24.0,
                 216.0,
             ),
-            label_noise: Label::new(
+            label_noise: ImageLabel::new(
                 Rc::new(
                     RetainedImage::from_image_bytes("soyboy:label:noise", IMG_LABEL_NOISE).unwrap(),
                 ),
                 24.0,
                 280.0,
             ),
-            label_wavetable: Label::new(
+            label_wavetable: ImageLabel::new(
                 Rc::new(
                     RetainedImage::from_image_bytes("soyboy:label:wavetable", IMG_LABEL_WAVETABLE)
                         .unwrap(),
@@ -468,7 +468,7 @@ impl GUIThread {
                 24.0,
                 408.0,
             ),
-            label_envelope: Label::new(
+            label_envelope: ImageLabel::new(
                 Rc::new(
                     RetainedImage::from_image_bytes("soyboy:label:envelope", IMG_LABEL_ENVELOPE)
                         .unwrap(),
@@ -476,14 +476,14 @@ impl GUIThread {
                 352.0,
                 12.0,
             ),
-            label_sweep: Label::new(
+            label_sweep: ImageLabel::new(
                 Rc::new(
                     RetainedImage::from_image_bytes("soyboy:label:sweep", IMG_LABEL_SWEEP).unwrap(),
                 ),
                 352.0,
                 184.0,
             ),
-            label_stutter: Label::new(
+            label_stutter: ImageLabel::new(
                 Rc::new(
                     RetainedImage::from_image_bytes("soyboy:label:stutter", IMG_LABEL_STUTTER)
                         .unwrap(),
@@ -540,7 +540,7 @@ impl GUIThread {
 
     fn draw(&mut self) {
         self.needs_repaint = self.egui_glow.run(self.window.window(), |egui_ctx| {
-            let show_label = |name: &str, label: Label| {
+            let show_label = |name: &str, label: ImageLabel| {
                 let rect = label.rect();
                 egui::Area::new(name)
                     .fixed_pos(rect.min)
