@@ -539,11 +539,6 @@ impl GUIThread {
     }
 
     fn draw(&mut self) {
-        // println!(
-        //     "cursor pos = {:?}",
-        //     self.egui_glow.egui_ctx.input().pointer.interact_pos()
-        // );
-
         self.needs_repaint = self.egui_glow.run(self.window.window(), |egui_ctx| {
             let show_label = |name: &str, label: Label| {
                 let rect = label.rect();
