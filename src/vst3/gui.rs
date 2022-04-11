@@ -77,7 +77,6 @@ const IMG_LABEL_STUTTER: &[u8] = include_bytes!("../../resources/label-stutter.p
 const IMG_BUTTON_RESET_RANDOM: &[u8] = include_bytes!("../../resources/button-reset-random.png");
 const IMG_BUTTON_RESET_SINE: &[u8] = include_bytes!("../../resources/button-reset-sine.png");
 const IMG_SLIDER_BORDER: &[u8] = include_bytes!("../../resources/slider-border.png");
-const FONT_RNTG_LARGER: &[u8] = include_bytes!("../../resources/rntg_larger/RNTG Larger.ttf");
 
 struct ParentWindow(*mut c_void);
 unsafe impl Send for ParentWindow {}
@@ -261,13 +260,7 @@ impl Widget for Slider {
             },
         );
 
-        if ui.is_rect_visible(rect_label) {
-            ui.colored_label(
-                egui::Color32::from_rgb(0x1c, 0x23, 0x1b),
-                egui::RichText::new("Volume")
-                    .font(egui::FontId::new(14.0, egui::FontFamily::Monospace)),
-            );
-        }
+        if ui.is_rect_visible(rect_label) {}
 
         let rect_slider = self.rect.clone().translate(egui::vec2(0.0, 8.0));
         let response = ui.allocate_rect(rect_slider, self.sense);
@@ -433,25 +426,6 @@ impl GUIThread {
             unsafe { glow::Context::from_loader_function(|s| window.get_proc_address(s)) };
         let glow_context = Rc::new(glow_context);
         let egui_glow = EguiGlow::new(window.window(), glow_context.clone());
-
-        // register a pixel font 'RNTG Larger'
-        let mut fonts = egui::FontDefinitions::default();
-
-        fonts.font_data.insert(
-            "RNTG Larger".to_owned(),
-            egui::FontData::from_static(FONT_RNTG_LARGER),
-        );
-        fonts
-            .families
-            .get_mut(&egui::FontFamily::Proportional)
-            .unwrap()
-            .insert(0, "RNTG Larger".to_owned());
-        fonts
-            .families
-            .get_mut(&egui::FontFamily::Monospace)
-            .unwrap()
-            .insert(0, "RNTG Larger".to_owned());
-        egui_glow.egui_ctx.set_fonts(fonts);
 
         let img_slider_border = Rc::new(
             RetainedImage::from_image_bytes("soyboy:slider:border", IMG_SLIDER_BORDER).unwrap(),
