@@ -251,10 +251,15 @@ mod widget {
                 }
             }
 
+            // for the spacing between characters
+            w += (s.chars().count() - 1) as f32 * 2.0;
+
             if let Some(region) = unit.get_region() {
                 w += region.size.x;
                 h = region.size.y;
                 regions.push(region);
+                // for the spacing between last char and unit string
+                w += 2.0;
             }
 
             (regions, w, h)
