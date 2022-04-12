@@ -8,7 +8,7 @@ I want to do some chiptunes on GNU/Linux.
 
 ## Known issues
 
-- don't support high DPI screens
+- don't work correctly with high DPI screens
 
 ## TODOs
 
