@@ -796,6 +796,8 @@ struct GUIThread {
     param_decay: ParameterSlider,
     param_sustain: ParameterSlider,
     param_release: ParameterSlider,
+    param_amount: ParameterSlider,
+    param_period: ParameterSlider,
     // window stuff
     quit: bool,
     needs_repaint: bool,
@@ -1025,6 +1027,30 @@ impl GUIThread {
                 388.0,
                 126.0 + 2.0,
             ),
+            param_amount: ParameterSlider::new(
+                Parameter::SweepAmount,
+                0.1,
+                false,
+                ParameterUnit::None,
+                Rc::new(|v| format!("{:.3}", v)),
+                img_slider_border.clone(),
+                img_param_atlas.clone(),
+                img_value_atlas.clone(),
+                388.0,
+                232.0,
+            ),
+            param_period: ParameterSlider::new(
+                Parameter::SweepPeriod,
+                0.1,
+                false,
+                ParameterUnit::None,
+                Rc::new(|v| format!("{:.3}", v)),
+                img_slider_border.clone(),
+                img_param_atlas.clone(),
+                img_value_atlas.clone(),
+                388.0,
+                268.0,
+            ),
             quit: false,
             needs_repaint: false,
             receiver: receiver,
@@ -1131,10 +1157,14 @@ impl GUIThread {
             show_param_slider("param:volume", &mut self.param_volume);
             show_param_slider("param:detune", &mut self.param_detune);
             show_param_slider("param:interval", &mut self.param_interval);
+
             show_param_slider("param:attack", &mut self.param_attack);
             show_param_slider("param:decay", &mut self.param_decay);
             show_param_slider("param:sustain", &mut self.param_sustain);
             show_param_slider("param:release", &mut self.param_release);
+
+            show_param_slider("param:sweep-amount", &mut self.param_amount);
+            show_param_slider("param:sweep-period", &mut self.param_period);
         });
 
         // OpenGL drawing
