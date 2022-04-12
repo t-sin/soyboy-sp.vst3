@@ -47,6 +47,7 @@ const IMG_LABEL_STUTTER: &[u8] = include_bytes!("../../resources/label-stutter.p
 const IMG_BUTTON_RESET_RANDOM: &[u8] = include_bytes!("../../resources/button-reset-random.png");
 const IMG_BUTTON_RESET_SINE: &[u8] = include_bytes!("../../resources/button-reset-sine.png");
 const IMG_SLIDER_BORDER: &[u8] = include_bytes!("../../resources/slider-border.png");
+const IMG_VALUE_ATLAS: &[u8] = include_bytes!("../../resources/paramval.png");
 
 mod widget {
     use std::rc::Rc;
@@ -106,6 +107,8 @@ mod widget {
         Minus,
     }
 
+    type Region = (egui::Vec2, egui::Vec2);
+
     impl Character {
         fn from_char(ch: char) -> Option<Character> {
             match ch {
@@ -125,7 +128,7 @@ mod widget {
             }
         }
 
-        fn get_region(&self) -> (egui::Vec2, egui::Vec2) {
+        fn get_region(&self) -> Region {
             match self {
                 Character::Digit0 => (egui::vec2(0.0, 0.0), egui::vec2(10.0, 14.0)),
                 Character::Digit1 => (egui::vec2(14.0, 0.0), egui::vec2(6.0, 14.0)),
@@ -154,7 +157,7 @@ mod widget {
     }
 
     impl ParameterUnit {
-        fn get_region(&self) -> Option<(egui::Vec2, egui::Vec2)> {
+        fn get_region(&self) -> Option<Region> {
             match self {
                 ParameterUnit::None => None,
                 ParameterUnit::Decibel => Some((egui::vec2(0.0, 16.0), egui::vec2(22.0, 14.0))),
@@ -167,40 +170,112 @@ mod widget {
     }
 
     pub struct ParameterValue {
-        value: f64,
-        formatter: Box<dyn Fn(f64) -> String>,
-        unit: ParameterUnit,
-        rect: egui::Rect,
+        atlas: Rc<RetainedImage>,
+        regions: Vec<Region>,
+        x: f32,
+        y: f32,
+        w: f32,
+        h: f32,
     }
 
     impl ParameterValue {
-        fn new(value: f64, formatter: Box<dyn Fn(f64) -> String>, unit: ParameterUnit) -> Self {
+        pub fn new(
+            value: f64,
+            unit: ParameterUnit,
+            formatter: Box<dyn Fn(f64) -> String>,
+            atlas: Rc<RetainedImage>,
+            x: f32,
+            y: f32,
+        ) -> Self {
+            let (regions, w, h) = ParameterValue::layout(value, unit, formatter);
             Self {
-                value,
-                formatter,
-                unit,
-                rect: egui::Rect {
-                    min: egui::pos2(0.0, 0.0),
-                    max: egui::pos2(0.0, 0.0),
-                },
+                atlas,
+                regions,
+                x,
+                y,
+                w: w,
+                h: h,
             }
         }
 
-        fn layout(&self) -> Vec<Character> {
-            let s = (self.formatter)(self.value);
-            let mut chars = Vec::new();
+        pub fn rect(&self) -> egui::Rect {
+            let top_left = egui::pos2(self.x, self.y);
+            egui::Rect {
+                min: top_left,
+                max: top_left + egui::vec2(self.w, self.h),
+            }
+        }
 
-            println!("layout a value {} formatted as {}", self.value, s);
+        fn layout(
+            value: f64,
+            unit: ParameterUnit,
+            formatter: Box<dyn Fn(f64) -> String>,
+        ) -> (Vec<Region>, f32, f32) {
+            let s = (formatter)(value);
+            let mut regions = Vec::new();
+            let (mut w, mut h) = (0.0, 0.0);
+
+            println!("layout a value {} formatted as {}", value, s);
             for ch in s.chars() {
                 match Character::from_char(ch) {
-                    Some(c) => chars.push(c),
+                    Some(c) => {
+                        let region = c.get_region();
+                        w += region.1.x;
+                        h = region.1.y;
+                        regions.push(region);
+                    }
                     None => {
                         println!("invalid char in the target: '{}'", ch);
                     }
                 }
             }
 
-            chars
+            if let Some(region) = unit.get_region() {
+                w += region.1.x;
+                h = region.1.y;
+                regions.push(region);
+            }
+
+            (regions, w, h)
+        }
+    }
+
+    impl Widget for ParameterValue {
+        fn ui(self, ui: &mut egui::Ui) -> egui::Response {
+            let rect = egui::Rect {
+                min: egui::pos2(self.x, self.y),
+                max: egui::pos2(self.x + self.w as f32, self.y + self.w as f32),
+            };
+
+            let response = ui.allocate_rect(rect, egui::Sense::focusable_noninteractive());
+
+            if ui.is_rect_visible(rect) {
+                let atlas_size = self.atlas.size();
+                let atlas_size = egui::vec2(atlas_size[0] as f32, atlas_size[1] as f32);
+                let top_left = egui::pos2(self.x, self.y);
+                let mut char_offset_x = 0.0;
+
+                for region in self.regions.iter() {
+                    let clip_rect = egui::Rect {
+                        min: top_left,
+                        max: top_left + region.1.into(),
+                    };
+                    ui.set_clip_rect(clip_rect.translate(egui::vec2(char_offset_x, 0.0)));
+
+                    let draw_rect = egui::Rect {
+                        min: top_left,
+                        max: top_left + atlas_size.into(),
+                    };
+
+                    let img =
+                        egui::widgets::Image::new(self.atlas.texture_id(ui.ctx()), atlas_size);
+                    img.paint_at(ui, draw_rect.translate(-region.0));
+
+                    char_offset_x += region.1.x + 2.0;
+                }
+            }
+
+            response
         }
     }
 
@@ -499,6 +574,7 @@ unsafe impl Sync for ParentWindow {}
 
 struct GUIThread {
     // SoyBoy resources
+    atlas_values: Rc<RetainedImage>,
     label_logo: ImageLabel,
     label_global: ImageLabel,
     label_square: ImageLabel,
@@ -570,6 +646,9 @@ impl GUIThread {
         );
 
         let thread = GUIThread {
+            atlas_values: Rc::new(
+                RetainedImage::from_image_bytes("value_atlas", IMG_VALUE_ATLAS).unwrap(),
+            ),
             label_logo: ImageLabel::new(
                 Rc::new(RetainedImage::from_image_bytes("soyboy:logo", IMG_LOGO).unwrap()),
                 6.0,
@@ -756,6 +835,23 @@ impl GUIThread {
 
             // sliders
             show_slider("slider: test", &mut self.slider_volume);
+
+            // parameter value test
+            let paramval = ParameterValue::new(
+                10.1502,
+                ParameterUnit::Cent,
+                Box::new(|v| format!("{}", v)),
+                self.atlas_values.clone(),
+                100.0,
+                200.0,
+            );
+            let rect = paramval.rect();
+            egui::Area::new("test paramval")
+                .fixed_pos(rect.min)
+                .movable(false)
+                .show(egui_ctx, |ui| {
+                    let _resp = ui.add(paramval);
+                });
         });
 
         // OpenGL drawing
