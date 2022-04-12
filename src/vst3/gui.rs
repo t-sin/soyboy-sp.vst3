@@ -790,6 +790,7 @@ struct GUIThread {
     button_reset_random: ButtonBehavior,
     button_reset_sine: ButtonBehavior,
     param_volume: ParameterSlider,
+    param_detune: ParameterSlider,
     // window stuff
     quit: bool,
     needs_repaint: bool,
@@ -947,6 +948,18 @@ impl GUIThread {
                 60.0,
                 86.0 + 2.0,
             ),
+            param_detune: ParameterSlider::new(
+                Parameter::Detune,
+                0.1,
+                true,
+                ParameterUnit::Cent,
+                Rc::new(|v| format!("{:.3}", v)),
+                img_slider_border.clone(),
+                img_param_atlas.clone(),
+                img_value_atlas.clone(),
+                60.0,
+                122.0 + 2.0,
+            ),
             quit: false,
             needs_repaint: false,
             receiver: receiver,
@@ -1051,6 +1064,7 @@ impl GUIThread {
 
             // params
             show_param_slider("param:volume", &mut self.param_volume);
+            show_param_slider("param:detune", &mut self.param_detune);
         });
 
         // OpenGL drawing
