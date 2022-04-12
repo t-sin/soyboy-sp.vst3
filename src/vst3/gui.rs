@@ -792,6 +792,10 @@ struct GUIThread {
     param_volume: ParameterSlider,
     param_detune: ParameterSlider,
     param_interval: ParameterSlider,
+    param_attack: ParameterSlider,
+    param_decay: ParameterSlider,
+    param_sustain: ParameterSlider,
+    param_release: ParameterSlider,
     // window stuff
     quit: bool,
     needs_repaint: bool,
@@ -973,6 +977,54 @@ impl GUIThread {
                 60.0,
                 292.0 + 2.0,
             ),
+            param_attack: ParameterSlider::new(
+                Parameter::Attack,
+                0.1,
+                false,
+                ParameterUnit::Sec,
+                Rc::new(|v| format!("{:.3}", v)),
+                img_slider_border.clone(),
+                img_param_atlas.clone(),
+                img_value_atlas.clone(),
+                388.0,
+                24.0 + 2.0,
+            ),
+            param_decay: ParameterSlider::new(
+                Parameter::Decay,
+                0.1,
+                false,
+                ParameterUnit::Sec,
+                Rc::new(|v| format!("{:.3}", v)),
+                img_slider_border.clone(),
+                img_param_atlas.clone(),
+                img_value_atlas.clone(),
+                388.0,
+                58.0 + 2.0,
+            ),
+            param_sustain: ParameterSlider::new(
+                Parameter::Sustain,
+                0.1,
+                false,
+                ParameterUnit::None,
+                Rc::new(|v| format!("{:.3}", v)),
+                img_slider_border.clone(),
+                img_param_atlas.clone(),
+                img_value_atlas.clone(),
+                388.0,
+                92.0 + 2.0,
+            ),
+            param_release: ParameterSlider::new(
+                Parameter::Release,
+                0.1,
+                false,
+                ParameterUnit::Sec,
+                Rc::new(|v| format!("{:.3}", v)),
+                img_slider_border.clone(),
+                img_param_atlas.clone(),
+                img_value_atlas.clone(),
+                388.0,
+                126.0 + 2.0,
+            ),
             quit: false,
             needs_repaint: false,
             receiver: receiver,
@@ -1079,6 +1131,10 @@ impl GUIThread {
             show_param_slider("param:volume", &mut self.param_volume);
             show_param_slider("param:detune", &mut self.param_detune);
             show_param_slider("param:interval", &mut self.param_interval);
+            show_param_slider("param:attack", &mut self.param_attack);
+            show_param_slider("param:decay", &mut self.param_decay);
+            show_param_slider("param:sustain", &mut self.param_sustain);
+            show_param_slider("param:release", &mut self.param_release);
         });
 
         // OpenGL drawing
