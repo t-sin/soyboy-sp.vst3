@@ -107,7 +107,20 @@ mod widget {
         Minus,
     }
 
-    type Region = (egui::Vec2, egui::Vec2);
+    #[derive(Clone)]
+    struct Region {
+        pos: egui::Pos2,
+        size: egui::Vec2,
+    }
+
+    impl Region {
+        fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
+            Self {
+                pos: egui::pos2(x, y),
+                size: egui::vec2(w, h),
+            }
+        }
+    }
 
     impl Character {
         fn from_char(ch: char) -> Option<Character> {
@@ -130,18 +143,18 @@ mod widget {
 
         fn get_region(&self) -> Region {
             match self {
-                Character::Digit0 => (egui::vec2(0.0, 0.0), egui::vec2(10.0, 14.0)),
-                Character::Digit1 => (egui::vec2(14.0, 0.0), egui::vec2(6.0, 14.0)),
-                Character::Digit2 => (egui::vec2(24.0, 0.0), egui::vec2(10.0, 14.0)),
-                Character::Digit3 => (egui::vec2(36.0, 0.0), egui::vec2(10.0, 14.0)),
-                Character::Digit4 => (egui::vec2(48.0, 0.0), egui::vec2(10.0, 14.0)),
-                Character::Digit5 => (egui::vec2(60.0, 0.0), egui::vec2(10.0, 14.0)),
-                Character::Digit6 => (egui::vec2(72.0, 0.0), egui::vec2(10.0, 14.0)),
-                Character::Digit7 => (egui::vec2(84.0, 0.0), egui::vec2(10.0, 14.0)),
-                Character::Digit8 => (egui::vec2(96.0, 0.0), egui::vec2(10.0, 14.0)),
-                Character::Digit9 => (egui::vec2(108.0, 0.0), egui::vec2(10.0, 14.0)),
-                Character::Dot => (egui::vec2(132.0, 0.0), egui::vec2(2.0, 14.0)),
-                Character::Minus => (egui::vec2(136.0, 0.0), egui::vec2(10.0, 14.0)),
+                Character::Digit0 => Region::new(0.0, 0.0, 10.0, 14.0),
+                Character::Digit1 => Region::new(14.0, 0.0, 6.0, 14.0),
+                Character::Digit2 => Region::new(24.0, 0.0, 10.0, 14.0),
+                Character::Digit3 => Region::new(36.0, 0.0, 10.0, 14.0),
+                Character::Digit4 => Region::new(48.0, 0.0, 10.0, 14.0),
+                Character::Digit5 => Region::new(60.0, 0.0, 10.0, 14.0),
+                Character::Digit6 => Region::new(72.0, 0.0, 10.0, 14.0),
+                Character::Digit7 => Region::new(84.0, 0.0, 10.0, 14.0),
+                Character::Digit8 => Region::new(96.0, 0.0, 10.0, 14.0),
+                Character::Digit9 => Region::new(108.0, 0.0, 10.0, 14.0),
+                Character::Dot => Region::new(132.0, 0.0, 2.0, 14.0),
+                Character::Minus => Region::new(136.0, 0.0, 10.0, 14.0),
             }
         }
     }
@@ -160,15 +173,16 @@ mod widget {
         fn get_region(&self) -> Option<Region> {
             match self {
                 ParameterUnit::None => None,
-                ParameterUnit::Decibel => Some((egui::vec2(0.0, 16.0), egui::vec2(22.0, 14.0))),
-                ParameterUnit::Cent => Some((egui::vec2(30.0, 16.0), egui::vec2(58.0, 14.0))),
-                ParameterUnit::MilliSec => Some((egui::vec2(96.0, 16.0), egui::vec2(22.0, 14.0))),
-                ParameterUnit::Sec => Some((egui::vec2(126.0, 16.0), egui::vec2(10.0, 14.0))),
-                ParameterUnit::Percent => Some((egui::vec2(144.0, 16.0), egui::vec2(10.0, 14.0))),
+                ParameterUnit::Decibel => Some(Region::new(0.0, 16.0, 22.0, 14.0)),
+                ParameterUnit::Cent => Some(Region::new(30.0, 16.0, 58.0, 14.0)),
+                ParameterUnit::MilliSec => Some(Region::new(96.0, 16.0, 22.0, 14.0)),
+                ParameterUnit::Sec => Some(Region::new(126.0, 16.0, 10.0, 14.0)),
+                ParameterUnit::Percent => Some(Region::new(144.0, 16.0, 10.0, 14.0)),
             }
         }
     }
 
+    #[derive(Clone)]
     pub struct ParameterValue {
         atlas: Rc<RetainedImage>,
         regions: Vec<Region>,
@@ -220,8 +234,8 @@ mod widget {
                 match Character::from_char(ch) {
                     Some(c) => {
                         let region = c.get_region();
-                        w += region.1.x;
-                        h = region.1.y;
+                        w += region.size.x;
+                        h = region.size.y;
                         regions.push(region);
                     }
                     None => {
@@ -231,8 +245,8 @@ mod widget {
             }
 
             if let Some(region) = unit.get_region() {
-                w += region.1.x;
-                h = region.1.y;
+                w += region.size.x;
+                h = region.size.y;
                 regions.push(region);
             }
 
@@ -253,25 +267,27 @@ mod widget {
                 let atlas_size = self.atlas.size();
                 let atlas_size = egui::vec2(atlas_size[0] as f32, atlas_size[1] as f32);
                 let top_left = egui::pos2(self.x, self.y);
-                let mut char_offset_x = 0.0;
+                let mut offset = egui::pos2(0.0, 0.0);
+                let img = egui::widgets::Image::new(self.atlas.texture_id(ui.ctx()), atlas_size);
 
                 for region in self.regions.iter() {
                     let clip_rect = egui::Rect {
                         min: top_left,
-                        max: top_left + region.1.into(),
+                        max: top_left + region.size.into(),
                     };
-                    ui.set_clip_rect(clip_rect.translate(egui::vec2(char_offset_x, 0.0)));
+                    ui.set_clip_rect(clip_rect.translate(offset.to_vec2()));
 
                     let draw_rect = egui::Rect {
                         min: top_left,
                         max: top_left + atlas_size.into(),
                     };
 
-                    let img =
-                        egui::widgets::Image::new(self.atlas.texture_id(ui.ctx()), atlas_size);
-                    img.paint_at(ui, draw_rect.translate(-region.0));
+                    img.paint_at(
+                        ui,
+                        draw_rect.translate(offset.to_vec2() - region.pos.to_vec2()),
+                    );
 
-                    char_offset_x += region.1.x + 2.0;
+                    offset.x += region.size.x + 2.0;
                 }
             }
 
@@ -837,21 +853,34 @@ impl GUIThread {
             show_slider("slider: test", &mut self.slider_volume);
 
             // parameter value test
-            let paramval = ParameterValue::new(
-                10.1502,
-                ParameterUnit::Cent,
+            let mut vals = Vec::new();
+            vals.push(ParameterValue::new(
+                2034.0,
+                ParameterUnit::Decibel,
                 Box::new(|v| format!("{}", v)),
                 self.atlas_values.clone(),
                 100.0,
                 200.0,
-            );
-            let rect = paramval.rect();
-            egui::Area::new("test paramval")
-                .fixed_pos(rect.min)
-                .movable(false)
-                .show(egui_ctx, |ui| {
-                    let _resp = ui.add(paramval);
-                });
+            ));
+            vals.push(ParameterValue::new(
+                -10.30112,
+                ParameterUnit::Cent,
+                Box::new(|v| format!("{}", v)),
+                self.atlas_values.clone(),
+                100.0,
+                250.0,
+            ));
+            let mut n = 0;
+            for v in vals.iter() {
+                n += 1;
+                let rect = v.rect();
+                egui::Area::new(format!("test paramval: {}", n))
+                    .fixed_pos(rect.min)
+                    .movable(false)
+                    .show(egui_ctx, |ui| {
+                        let _resp = ui.add(v.clone());
+                    });
+            }
         });
 
         // OpenGL drawing
