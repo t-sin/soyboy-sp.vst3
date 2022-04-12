@@ -798,6 +798,8 @@ struct GUIThread {
     param_release: ParameterSlider,
     param_amount: ParameterSlider,
     param_period: ParameterSlider,
+    param_time: ParameterSlider,
+    param_depth: ParameterSlider,
     // window stuff
     quit: bool,
     needs_repaint: bool,
@@ -1051,6 +1053,30 @@ impl GUIThread {
                 388.0,
                 268.0,
             ),
+            param_time: ParameterSlider::new(
+                Parameter::StutterTime,
+                0.1,
+                false,
+                ParameterUnit::Sec,
+                Rc::new(|v| format!("{:.3}", v)),
+                img_slider_border.clone(),
+                img_param_atlas.clone(),
+                img_value_atlas.clone(),
+                388.0,
+                342.0,
+            ),
+            param_depth: ParameterSlider::new(
+                Parameter::StutterDepth,
+                0.1,
+                false,
+                ParameterUnit::Percent,
+                Rc::new(|v| format!("{:.3}", v)),
+                img_slider_border.clone(),
+                img_param_atlas.clone(),
+                img_value_atlas.clone(),
+                388.0,
+                378.0,
+            ),
             quit: false,
             needs_repaint: false,
             receiver: receiver,
@@ -1165,6 +1191,9 @@ impl GUIThread {
 
             show_param_slider("param:sweep-amount", &mut self.param_amount);
             show_param_slider("param:sweep-period", &mut self.param_period);
+
+            show_param_slider("param:stutter-time", &mut self.param_time);
+            show_param_slider("param:stutter-depth", &mut self.param_depth);
         });
 
         // OpenGL drawing
