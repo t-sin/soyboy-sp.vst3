@@ -161,6 +161,7 @@ mod widget {
     }
 
     // available units in resources/paramval.png
+    #[derive(Clone)]
     pub enum ParameterUnit {
         None,
         Decibel,
@@ -197,7 +198,7 @@ mod widget {
         pub fn new(
             value: f64,
             unit: ParameterUnit,
-            formatter: Box<dyn Fn(f64) -> String>,
+            formatter: Rc<dyn Fn(f64) -> String>,
             atlas: Rc<RetainedImage>,
             x: f32,
             y: f32,
@@ -213,6 +214,11 @@ mod widget {
             }
         }
 
+        pub fn set_pos(&mut self, x: f32, y: f32) {
+            self.x = x;
+            self.y = y;
+        }
+
         pub fn rect(&self) -> egui::Rect {
             let top_left = egui::pos2(self.x, self.y);
             egui::Rect {
@@ -224,7 +230,7 @@ mod widget {
         fn layout(
             value: f64,
             unit: ParameterUnit,
-            formatter: Box<dyn Fn(f64) -> String>,
+            formatter: Rc<dyn Fn(f64) -> String>,
         ) -> (Vec<Region>, f32, f32) {
             let s = (formatter)(value);
             let mut regions = Vec::new();
@@ -670,6 +676,87 @@ mod widget {
             )
         }
     }
+
+    //    #[derive(Clone)]
+    pub struct ParameterSlider {
+        slider: SliderBehavior,
+        param: Parameter,
+        unit: ParameterUnit,
+        formatter: Rc<dyn Fn(f64) -> String>,
+        param_atlas: Rc<RetainedImage>,
+        value_atlas: Rc<RetainedImage>,
+        x: f32,
+        y: f32,
+    }
+
+    impl ParameterSlider {
+        pub fn new(
+            param: Parameter,
+            value: f64,
+            bipolar: bool,
+            unit: ParameterUnit,
+            formatter: Rc<dyn Fn(f64) -> String>,
+            border_img: Rc<RetainedImage>,
+            param_atlas: Rc<RetainedImage>,
+            value_atlas: Rc<RetainedImage>,
+            x: f32,
+            y: f32,
+        ) -> Self {
+            Self {
+                param,
+                unit,
+                formatter,
+                slider: SliderBehavior::new(border_img, value, bipolar, x, y + 16.0),
+                param_atlas,
+                value_atlas,
+                x,
+                y,
+            }
+        }
+    }
+
+    impl Behavior for ParameterSlider {
+        fn update(&mut self) -> bool {
+            self.slider.update()
+        }
+
+        fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
+            let rect = self.rect();
+
+            ui.add(ParameterName::new(
+                self.param.clone(),
+                self.param_atlas.clone(),
+                self.x,
+                self.y,
+            ));
+            ui.set_clip_rect(rect);
+
+            let mut value = ParameterValue::new(
+                self.slider.value,
+                self.unit.clone(),
+                self.formatter.clone(),
+                self.value_atlas.clone(),
+                0.0,
+                0.0,
+            );
+            let size = egui::vec2(266.0, 30.0);
+            let value_rect = value.rect().size();
+            value.set_pos(self.x + (size.x - value_rect.x), self.y);
+            ui.add(value);
+            ui.set_clip_rect(rect);
+
+            self.slider.show(ui)
+        }
+
+        fn rect(&self) -> egui::Rect {
+            let topleft = egui::pos2(self.x, self.y);
+            let size = egui::vec2(266.0, 30.0);
+            egui::Rect {
+                min: topleft,
+                max: topleft + size,
+            }
+        }
+    }
 }
 use widget::*;
 
@@ -687,8 +774,6 @@ unsafe impl Sync for ParentWindow {}
 
 struct GUIThread {
     // SoyBoy resources
-    atlas_values: Rc<RetainedImage>,
-    atlas_params: Rc<RetainedImage>,
     label_logo: ImageLabel,
     label_global: ImageLabel,
     label_square: ImageLabel,
@@ -699,7 +784,7 @@ struct GUIThread {
     label_stutter: ImageLabel,
     button_reset_random: ButtonBehavior,
     button_reset_sine: ButtonBehavior,
-    slider_volume: SliderBehavior,
+    param_volume: ParameterSlider,
     // window stuff
     quit: bool,
     needs_repaint: bool,
@@ -758,14 +843,12 @@ impl GUIThread {
         let img_slider_border = Rc::new(
             RetainedImage::from_image_bytes("soyboy:slider:border", IMG_SLIDER_BORDER).unwrap(),
         );
+        let img_value_atlas =
+            Rc::new(RetainedImage::from_image_bytes("value_atlas", IMG_VALUE_ATLAS).unwrap());
+        let img_param_atlas =
+            Rc::new(RetainedImage::from_image_bytes("name_atlas", IMG_PARAM_ATLAS).unwrap());
 
         let thread = GUIThread {
-            atlas_values: Rc::new(
-                RetainedImage::from_image_bytes("value_atlas", IMG_VALUE_ATLAS).unwrap(),
-            ),
-            atlas_params: Rc::new(
-                RetainedImage::from_image_bytes("name_atlas", IMG_PARAM_ATLAS).unwrap(),
-            ),
             label_logo: ImageLabel::new(
                 Rc::new(RetainedImage::from_image_bytes("soyboy:logo", IMG_LOGO).unwrap()),
                 6.0,
@@ -847,7 +930,18 @@ impl GUIThread {
                 274.0,
                 526.0,
             ),
-            slider_volume: SliderBehavior::new(img_slider_border, 0.0, false, 60.0, 102.0),
+            param_volume: ParameterSlider::new(
+                Parameter::Volume,
+                0.1,
+                false,
+                ParameterUnit::Decibel,
+                Rc::new(|v| format!("{:.3}", v)),
+                img_slider_border.clone(),
+                img_param_atlas.clone(),
+                img_value_atlas.clone(),
+                60.0,
+                86.0 + 2.0,
+            ),
             quit: false,
             needs_repaint: false,
             receiver: receiver,
@@ -893,31 +987,13 @@ impl GUIThread {
                         };
                     });
             };
-            let show_slider = |name: &str, slider: &mut SliderBehavior| {
-                let rect = slider.rect();
+            let show_param_slider = |name: &str, p: &mut ParameterSlider| {
+                let rect = p.rect();
                 egui::Area::new(name)
                     .fixed_pos(rect.min)
                     .movable(false)
                     .show(egui_ctx, |ui| {
-                        let _resp = slider.show(ui);
-                    });
-            };
-            let show_paramval = |name: &str, val: ParameterValue| {
-                let rect = val.rect();
-                egui::Area::new(name)
-                    .fixed_pos(rect.min)
-                    .movable(false)
-                    .show(egui_ctx, |ui| {
-                        let _resp = ui.add(val);
-                    });
-            };
-            let show_paramname = |name: &str, n: ParameterName| {
-                let rect = n.rect();
-                egui::Area::new(name)
-                    .fixed_pos(rect.min)
-                    .movable(false)
-                    .show(egui_ctx, |ui| {
-                        let _resp = ui.add(n);
+                        let _resp = p.show(ui);
                     });
             };
 
@@ -968,38 +1044,8 @@ impl GUIThread {
                 },
             );
 
-            // sliders
-            show_slider("slider: test", &mut self.slider_volume);
-
-            // parameter value test
-            show_paramval(
-                "val1",
-                ParameterValue::new(
-                    2034.0,
-                    ParameterUnit::Decibel,
-                    Box::new(|v| format!("{}", v)),
-                    self.atlas_values.clone(),
-                    100.0,
-                    200.0,
-                ),
-            );
-            show_paramval(
-                "val2",
-                ParameterValue::new(
-                    -10.30112,
-                    ParameterUnit::Cent,
-                    Box::new(|v| format!("{}", v)),
-                    self.atlas_values.clone(),
-                    100.0,
-                    250.0,
-                ),
-            );
-
-            // parameter name test
-            show_paramname(
-                "name1",
-                ParameterName::new(Parameter::Volume, self.atlas_params.clone(), 100.0, 300.0),
-            );
+            // params
+            show_param_slider("param:volume", &mut self.param_volume);
         });
 
         // OpenGL drawing
