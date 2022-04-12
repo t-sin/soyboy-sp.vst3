@@ -48,6 +48,7 @@ const IMG_BUTTON_RESET_RANDOM: &[u8] = include_bytes!("../../resources/button-re
 const IMG_BUTTON_RESET_SINE: &[u8] = include_bytes!("../../resources/button-reset-sine.png");
 const IMG_SLIDER_BORDER: &[u8] = include_bytes!("../../resources/slider-border.png");
 const IMG_VALUE_ATLAS: &[u8] = include_bytes!("../../resources/paramval.png");
+const IMG_PARAM_ATLAS: &[u8] = include_bytes!("../../resources/paramname.png");
 
 mod widget {
     use std::rc::Rc;
@@ -289,6 +290,102 @@ mod widget {
 
                     offset.x += region.size.x + 2.0;
                 }
+            }
+
+            response
+        }
+    }
+
+    // available parameters in resources/paramval.png
+    #[derive(Clone)]
+    pub enum Parameter {
+        Volume,
+        Detune,
+        OscType,
+        DutyRatio,
+        Interval,
+        Attack,
+        Decay,
+        Sustain,
+        Release,
+        SweepType,
+        SweepAmount,
+        SweepPeriod,
+        StutterTime,
+        StutterDepth,
+    }
+
+    impl Parameter {
+        fn get_region(&self) -> Region {
+            match self {
+                Parameter::Volume => Region::new(0.0, 0.0, 66.0, 14.0),
+                Parameter::Detune => Region::new(0.0, 16.0, 74.0, 14.0),
+                Parameter::OscType => Region::new(0.0, 32.0, 88.0, 14.0),
+                Parameter::DutyRatio => Region::new(0.0, 48.0, 104.0, 14.0),
+                Parameter::Interval => Region::new(0.0, 64.0, 82.0, 14.0),
+                Parameter::Attack => Region::new(0.0, 80.0, 70.0, 14.0),
+                Parameter::Decay => Region::new(0.0, 96.0, 58.0, 14.0),
+                Parameter::Sustain => Region::new(0.0, 112.0, 74.0, 14.0),
+                Parameter::Release => Region::new(0.0, 128.0, 78.0, 14.0),
+                Parameter::SweepType => Region::new(0.0, 144.0, 46.0, 14.0),
+                Parameter::SweepAmount => Region::new(0.0, 160.0, 70.0, 14.0),
+                Parameter::SweepPeriod => Region::new(0.0, 176.0, 62.0, 14.0),
+                Parameter::StutterTime => Region::new(0.0, 192.0, 38.0, 14.0),
+                Parameter::StutterDepth => Region::new(0.0, 208.0, 58.0, 14.0),
+            }
+        }
+    }
+
+    #[derive(Clone)]
+    pub struct ParameterName {
+        param: Parameter,
+        atlas: Rc<RetainedImage>,
+        x: f32,
+        y: f32,
+    }
+
+    impl ParameterName {
+        pub fn new(param: Parameter, atlas: Rc<RetainedImage>, x: f32, y: f32) -> Self {
+            Self { param, atlas, x, y }
+        }
+
+        pub fn rect(&self) -> egui::Rect {
+            let topleft = egui::pos2(self.x, self.y);
+            egui::Rect {
+                min: topleft,
+                max: topleft + self.param.get_region().size,
+            }
+        }
+    }
+
+    impl Widget for ParameterName {
+        fn ui(self, ui: &mut egui::Ui) -> egui::Response {
+            let topleft = egui::pos2(self.x, self.y);
+            let region = self.param.get_region();
+
+            let rect = egui::Rect {
+                min: topleft,
+                max: topleft + egui::vec2(region.size.x, region.size.y),
+            };
+
+            let response = ui.allocate_rect(rect, egui::Sense::focusable_noninteractive());
+
+            if ui.is_rect_visible(rect) {
+                let atlas_size = self.atlas.size();
+                let atlas_size = egui::vec2(atlas_size[0] as f32, atlas_size[1] as f32);
+                let img = egui::widgets::Image::new(self.atlas.texture_id(ui.ctx()), atlas_size);
+
+                let clip_rect = egui::Rect {
+                    min: topleft,
+                    max: topleft + region.size.into(),
+                };
+                ui.set_clip_rect(clip_rect);
+
+                let draw_rect = egui::Rect {
+                    min: topleft,
+                    max: topleft + atlas_size.into(),
+                };
+                img.paint_at(ui, draw_rect);
             }
 
             response
@@ -591,6 +688,7 @@ unsafe impl Sync for ParentWindow {}
 struct GUIThread {
     // SoyBoy resources
     atlas_values: Rc<RetainedImage>,
+    atlas_params: Rc<RetainedImage>,
     label_logo: ImageLabel,
     label_global: ImageLabel,
     label_square: ImageLabel,
@@ -664,6 +762,9 @@ impl GUIThread {
         let thread = GUIThread {
             atlas_values: Rc::new(
                 RetainedImage::from_image_bytes("value_atlas", IMG_VALUE_ATLAS).unwrap(),
+            ),
+            atlas_params: Rc::new(
+                RetainedImage::from_image_bytes("name_atlas", IMG_PARAM_ATLAS).unwrap(),
             ),
             label_logo: ImageLabel::new(
                 Rc::new(RetainedImage::from_image_bytes("soyboy:logo", IMG_LOGO).unwrap()),
@@ -810,6 +911,15 @@ impl GUIThread {
                         let _resp = ui.add(val);
                     });
             };
+            let show_paramname = |name: &str, n: ParameterName| {
+                let rect = n.rect();
+                egui::Area::new(name)
+                    .fixed_pos(rect.min)
+                    .movable(false)
+                    .show(egui_ctx, |ui| {
+                        let _resp = ui.add(n);
+                    });
+            };
 
             // background
             egui::Area::new("background").show(egui_ctx, |ui| {
@@ -883,6 +993,12 @@ impl GUIThread {
                     100.0,
                     250.0,
                 ),
+            );
+
+            // parameter name test
+            show_paramname(
+                "name1",
+                ParameterName::new(Parameter::Volume, self.atlas_params.clone(), 100.0, 300.0),
             );
         });
 
