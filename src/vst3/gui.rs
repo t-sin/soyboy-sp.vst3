@@ -84,6 +84,12 @@ mod widget {
         }
     }
 
+    pub trait Behavior {
+        fn update(&mut self) -> bool;
+        fn show(&mut self, ui: &mut egui::Ui) -> egui::Response;
+        fn rect(&self) -> egui::Rect;
+    }
+
     // available characters in resources/paramval.png
     enum Character {
         Digit0,
@@ -196,12 +202,6 @@ mod widget {
 
             chars
         }
-    }
-
-    pub trait Behavior {
-        fn update(&mut self) -> bool;
-        fn show(&mut self, ui: &mut egui::Ui) -> egui::Response;
-        fn rect(&self) -> egui::Rect;
     }
 
     #[derive(Clone)]
