@@ -396,7 +396,7 @@ mod widget {
                     min: topleft,
                     max: topleft + atlas_size.into(),
                 };
-                img.paint_at(ui, draw_rect);
+                img.paint_at(ui, draw_rect.translate(-region.pos.to_vec2()));
             }
 
             response
