@@ -801,6 +801,15 @@ impl GUIThread {
                         let _resp = slider.show(ui);
                     });
             };
+            let show_paramval = |name: &str, val: ParameterValue| {
+                let rect = val.rect();
+                egui::Area::new(name)
+                    .fixed_pos(rect.min)
+                    .movable(false)
+                    .show(egui_ctx, |ui| {
+                        let _resp = ui.add(val);
+                    });
+            };
 
             // background
             egui::Area::new("background").show(egui_ctx, |ui| {
@@ -853,34 +862,28 @@ impl GUIThread {
             show_slider("slider: test", &mut self.slider_volume);
 
             // parameter value test
-            let mut vals = Vec::new();
-            vals.push(ParameterValue::new(
-                2034.0,
-                ParameterUnit::Decibel,
-                Box::new(|v| format!("{}", v)),
-                self.atlas_values.clone(),
-                100.0,
-                200.0,
-            ));
-            vals.push(ParameterValue::new(
-                -10.30112,
-                ParameterUnit::Cent,
-                Box::new(|v| format!("{}", v)),
-                self.atlas_values.clone(),
-                100.0,
-                250.0,
-            ));
-            let mut n = 0;
-            for v in vals.iter() {
-                n += 1;
-                let rect = v.rect();
-                egui::Area::new(format!("test paramval: {}", n))
-                    .fixed_pos(rect.min)
-                    .movable(false)
-                    .show(egui_ctx, |ui| {
-                        let _resp = ui.add(v.clone());
-                    });
-            }
+            show_paramval(
+                "val1",
+                ParameterValue::new(
+                    2034.0,
+                    ParameterUnit::Decibel,
+                    Box::new(|v| format!("{}", v)),
+                    self.atlas_values.clone(),
+                    100.0,
+                    200.0,
+                ),
+            );
+            show_paramval(
+                "val2",
+                ParameterValue::new(
+                    -10.30112,
+                    ParameterUnit::Cent,
+                    Box::new(|v| format!("{}", v)),
+                    self.atlas_values.clone(),
+                    100.0,
+                    250.0,
+                ),
+            );
         });
 
         // OpenGL drawing
