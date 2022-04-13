@@ -590,9 +590,46 @@ mod widget {
                 let w = self.rect.max.x - 2.0 - self.rect.min.x + 2.0;
 
                 if self.bipolar {
-                    if self.value < 0.5 {
+                    let color = egui::Color32::from_rgb(0x33, 0x3f, 0x32);
+                    if self.value >= 0.5 {
+                        ui.painter().rect_filled(
+                            egui::Rect {
+                                min: egui::pos2(0.0, 0.0),
+                                max: egui::pos2(w / 2.0 * (self.value as f32 - 0.5) * 2.0, 14.0),
+                            }
+                            .translate(egui::vec2(self.rect.min.x + w / 2.0, self.rect.min.y)),
+                            egui::Rounding::none(),
+                            color,
+                        );
                     } else {
+                        let ratio = self.value as f32 * 2.0;
+                        ui.painter().rect_filled(
+                            egui::Rect {
+                                min: egui::pos2(0.0, 0.0),
+                                max: egui::pos2(w / 2.0 * (1.0 - ratio), 14.0),
+                            }
+                            .translate(egui::vec2(
+                                self.rect.min.x + w / 2.0 * ratio,
+                                self.rect.min.y,
+                            )),
+                            egui::Rounding::none(),
+                            color,
+                        );
                     }
+
+                    // center bar
+                    ui.painter().rect_filled(
+                        egui::Rect {
+                            min: egui::pos2(0.0, 0.0),
+                            max: egui::pos2(2.0, 10.0),
+                        }
+                        .translate(egui::vec2(
+                            self.rect.min.x + (w / 2.0 - 1.0),
+                            self.rect.min.y + 2.0,
+                        )),
+                        egui::Rounding::none(),
+                        egui::Color32::from_rgb(0x33, 0x3f, 0x32),
+                    );
                 } else {
                     ui.painter().rect_filled(
                         egui::Rect {
