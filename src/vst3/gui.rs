@@ -236,7 +236,7 @@ mod widget {
             let mut regions = Vec::new();
             let (mut w, mut h) = (0.0, 0.0);
 
-            println!("layout a value {} formatted as {}", value, s);
+            // println!("layout a value {} formatted as {}", value, s);
             for ch in s.chars() {
                 match Character::from_char(ch) {
                     Some(c) => {
@@ -246,7 +246,7 @@ mod widget {
                         regions.push(region);
                     }
                     None => {
-                        println!("invalid char in the target: '{}'", ch);
+                        // println!("invalid char in the target: '{}'", ch);
                     }
                 }
             }
