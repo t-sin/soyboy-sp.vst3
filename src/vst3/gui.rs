@@ -58,6 +58,15 @@ mod widget {
     use egui_glow::egui_winit::{egui, egui::Widget};
     use num;
 
+    use super::{SCREEN_HEIGHT, SCREEN_WIDTH};
+
+    fn screen_rect() -> egui::Rect {
+        egui::Rect {
+            min: egui::pos2(0.0, 0.0),
+            max: egui::pos2(SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32),
+        }
+    }
+
     #[derive(Clone, Debug)]
     pub struct Toggle {
         value: bool,
@@ -741,7 +750,8 @@ mod widget {
             let value_rect = value.rect().size();
             value.set_pos(self.x + (size.x - value_rect.x), self.y);
             ui.add(value);
-            ui.set_clip_rect(rect);
+
+            ui.set_clip_rect(screen_rect());
 
             self.slider.show(ui)
         }
