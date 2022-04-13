@@ -1104,35 +1104,6 @@ impl GUIThread {
 
     fn draw(&mut self) {
         self.needs_repaint = self.egui_glow.run(self.window.window(), |egui_ctx| {
-            let show_label = |name: &str, label: ImageLabel| {
-                let rect = label.rect();
-                egui::Area::new(name)
-                    .fixed_pos(rect.min)
-                    .interactable(false)
-                    .show(egui_ctx, |ui| ui.add(label));
-            };
-            let show_button = |name: &str, button: &mut ButtonBehavior, do_click: &dyn Fn()| {
-                let rect = button.rect();
-                egui::Area::new(name)
-                    .fixed_pos(rect.min)
-                    .movable(false)
-                    .show(egui_ctx, |ui| {
-                        let resp = button.show(ui);
-                        if resp.clicked() {
-                            do_click();
-                        };
-                    });
-            };
-            let show_param_slider = |name: &str, p: &mut ParameterSlider| {
-                let rect = p.rect();
-                egui::Area::new(name)
-                    .fixed_pos(rect.min)
-                    .movable(false)
-                    .show(egui_ctx, |ui| {
-                        let _resp = p.show(ui);
-                    });
-            };
-
             // background
             egui::Area::new("background").show(egui_ctx, |ui| {
                 ui.painter().rect_filled(
@@ -1145,56 +1116,63 @@ impl GUIThread {
                 );
             });
 
-            // logo
-            show_label("logo", self.label_logo.clone());
-
             // labels
-            {
-                // left side
-                show_label("label: global", self.label_global.clone());
-                show_label("label: square", self.label_square.clone());
-                show_label("label: noise", self.label_noise.clone());
-                show_label("label: wavetable", self.label_wavetable.clone());
+            let _ = egui::Area::new("labels")
+                .fixed_pos(egui::pos2(0.0, 0.0))
+                .movable(false)
+                .show(egui_ctx, |ui| {
+                    // logo
+                    let _ = ui.add(self.label_logo.clone());
 
-                // right side
-                show_label("label: envelope", self.label_envelope.clone());
-                show_label("label: sweep", self.label_sweep.clone());
-                show_label("label: stutter", self.label_stutter.clone());
-            }
+                    // left side
+                    let _ = ui.add(self.label_global.clone());
+                    let _ = ui.add(self.label_square.clone());
+                    let _ = ui.add(self.label_noise.clone());
+                    let _ = ui.add(self.label_wavetable.clone());
+
+                    // right side
+                    let _ = ui.add(self.label_envelope.clone());
+                    let _ = ui.add(self.label_sweep.clone());
+                    let _ = ui.add(self.label_stutter.clone());
+                });
 
             // buttons
-            show_button(
-                "button: reset wavetable random",
-                &mut self.button_reset_random,
-                &|| {
-                    // TODO: write a code reset plugin's wavetable
-                    println!("reset random!!!");
-                },
-            );
-            show_button(
-                "button: reset wavetable as sine",
-                &mut self.button_reset_sine,
-                &|| {
-                    // TODO: write a code reset plugin's wavetable
-                    println!("reset sine!!!");
-                },
-            );
+            let _ = egui::Area::new("buttons")
+                .fixed_pos(egui::pos2(0.0, 0.0))
+                .movable(false)
+                .show(egui_ctx, |ui| {
+                    let resp = self.button_reset_random.show(ui);
+                    if resp.clicked() {
+                        // TODO: write a code reset plugin's wavetable
+                        println!("reset random!!!");
+                    }
+
+                    let resp = self.button_reset_sine.show(ui);
+                    if resp.clicked() {
+                        // TODO: write a code reset plugin's wavetable
+                        println!("reset sine!!!");
+                    }
+                });
 
             // params
-            show_param_slider("param:volume", &mut self.param_volume);
-            show_param_slider("param:detune", &mut self.param_detune);
-            show_param_slider("param:interval", &mut self.param_interval);
+            let _ = egui::Area::new("params")
+                .fixed_pos(egui::pos2(0.0, 0.0))
+                .movable(false)
+                .show(egui_ctx, |ui| {
+                    let _ = self.param_volume.show(ui);
+                    let _ = self.param_detune.show(ui);
+                    let _ = self.param_interval.show(ui);
+                    let _ = self.param_attack.show(ui);
+                    let _ = self.param_decay.show(ui);
+                    let _ = self.param_sustain.show(ui);
+                    let _ = self.param_release.show(ui);
 
-            show_param_slider("param:attack", &mut self.param_attack);
-            show_param_slider("param:decay", &mut self.param_decay);
-            show_param_slider("param:sustain", &mut self.param_sustain);
-            show_param_slider("param:release", &mut self.param_release);
+                    let _ = self.param_amount.show(ui);
+                    let _ = self.param_period.show(ui);
 
-            show_param_slider("param:sweep-amount", &mut self.param_amount);
-            show_param_slider("param:sweep-period", &mut self.param_period);
-
-            show_param_slider("param:stutter-time", &mut self.param_time);
-            show_param_slider("param:stutter-depth", &mut self.param_depth);
+                    let _ = self.param_time.show(ui);
+                    let _ = self.param_depth.show(ui);
+                });
         });
 
         // OpenGL drawing
