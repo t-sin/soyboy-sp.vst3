@@ -728,6 +728,7 @@ mod widget {
         fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
             let rect = self.rect();
 
+            ui.set_clip_rect(rect);
             ui.add(ParameterName::new(
                 self.param.clone(),
                 self.param_atlas.clone(),
