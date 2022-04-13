@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::os::raw::c_void;
 use std::rc::Rc;
 use std::sync::{
@@ -30,6 +31,7 @@ use glutin::{
     PossiblyCurrent, WindowedContext,
 };
 
+use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
 use crate::vst3::utils;
 
 const SCREEN_WIDTH: u32 = 680;
@@ -57,6 +59,8 @@ mod widget {
     use egui_extras::image::RetainedImage;
     use egui_glow::egui_winit::{egui, egui::Widget};
     use num;
+
+    use crate::soyboy::parameters::{Normalizable, ParameterDef};
 
     use super::{SCREEN_HEIGHT, SCREEN_WIDTH};
 
@@ -205,14 +209,13 @@ mod widget {
 
     impl ParameterValue {
         pub fn new(
-            value: f64,
+            value_str: String,
             unit: ParameterUnit,
-            formatter: Rc<dyn Fn(f64) -> String>,
             atlas: Rc<RetainedImage>,
             x: f32,
             y: f32,
         ) -> Self {
-            let (regions, w, h) = ParameterValue::layout(value, unit, formatter);
+            let (regions, w, h) = ParameterValue::layout(value_str, unit);
             Self {
                 atlas,
                 regions,
@@ -236,17 +239,12 @@ mod widget {
             }
         }
 
-        fn layout(
-            value: f64,
-            unit: ParameterUnit,
-            formatter: Rc<dyn Fn(f64) -> String>,
-        ) -> (Vec<Region>, f32, f32) {
-            let s = (formatter)(value);
+        fn layout(value_str: String, unit: ParameterUnit) -> (Vec<Region>, f32, f32) {
             let mut regions = Vec::new();
             let (mut w, mut h) = (0.0, 0.0);
 
             // println!("layout a value {} formatted as {}", value, s);
-            for ch in s.chars() {
+            for ch in value_str.chars() {
                 match Character::from_char(ch) {
                     Some(c) => {
                         let region = c.get_region();
@@ -261,7 +259,7 @@ mod widget {
             }
 
             // for the spacing between characters
-            w += (s.chars().count() - 1) as f32 * 2.0;
+            w += (value_str.chars().count() - 1) as f32 * 2.0;
 
             if let Some(region) = unit.get_region() {
                 w += region.size.x;
@@ -724,8 +722,8 @@ mod widget {
     pub struct ParameterSlider {
         slider: SliderBehavior,
         param: Parameter,
+        param_def: ParameterDef,
         unit: ParameterUnit,
-        formatter: Rc<dyn Fn(f64) -> String>,
         param_atlas: Rc<RetainedImage>,
         value_atlas: Rc<RetainedImage>,
         x: f32,
@@ -735,10 +733,10 @@ mod widget {
     impl ParameterSlider {
         pub fn new(
             param: Parameter,
+            param_def: ParameterDef,
             value: f64,
             bipolar: bool,
             unit: ParameterUnit,
-            formatter: Rc<dyn Fn(f64) -> String>,
             border_img: Rc<RetainedImage>,
             param_atlas: Rc<RetainedImage>,
             value_atlas: Rc<RetainedImage>,
@@ -747,8 +745,8 @@ mod widget {
         ) -> Self {
             Self {
                 param,
+                param_def,
                 unit,
-                formatter,
                 slider: SliderBehavior::new(border_img, value, bipolar, x, y + 16.0),
                 param_atlas,
                 value_atlas,
@@ -776,9 +774,8 @@ mod widget {
             ui.set_clip_rect(rect);
 
             let mut value = ParameterValue::new(
-                self.slider.value,
+                self.param_def.format(self.slider.value),
                 self.unit.clone(),
-                self.formatter.clone(),
                 self.value_atlas.clone(),
                 0.0,
                 0.0,
@@ -842,7 +839,7 @@ struct UI {
 }
 
 impl UI {
-    fn new() -> Self {
+    fn new(param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Self {
         let img_slider_border = Rc::new(
             RetainedImage::from_image_bytes("soyboy:slider:border", IMG_SLIDER_BORDER).unwrap(),
         );
@@ -935,10 +932,13 @@ impl UI {
             ),
             param_volume: ParameterSlider::new(
                 Parameter::Volume,
+                param_defs
+                    .get(&SoyBoyParameter::MasterVolume)
+                    .unwrap()
+                    .clone(),
                 0.1,
                 false,
                 ParameterUnit::Decibel,
-                Rc::new(|v| format!("{:.3}", v)),
                 img_slider_border.clone(),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
@@ -947,10 +947,10 @@ impl UI {
             ),
             param_detune: ParameterSlider::new(
                 Parameter::Detune,
+                param_defs.get(&SoyBoyParameter::Detune).unwrap().clone(),
                 0.1,
                 true,
                 ParameterUnit::Cent,
-                Rc::new(|v| format!("{:.3}", v)),
                 img_slider_border.clone(),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
@@ -959,10 +959,13 @@ impl UI {
             ),
             param_interval: ParameterSlider::new(
                 Parameter::Interval,
+                param_defs
+                    .get(&SoyBoyParameter::OscNsInterval)
+                    .unwrap()
+                    .clone(),
                 0.1,
                 false,
                 ParameterUnit::MilliSec,
-                Rc::new(|v| format!("{:.3}", v)),
                 img_slider_border.clone(),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
@@ -971,10 +974,10 @@ impl UI {
             ),
             param_attack: ParameterSlider::new(
                 Parameter::Attack,
+                param_defs.get(&SoyBoyParameter::EgAttack).unwrap().clone(),
                 0.1,
                 false,
                 ParameterUnit::Sec,
-                Rc::new(|v| format!("{:.3}", v)),
                 img_slider_border.clone(),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
@@ -983,10 +986,10 @@ impl UI {
             ),
             param_decay: ParameterSlider::new(
                 Parameter::Decay,
+                param_defs.get(&SoyBoyParameter::EgDecay).unwrap().clone(),
                 0.1,
                 false,
                 ParameterUnit::Sec,
-                Rc::new(|v| format!("{:.3}", v)),
                 img_slider_border.clone(),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
@@ -995,10 +998,10 @@ impl UI {
             ),
             param_sustain: ParameterSlider::new(
                 Parameter::Sustain,
+                param_defs.get(&SoyBoyParameter::EgSustain).unwrap().clone(),
                 0.1,
                 false,
                 ParameterUnit::None,
-                Rc::new(|v| format!("{:.3}", v)),
                 img_slider_border.clone(),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
@@ -1007,10 +1010,10 @@ impl UI {
             ),
             param_release: ParameterSlider::new(
                 Parameter::Release,
+                param_defs.get(&SoyBoyParameter::EgRelease).unwrap().clone(),
                 0.1,
                 false,
                 ParameterUnit::Sec,
-                Rc::new(|v| format!("{:.3}", v)),
                 img_slider_border.clone(),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
@@ -1019,10 +1022,13 @@ impl UI {
             ),
             param_amount: ParameterSlider::new(
                 Parameter::SweepAmount,
+                param_defs
+                    .get(&SoyBoyParameter::SweepAmount)
+                    .unwrap()
+                    .clone(),
                 0.1,
                 false,
                 ParameterUnit::None,
-                Rc::new(|v| format!("{:.3}", v)),
                 img_slider_border.clone(),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
@@ -1031,10 +1037,13 @@ impl UI {
             ),
             param_period: ParameterSlider::new(
                 Parameter::SweepPeriod,
+                param_defs
+                    .get(&SoyBoyParameter::SweepPeriod)
+                    .unwrap()
+                    .clone(),
                 0.1,
                 false,
                 ParameterUnit::None,
-                Rc::new(|v| format!("{:.3}", v)),
                 img_slider_border.clone(),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
@@ -1043,10 +1052,13 @@ impl UI {
             ),
             param_time: ParameterSlider::new(
                 Parameter::StutterTime,
+                param_defs
+                    .get(&SoyBoyParameter::StutterTime)
+                    .unwrap()
+                    .clone(),
                 0.1,
                 false,
                 ParameterUnit::Sec,
-                Rc::new(|v| format!("{:.3}", v)),
                 img_slider_border.clone(),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
@@ -1055,10 +1067,13 @@ impl UI {
             ),
             param_depth: ParameterSlider::new(
                 Parameter::StutterDepth,
+                param_defs
+                    .get(&SoyBoyParameter::StutterDepth)
+                    .unwrap()
+                    .clone(),
                 0.1,
                 false,
                 ParameterUnit::Percent,
-                Rc::new(|v| format!("{:.3}", v)),
                 img_slider_border.clone(),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
@@ -1087,6 +1102,7 @@ struct GUIThread {
 impl GUIThread {
     fn setup(
         parent: ParentWindow,
+        param_defs: HashMap<SoyBoyParameter, ParameterDef>,
         receiver: Arc<Mutex<Receiver<GUIMessage>>>,
     ) -> (Self, EventLoop<GUIEvent>) {
         let parent_id: usize = if parent.0.is_null() {
@@ -1127,7 +1143,7 @@ impl GUIThread {
         let egui_glow = EguiGlow::new(window.window(), glow_context.clone());
 
         let thread = GUIThread {
-            ui: UI::new(),
+            ui: UI::new(param_defs),
             quit: false,
             needs_repaint: false,
             receiver: receiver,
@@ -1303,8 +1319,12 @@ impl GUIThread {
         }
     }
 
-    fn run_loop(parent: ParentWindow, receiver: Arc<Mutex<Receiver<GUIMessage>>>) {
-        let (mut thread, mut event_loop) = GUIThread::setup(parent, receiver);
+    fn run_loop(
+        parent: ParentWindow,
+        param_defs: HashMap<SoyBoyParameter, ParameterDef>,
+        receiver: Arc<Mutex<Receiver<GUIMessage>>>,
+    ) {
+        let (mut thread, mut event_loop) = GUIThread::setup(parent, param_defs, receiver);
         let proxy = event_loop.create_proxy();
 
         event_loop.run_return(move |event, _, control_flow| {
@@ -1319,24 +1339,27 @@ pub struct SoyBoyGUI {
     scale_factor: RefCell<f32>,
     handle: RefCell<Option<thread::JoinHandle<()>>>,
     sender: RefCell<Option<Sender<GUIMessage>>>,
+    param_defs: HashMap<SoyBoyParameter, ParameterDef>,
 }
 
 impl SoyBoyGUI {
-    pub fn new() -> Box<Self> {
+    pub fn new(param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Box<Self> {
         let scale_factor = RefCell::new(1.0);
         let handle = RefCell::new(None);
         let sender = RefCell::new(None);
 
-        SoyBoyGUI::allocate(scale_factor, handle, sender)
+        SoyBoyGUI::allocate(scale_factor, handle, sender, param_defs)
     }
 
     fn start_gui(&self, parent: ParentWindow) {
+        let param_defs = self.param_defs.clone();
+
         let (send, resv) = channel();
         let recv = Arc::new(Mutex::new(resv));
         (*self.sender.borrow_mut()) = Some(send);
 
         let handle = thread::spawn(move || {
-            GUIThread::run_loop(parent, recv);
+            GUIThread::run_loop(parent, param_defs, recv);
         });
         *self.handle.borrow_mut() = Some(handle);
     }
