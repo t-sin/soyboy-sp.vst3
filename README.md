@@ -9,6 +9,7 @@ I want to do some chiptunes on GNU/Linux.
 ## Known issues
 
 - don't work correctly with high DPI screens
+- tested with Bitwig Studio only
 
 ## TODOs
 
