@@ -5,7 +5,7 @@ use std::convert::TryFrom;
 use crate::soyboy::utils;
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
-pub enum Parameter {
+pub enum SoyBoyParameter {
     // global parameter
     MasterVolume = 0,
     PitchBend,
@@ -32,44 +32,44 @@ pub enum Parameter {
     OscWtTableValue,
 }
 
-impl TryFrom<u32> for Parameter {
+impl TryFrom<u32> for SoyBoyParameter {
     type Error = ();
 
     fn try_from(id: u32) -> Result<Self, Self::Error> {
-        if id == Parameter::MasterVolume as u32 {
-            Ok(Parameter::MasterVolume)
-        } else if id == Parameter::OscillatorType as u32 {
-            Ok(Parameter::OscillatorType)
-        } else if id == Parameter::PitchBend as u32 {
-            Ok(Parameter::PitchBend)
-        } else if id == Parameter::Detune as u32 {
-            Ok(Parameter::Detune)
-        } else if id == Parameter::SweepType as u32 {
-            Ok(Parameter::SweepType)
-        } else if id == Parameter::SweepAmount as u32 {
-            Ok(Parameter::SweepAmount)
-        } else if id == Parameter::SweepPeriod as u32 {
-            Ok(Parameter::SweepPeriod)
-        } else if id == Parameter::StutterTime as u32 {
-            Ok(Parameter::StutterTime)
-        } else if id == Parameter::StutterDepth as u32 {
-            Ok(Parameter::StutterDepth)
-        } else if id == Parameter::EgAttack as u32 {
-            Ok(Parameter::EgAttack)
-        } else if id == Parameter::EgDecay as u32 {
-            Ok(Parameter::EgDecay)
-        } else if id == Parameter::EgSustain as u32 {
-            Ok(Parameter::EgSustain)
-        } else if id == Parameter::EgRelease as u32 {
-            Ok(Parameter::EgRelease)
-        } else if id == Parameter::OscSqDuty as u32 {
-            Ok(Parameter::OscSqDuty)
-        } else if id == Parameter::OscNsInterval as u32 {
-            Ok(Parameter::OscNsInterval)
-        } else if id == Parameter::OscWtTableIndex as u32 {
-            Ok(Parameter::OscWtTableIndex)
-        } else if id == Parameter::OscWtTableValue as u32 {
-            Ok(Parameter::OscWtTableValue)
+        if id == SoyBoyParameter::MasterVolume as u32 {
+            Ok(SoyBoyParameter::MasterVolume)
+        } else if id == SoyBoyParameter::OscillatorType as u32 {
+            Ok(SoyBoyParameter::OscillatorType)
+        } else if id == SoyBoyParameter::PitchBend as u32 {
+            Ok(SoyBoyParameter::PitchBend)
+        } else if id == SoyBoyParameter::Detune as u32 {
+            Ok(SoyBoyParameter::Detune)
+        } else if id == SoyBoyParameter::SweepType as u32 {
+            Ok(SoyBoyParameter::SweepType)
+        } else if id == SoyBoyParameter::SweepAmount as u32 {
+            Ok(SoyBoyParameter::SweepAmount)
+        } else if id == SoyBoyParameter::SweepPeriod as u32 {
+            Ok(SoyBoyParameter::SweepPeriod)
+        } else if id == SoyBoyParameter::StutterTime as u32 {
+            Ok(SoyBoyParameter::StutterTime)
+        } else if id == SoyBoyParameter::StutterDepth as u32 {
+            Ok(SoyBoyParameter::StutterDepth)
+        } else if id == SoyBoyParameter::EgAttack as u32 {
+            Ok(SoyBoyParameter::EgAttack)
+        } else if id == SoyBoyParameter::EgDecay as u32 {
+            Ok(SoyBoyParameter::EgDecay)
+        } else if id == SoyBoyParameter::EgSustain as u32 {
+            Ok(SoyBoyParameter::EgSustain)
+        } else if id == SoyBoyParameter::EgRelease as u32 {
+            Ok(SoyBoyParameter::EgRelease)
+        } else if id == SoyBoyParameter::OscSqDuty as u32 {
+            Ok(SoyBoyParameter::OscSqDuty)
+        } else if id == SoyBoyParameter::OscNsInterval as u32 {
+            Ok(SoyBoyParameter::OscNsInterval)
+        } else if id == SoyBoyParameter::OscWtTableIndex as u32 {
+            Ok(SoyBoyParameter::OscWtTableIndex)
+        } else if id == SoyBoyParameter::OscWtTableValue as u32 {
+            Ok(SoyBoyParameter::OscWtTableValue)
         } else {
             Err(())
         }
@@ -80,15 +80,15 @@ pub struct ParamIter(u32);
 
 impl ParamIter {
     pub fn new() -> ParamIter {
-        ParamIter(Parameter::MasterVolume as u32)
+        ParamIter(SoyBoyParameter::MasterVolume as u32)
     }
 }
 
 impl Iterator for ParamIter {
-    type Item = Parameter;
+    type Item = SoyBoyParameter;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Ok(p) = Parameter::try_from(self.0) {
+        if let Ok(p) = SoyBoyParameter::try_from(self.0) {
             self.0 += 1;
             Some(p)
         } else {
@@ -97,7 +97,7 @@ impl Iterator for ParamIter {
     }
 }
 
-impl Parameter {
+impl SoyBoyParameter {
     pub fn iter() -> ParamIter {
         ParamIter::new()
     }
@@ -285,7 +285,7 @@ pub union ParameterInfo {
 }
 
 #[derive(Clone)]
-pub struct SoyBoyParameter {
+pub struct ParameterDef {
     pub r#type: ParameterType,
     pub parameter: ParameterInfo,
     pub title: String,
@@ -295,7 +295,7 @@ pub struct SoyBoyParameter {
     pub default_value: f64,
 }
 
-impl Normalizable<f64> for SoyBoyParameter {
+impl Normalizable<f64> for ParameterDef {
     fn denormalize(&self, normalized: f64) -> f64 {
         match self.r#type {
             ParameterType::NonLinear => unsafe {
@@ -336,7 +336,7 @@ impl Normalizable<f64> for SoyBoyParameter {
     }
 }
 
-fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
+fn make_global_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
     static GLOBAL_MASTER_VOLUME: NonLinearParameter = NonLinearParameter {
         plain_zero: -f64::INFINITY,
         plain_min: -110.0,
@@ -346,8 +346,8 @@ fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
         diverge: false,
     };
     params.insert(
-        Parameter::MasterVolume,
-        SoyBoyParameter {
+        SoyBoyParameter::MasterVolume,
+        ParameterDef {
             r#type: ParameterType::NonLinear,
             parameter: ParameterInfo {
                 non_linear: GLOBAL_MASTER_VOLUME,
@@ -365,8 +365,8 @@ fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
         max: 200,
     };
     params.insert(
-        Parameter::Detune,
-        SoyBoyParameter {
+        SoyBoyParameter::Detune,
+        ParameterDef {
             r#type: ParameterType::Integer,
             parameter: ParameterInfo { int: GLOBAL_DETUNE },
             title: "Detune".to_string(),
@@ -381,8 +381,8 @@ fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
         max: 4800,
     };
     params.insert(
-        Parameter::PitchBend,
-        SoyBoyParameter {
+        SoyBoyParameter::PitchBend,
+        ParameterDef {
             r#type: ParameterType::Integer,
             parameter: ParameterInfo { int: GLOBAL_PITCH },
             title: "Pitch".to_string(),
@@ -398,8 +398,8 @@ fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
         elements: &SELECTED_OSCILLATOR_LIST,
     };
     params.insert(
-        Parameter::OscillatorType,
-        SoyBoyParameter {
+        SoyBoyParameter::OscillatorType,
+        ParameterDef {
             r#type: ParameterType::List,
             parameter: ParameterInfo { list: SELECTED_OSC },
             title: "Osc type".to_string(),
@@ -415,8 +415,8 @@ fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
         elements: &SWEEP_TYPE_LIST,
     };
     params.insert(
-        Parameter::SweepType,
-        SoyBoyParameter {
+        SoyBoyParameter::SweepType,
+        ParameterDef {
             r#type: ParameterType::List,
             parameter: ParameterInfo { list: SWEEP_TYPE },
             title: "Sweep Type".to_string(),
@@ -428,8 +428,8 @@ fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
     );
     static SWEEP_AMOUNT: IntegerParameter = IntegerParameter { min: 0, max: 8 };
     params.insert(
-        Parameter::SweepAmount,
-        SoyBoyParameter {
+        SoyBoyParameter::SweepAmount,
+        ParameterDef {
             r#type: ParameterType::Integer,
             parameter: ParameterInfo { int: SWEEP_AMOUNT },
             title: "Sweep Amount".to_string(),
@@ -441,8 +441,8 @@ fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
     );
     static SWEEP_PERIOD: IntegerParameter = IntegerParameter { min: 0, max: 8 };
     params.insert(
-        Parameter::SweepPeriod,
-        SoyBoyParameter {
+        SoyBoyParameter::SweepPeriod,
+        ParameterDef {
             r#type: ParameterType::Integer,
             parameter: ParameterInfo { int: SWEEP_PERIOD },
             title: "Sweep period".to_string(),
@@ -462,8 +462,8 @@ fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
         diverge: true,
     };
     params.insert(
-        Parameter::StutterTime,
-        SoyBoyParameter {
+        SoyBoyParameter::StutterTime,
+        ParameterDef {
             r#type: ParameterType::NonLinear,
             parameter: ParameterInfo {
                 non_linear: STUTTER_TIME,
@@ -480,8 +480,8 @@ fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
         max: 100.0,
     };
     params.insert(
-        Parameter::StutterDepth,
-        SoyBoyParameter {
+        SoyBoyParameter::StutterDepth,
+        ParameterDef {
             r#type: ParameterType::Linear,
             parameter: ParameterInfo {
                 linear: STUTTER_DEPTH,
@@ -495,14 +495,14 @@ fn make_global_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
     );
 }
 
-pub fn make_square_oscillator_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
+pub fn make_square_oscillator_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
     static SQUARE_OSCILLATOR_DUTY_LIST: [&str; 4] = ["12.5%", "25%", "50%", "75%"];
     static OSC_SQ_DUTY: ListParameter = ListParameter {
         elements: &SQUARE_OSCILLATOR_DUTY_LIST,
     };
     params.insert(
-        Parameter::OscSqDuty,
-        SoyBoyParameter {
+        SoyBoyParameter::OscSqDuty,
+        ParameterDef {
             r#type: ParameterType::List,
             parameter: ParameterInfo { list: OSC_SQ_DUTY },
             title: "OscSq: Duty".to_string(),
@@ -514,7 +514,7 @@ pub fn make_square_oscillator_parameters(params: &mut HashMap<Parameter, SoyBoyP
     );
 }
 
-pub fn make_noise_oscillator_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
+pub fn make_noise_oscillator_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
     static OSC_NS_INTERVAL: NonLinearParameter = NonLinearParameter {
         plain_zero: 0.001,
         plain_min: 0.002,
@@ -524,8 +524,8 @@ pub fn make_noise_oscillator_parameters(params: &mut HashMap<Parameter, SoyBoyPa
         diverge: true,
     };
     params.insert(
-        Parameter::OscNsInterval,
-        SoyBoyParameter {
+        SoyBoyParameter::OscNsInterval,
+        ParameterDef {
             r#type: ParameterType::NonLinear,
             parameter: ParameterInfo {
                 non_linear: OSC_NS_INTERVAL,
@@ -539,11 +539,11 @@ pub fn make_noise_oscillator_parameters(params: &mut HashMap<Parameter, SoyBoyPa
     );
 }
 
-pub fn make_wavetable_oscillator_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
+pub fn make_wavetable_oscillator_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
     static OSC_WT_TABLE_INDEX: IntegerParameter = IntegerParameter { min: 0, max: 31 };
     params.insert(
-        Parameter::OscWtTableIndex,
-        SoyBoyParameter {
+        SoyBoyParameter::OscWtTableIndex,
+        ParameterDef {
             r#type: ParameterType::Integer,
             parameter: ParameterInfo {
                 int: OSC_WT_TABLE_INDEX,
@@ -558,8 +558,8 @@ pub fn make_wavetable_oscillator_parameters(params: &mut HashMap<Parameter, SoyB
 
     static OSC_WT_TABLE_VALUE: IntegerParameter = IntegerParameter { min: -15, max: 16 };
     params.insert(
-        Parameter::OscWtTableValue,
-        SoyBoyParameter {
+        SoyBoyParameter::OscWtTableValue,
+        ParameterDef {
             r#type: ParameterType::Integer,
             parameter: ParameterInfo {
                 int: OSC_WT_TABLE_VALUE,
@@ -573,7 +573,7 @@ pub fn make_wavetable_oscillator_parameters(params: &mut HashMap<Parameter, SoyB
     );
 }
 
-pub fn make_envelope_generator_parameters(params: &mut HashMap<Parameter, SoyBoyParameter>) {
+pub fn make_envelope_generator_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
     static EG_TIME: NonLinearParameter = NonLinearParameter {
         plain_zero: 0.00,
         plain_min: 0.01,
@@ -583,8 +583,8 @@ pub fn make_envelope_generator_parameters(params: &mut HashMap<Parameter, SoyBoy
         diverge: true,
     };
     params.insert(
-        Parameter::EgAttack,
-        SoyBoyParameter {
+        SoyBoyParameter::EgAttack,
+        ParameterDef {
             r#type: ParameterType::NonLinear,
             parameter: ParameterInfo {
                 non_linear: EG_TIME,
@@ -597,8 +597,8 @@ pub fn make_envelope_generator_parameters(params: &mut HashMap<Parameter, SoyBoy
         },
     );
     params.insert(
-        Parameter::EgDecay,
-        SoyBoyParameter {
+        SoyBoyParameter::EgDecay,
+        ParameterDef {
             r#type: ParameterType::NonLinear,
             parameter: ParameterInfo {
                 non_linear: EG_TIME,
@@ -611,8 +611,8 @@ pub fn make_envelope_generator_parameters(params: &mut HashMap<Parameter, SoyBoy
         },
     );
     params.insert(
-        Parameter::EgRelease,
-        SoyBoyParameter {
+        SoyBoyParameter::EgRelease,
+        ParameterDef {
             r#type: ParameterType::NonLinear,
             parameter: ParameterInfo {
                 non_linear: EG_TIME,
@@ -626,8 +626,8 @@ pub fn make_envelope_generator_parameters(params: &mut HashMap<Parameter, SoyBoy
     );
     static EG_SUSTAIN: LinearParameter = LinearParameter { min: 0.0, max: 1.0 };
     params.insert(
-        Parameter::EgSustain,
-        SoyBoyParameter {
+        SoyBoyParameter::EgSustain,
+        ParameterDef {
             r#type: ParameterType::Linear,
             parameter: ParameterInfo { linear: EG_SUSTAIN },
             title: "Eg: Sustain".to_string(),
@@ -639,7 +639,7 @@ pub fn make_envelope_generator_parameters(params: &mut HashMap<Parameter, SoyBoy
     );
 }
 
-pub fn make_parameter_info() -> HashMap<Parameter, SoyBoyParameter> {
+pub fn make_parameter_info() -> HashMap<SoyBoyParameter, ParameterDef> {
     let mut params = HashMap::new();
 
     make_global_parameters(&mut params);

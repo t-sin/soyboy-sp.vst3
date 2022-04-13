@@ -22,12 +22,12 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::soyboy::parameters::{Normalizable, Parameter, SoyBoyParameter};
+use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
 use crate::vst3::{gui::SoyBoyGUI, plugin_data, utils};
 
 #[VST3(implements(IEditController, IUnitInfo, IMidiMapping))]
 pub struct SoyBoyController {
-    soyboy_params: HashMap<Parameter, SoyBoyParameter>,
+    param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     vst3_params: RefCell<HashMap<u32, ParameterInfo>>,
     param_values: Arc<Mutex<HashMap<u32, f64>>>,
     gui: RefCell<Box<SoyBoyGUI>>,
@@ -65,19 +65,19 @@ impl SoyBoyController {
         (*param_vals).insert(id, param.default_normalized_value);
     }
 
-    pub unsafe fn new(soyboy_params: HashMap<Parameter, SoyBoyParameter>) -> Box<SoyBoyController> {
+    pub unsafe fn new(param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Box<SoyBoyController> {
         let vst3_params = RefCell::new(HashMap::new());
         let param_vals = Arc::new(Mutex::new(HashMap::new()));
         let gui = RefCell::new(SoyBoyGUI::new());
 
-        SoyBoyController::allocate(soyboy_params, vst3_params, param_vals, gui)
+        SoyBoyController::allocate(param_defs, vst3_params, param_vals, gui)
     }
 }
 
 impl IPluginBase for SoyBoyController {
     unsafe fn initialize(&self, _host_context: *mut c_void) -> tresult {
-        let soyboy_params = self.soyboy_params.clone();
-        for (param, soyboy_param) in soyboy_params.iter() {
+        let param_defs = self.param_defs.clone();
+        for (param, soyboy_param) in param_defs.iter() {
             self.add_parameter(
                 *param as u32,
                 &soyboy_param.title,
@@ -111,7 +111,7 @@ impl IMidiMapping for SoyBoyController {
             // - https://www.utsbox.com/?p=1109
             // - https://steinbergmedia.github.io/vst3_doc/vstinterfaces/namespaceSteinberg_1_1Vst.html#a70ee68a13248febed5047cfa0fddf4e6
             129 => {
-                *param_id = Parameter::PitchBend as u32;
+                *param_id = SoyBoyParameter::PitchBend as u32;
                 kResultTrue
             }
             _ => kResultFalse,
@@ -132,7 +132,7 @@ impl IEditController for SoyBoyController {
         let state = state.unwrap();
 
         let mut num_bytes_read = 0;
-        for param in Parameter::iter() {
+        for param in SoyBoyParameter::iter() {
             let mut value = 0.0;
             let ptr = &mut value as *mut f64 as *mut c_void;
 
@@ -176,9 +176,9 @@ impl IEditController for SoyBoyController {
         value_normalized: f64,
         string: *mut TChar,
     ) -> tresult {
-        match Parameter::try_from(id) {
+        match SoyBoyParameter::try_from(id) {
             Ok(param) => {
-                if let Some(p) = self.soyboy_params.get(&param) {
+                if let Some(p) = self.param_defs.get(&param) {
                     utils::tcharcpy(&p.format(value_normalized), string)
                 } else {
                     return kResultFalse;
@@ -196,9 +196,9 @@ impl IEditController for SoyBoyController {
         string: *const TChar,
         value_normalized: *mut f64,
     ) -> tresult {
-        match Parameter::try_from(id) {
+        match SoyBoyParameter::try_from(id) {
             Ok(param) => {
-                if let Some(p) = self.soyboy_params.get(&param) {
+                if let Some(p) = self.param_defs.get(&param) {
                     if let Some(v) = p.parse(&utils::tchar_to_string(string)) {
                         *value_normalized = v;
                     } else {
@@ -214,9 +214,9 @@ impl IEditController for SoyBoyController {
     }
 
     unsafe fn normalized_param_to_plain(&self, id: u32, value_normalized: f64) -> f64 {
-        match Parameter::try_from(id) {
+        match SoyBoyParameter::try_from(id) {
             Ok(param) => {
-                if let Some(p) = self.soyboy_params.get(&param) {
+                if let Some(p) = self.param_defs.get(&param) {
                     p.denormalize(value_normalized)
                 } else {
                     0.0
@@ -227,9 +227,9 @@ impl IEditController for SoyBoyController {
     }
 
     unsafe fn plain_param_to_normalized(&self, id: u32, value_plain: f64) -> f64 {
-        match Parameter::try_from(id) {
+        match SoyBoyParameter::try_from(id) {
             Ok(param) => {
-                if let Some(p) = self.soyboy_params.get(&param) {
+                if let Some(p) = self.param_defs.get(&param) {
                     p.normalize(value_plain)
                 } else {
                     0.0

@@ -22,7 +22,7 @@ use vst3_sys::{
 
 use crate::soyboy::{
     event::{Event, Triggered},
-    parameters::{Normalizable, Parameter, Parametric, SoyBoyParameter},
+    parameters::{Normalizable, ParameterDef, Parametric, SoyBoyParameter},
     AudioProcessor, SoyBoy,
 };
 use crate::vst3::{controller::SoyBoyController, plugin_data, utils};
@@ -30,7 +30,7 @@ use crate::vst3::{controller::SoyBoyController, plugin_data, utils};
 #[VST3(implements(IComponent, IAudioProcessor))]
 pub struct SoyBoyPlugin {
     soyboy: RefCell<SoyBoy>,
-    params: HashMap<Parameter, SoyBoyParameter>,
+    param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     audio_out: RefCell<BusInfo>,
     event_in: RefCell<BusInfo>,
 }
@@ -62,12 +62,12 @@ impl SoyBoyPlugin {
         bus.flags = BusFlags::kDefaultActive as u32;
     }
 
-    pub unsafe fn new(params: HashMap<Parameter, SoyBoyParameter>) -> Box<Self> {
+    pub unsafe fn new(param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Box<Self> {
         let soyboy = RefCell::new(SoyBoy::new());
         let audio_out = RefCell::new(utils::make_empty_bus_info());
         let event_in = RefCell::new(utils::make_empty_bus_info());
 
-        SoyBoyPlugin::allocate(soyboy, params, audio_out, event_in)
+        SoyBoyPlugin::allocate(soyboy, param_defs, audio_out, event_in)
     }
 
     pub fn bus_count(&self, media_type: MediaTypes, dir: BusDirections) -> i32 {
@@ -88,8 +88,8 @@ impl SoyBoyPlugin {
 impl IPluginBase for SoyBoyPlugin {
     unsafe fn initialize(&self, _host_context: *mut c_void) -> tresult {
         let mut sb = self.soyboy.borrow_mut();
-        for param in Parameter::iter() {
-            if let Some(sp) = self.params.get(&param) {
+        for param in SoyBoyParameter::iter() {
+            if let Some(sp) = self.param_defs.get(&param) {
                 sb.set_param(&param, sp.default_value);
             }
         }
@@ -205,8 +205,8 @@ impl IComponent for SoyBoyPlugin {
         let state = state.unwrap();
 
         let mut num_bytes_read = 0;
-        for param in Parameter::iter() {
-            if let Some(p) = self.params.get(&param) {
+        for param in SoyBoyParameter::iter() {
+            if let Some(p) = self.param_defs.get(&param) {
                 let mut value = 0.0;
                 let ptr = &mut value as *mut f64 as *mut c_void;
 
@@ -234,8 +234,8 @@ impl IComponent for SoyBoyPlugin {
         let state = state.unwrap();
 
         let mut num_bytes_written = 0;
-        for param in Parameter::iter() {
-            if let Some(p) = self.params.get(&param) {
+        for param in SoyBoyParameter::iter() {
+            if let Some(p) = self.param_defs.get(&param) {
                 let value = self.soyboy.borrow().get_param(&param);
 
                 let mut value = p.normalize(value);
@@ -313,7 +313,7 @@ impl IAudioProcessor for SoyBoyPlugin {
                     let mut value = 0.0;
                     let mut sample_offset = 0;
                     let num_points = param_queue.get_point_count();
-                    match Parameter::try_from(param_queue.get_parameter_id()) {
+                    match SoyBoyParameter::try_from(param_queue.get_parameter_id()) {
                         Ok(param) => {
                             if param_queue.get_point(
                                 num_points - 1,
@@ -321,7 +321,7 @@ impl IAudioProcessor for SoyBoyPlugin {
                                 &mut value as *mut _,
                             ) == kResultTrue
                             {
-                                if let Some(p) = self.params.get(&param) {
+                                if let Some(p) = self.param_defs.get(&param) {
                                     self.soyboy
                                         .borrow_mut()
                                         .set_param(&param, p.denormalize(value));

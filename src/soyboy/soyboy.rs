@@ -1,6 +1,6 @@
 use crate::soyboy::{
     event::{Event, Triggered},
-    parameters::{Parameter, Parametric},
+    parameters::{Parametric, SoyBoyParameter},
     types::AudioProcessor,
     utils::level,
     voice::VoiceUnit,
@@ -30,17 +30,17 @@ impl Triggered for SoyBoy {
     }
 }
 
-impl Parametric<Parameter> for SoyBoy {
-    fn set_param(&mut self, param: &Parameter, value: f64) {
+impl Parametric<SoyBoyParameter> for SoyBoy {
+    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
         match param {
-            Parameter::MasterVolume => self.master_volume = value,
+            SoyBoyParameter::MasterVolume => self.master_volume = value,
             param => self.voice.set_param(param, value),
         }
     }
 
-    fn get_param(&self, param: &Parameter) -> f64 {
+    fn get_param(&self, param: &SoyBoyParameter) -> f64 {
         match param {
-            Parameter::MasterVolume => self.master_volume,
+            SoyBoyParameter::MasterVolume => self.master_volume,
             param => self.voice.get_param(param),
         }
     }

@@ -2,7 +2,7 @@ use rand::prelude::*;
 
 use crate::soyboy::{
     event::{Event, Triggered},
-    parameters::{Parameter, Parametric},
+    parameters::{Parametric, SoyBoyParameter},
     types::{i4, AudioProcessor},
 };
 
@@ -61,19 +61,19 @@ impl Triggered for WaveTableOscillator {
     }
 }
 
-impl Parametric<Parameter> for WaveTableOscillator {
-    fn set_param(&mut self, param: &Parameter, value: f64) {
+impl Parametric<SoyBoyParameter> for WaveTableOscillator {
+    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
         match param {
-            Parameter::OscWtTableIndex => self.index = value as usize % self.table.len(),
-            Parameter::OscWtTableValue => self.table[self.index] = i4::from(value),
+            SoyBoyParameter::OscWtTableIndex => self.index = value as usize % self.table.len(),
+            SoyBoyParameter::OscWtTableValue => self.table[self.index] = i4::from(value),
             _ => (),
         }
     }
 
-    fn get_param(&self, param: &Parameter) -> f64 {
+    fn get_param(&self, param: &SoyBoyParameter) -> f64 {
         match param {
-            Parameter::OscWtTableIndex => self.index as f64,
-            Parameter::OscWtTableValue => f64::from(self.table[self.index]),
+            SoyBoyParameter::OscWtTableIndex => self.index as f64,
+            SoyBoyParameter::OscWtTableValue => f64::from(self.table[self.index]),
             _ => 0.0,
         }
     }

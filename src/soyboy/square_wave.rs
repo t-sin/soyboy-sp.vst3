@@ -2,7 +2,7 @@ use std::convert::TryFrom;
 
 use crate::soyboy::{
     event::{Event, Triggered},
-    parameters::{Parameter, Parametric},
+    parameters::{Parametric, SoyBoyParameter},
     types::{i4, AudioProcessor},
     utils::pulse,
 };
@@ -98,10 +98,10 @@ impl AudioProcessor<i4> for SquareWaveOscillator {
     }
 }
 
-impl Parametric<Parameter> for SquareWaveOscillator {
-    fn set_param(&mut self, param: &Parameter, value: f64) {
+impl Parametric<SoyBoyParameter> for SquareWaveOscillator {
+    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
         match param {
-            Parameter::OscSqDuty => {
+            SoyBoyParameter::OscSqDuty => {
                 if let Ok(ratio) = SquareWaveDuty::try_from(value as u32) {
                     self.set_duty(ratio);
                 } else {
@@ -112,9 +112,9 @@ impl Parametric<Parameter> for SquareWaveOscillator {
         }
     }
 
-    fn get_param(&self, param: &Parameter) -> f64 {
+    fn get_param(&self, param: &SoyBoyParameter) -> f64 {
         match param {
-            Parameter::OscSqDuty => (self.duty as u32).into(),
+            SoyBoyParameter::OscSqDuty => (self.duty as u32).into(),
             _ => 0.0,
         }
     }

@@ -1,6 +1,6 @@
 use crate::soyboy::{
     event::{Event, Triggered},
-    parameters::{Parameter, Parametric},
+    parameters::{Parametric, SoyBoyParameter},
     types::AudioProcessor,
     utils::{discrete_loudness, level_from_velocity, linear},
 };
@@ -130,23 +130,23 @@ impl Triggered for EnvelopeGenerator {
     }
 }
 
-impl Parametric<Parameter> for EnvelopeGenerator {
-    fn set_param(&mut self, param: &Parameter, value: f64) {
+impl Parametric<SoyBoyParameter> for EnvelopeGenerator {
+    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
         match param {
-            Parameter::EgAttack => self.attack = value,
-            Parameter::EgDecay => self.decay = value,
-            Parameter::EgSustain => self.sustain = value,
-            Parameter::EgRelease => self.release = value,
+            SoyBoyParameter::EgAttack => self.attack = value,
+            SoyBoyParameter::EgDecay => self.decay = value,
+            SoyBoyParameter::EgSustain => self.sustain = value,
+            SoyBoyParameter::EgRelease => self.release = value,
             _ => (),
         }
     }
 
-    fn get_param(&self, param: &Parameter) -> f64 {
+    fn get_param(&self, param: &SoyBoyParameter) -> f64 {
         match param {
-            Parameter::EgAttack => self.attack,
-            Parameter::EgDecay => self.decay,
-            Parameter::EgSustain => self.sustain,
-            Parameter::EgRelease => self.release,
+            SoyBoyParameter::EgAttack => self.attack,
+            SoyBoyParameter::EgDecay => self.decay,
+            SoyBoyParameter::EgSustain => self.sustain,
+            SoyBoyParameter::EgRelease => self.release,
             _ => 0.0,
         }
     }

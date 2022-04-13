@@ -2,7 +2,7 @@ use rand::prelude::*;
 
 use crate::soyboy::{
     event::{Event, Triggered},
-    parameters::{Parameter, Parametric},
+    parameters::{Parametric, SoyBoyParameter},
     types::{i4, AudioProcessor},
 };
 
@@ -58,17 +58,17 @@ impl Triggered for NoiseOscillator {
     }
 }
 
-impl Parametric<Parameter> for NoiseOscillator {
-    fn set_param(&mut self, param: &Parameter, value: f64) {
+impl Parametric<SoyBoyParameter> for NoiseOscillator {
+    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
         match param {
-            Parameter::OscNsInterval => self.interval_msec = value,
+            SoyBoyParameter::OscNsInterval => self.interval_msec = value,
             _ => (),
         }
     }
 
-    fn get_param(&self, param: &Parameter) -> f64 {
+    fn get_param(&self, param: &SoyBoyParameter) -> f64 {
         match param {
-            Parameter::OscNsInterval => self.interval_msec,
+            SoyBoyParameter::OscNsInterval => self.interval_msec,
             _ => 0.0,
         }
     }

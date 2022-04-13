@@ -2,7 +2,7 @@ use std::convert::TryFrom;
 
 use crate::soyboy::{
     event::{Event, Triggered},
-    parameters::{Parameter, Parametric},
+    parameters::{Parametric, SoyBoyParameter},
     types::AudioProcessor,
 };
 
@@ -150,10 +150,10 @@ impl Triggered for SweepOscillator {
     }
 }
 
-impl Parametric<Parameter> for SweepOscillator {
-    fn set_param(&mut self, param: &Parameter, value: f64) {
+impl Parametric<SoyBoyParameter> for SweepOscillator {
+    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
         match param {
-            Parameter::SweepType => {
+            SoyBoyParameter::SweepType => {
                 self.sweep_timer_sec = 0.0;
                 if let Ok(sweep_type) = SweepType::try_from(value as u32) {
                     self.sweep_type = sweep_type;
@@ -161,21 +161,21 @@ impl Parametric<Parameter> for SweepOscillator {
                     ()
                 }
             }
-            Parameter::SweepAmount => {
+            SoyBoyParameter::SweepAmount => {
                 self.sweep_amount = value;
             }
-            Parameter::SweepPeriod => {
+            SoyBoyParameter::SweepPeriod => {
                 self.sweep_period = value;
             }
             _ => (),
         }
     }
 
-    fn get_param(&self, param: &Parameter) -> f64 {
+    fn get_param(&self, param: &SoyBoyParameter) -> f64 {
         match param {
-            Parameter::SweepType => (self.sweep_type as u32).into(),
-            Parameter::SweepAmount => self.sweep_amount,
-            Parameter::SweepPeriod => self.sweep_period,
+            SoyBoyParameter::SweepType => (self.sweep_type as u32).into(),
+            SoyBoyParameter::SweepAmount => self.sweep_amount,
+            SoyBoyParameter::SweepPeriod => self.sweep_period,
             _ => 0.0,
         }
     }
