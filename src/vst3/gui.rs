@@ -770,8 +770,7 @@ struct ParentWindow(*mut c_void);
 unsafe impl Send for ParentWindow {}
 unsafe impl Sync for ParentWindow {}
 
-struct GUIThread {
-    // SoyBoy resources
+struct UI {
     label_logo: ImageLabel,
     label_global: ImageLabel,
     label_square: ImageLabel,
@@ -793,61 +792,10 @@ struct GUIThread {
     param_period: ParameterSlider,
     param_time: ParameterSlider,
     param_depth: ParameterSlider,
-    // window stuff
-    quit: bool,
-    needs_repaint: bool,
-    // threading stuff
-    receiver: Arc<Mutex<Receiver<GUIMessage>>>,
-    // egui stuff
-    egui_glow: EguiGlow,
-    window: WindowedContext<PossiblyCurrent>,
-    // glow_context: Rc<glow::Context>,
 }
 
-// originally from here:
-//   https://github.com/emilk/egui/blob/7cd285ecbc2d319f1feac7b9fd9464d06a5ccf77/egui_glow/examples/pure_glow.rs
-impl GUIThread {
-    fn setup(
-        parent: ParentWindow,
-        receiver: Arc<Mutex<Receiver<GUIMessage>>>,
-    ) -> (Self, EventLoop<GUIEvent>) {
-        let parent_id: usize = if parent.0.is_null() {
-            0
-        } else {
-            parent.0 as usize
-        };
-        let event_loop = EventLoopBuilder::<GUIEvent>::with_user_event()
-            .with_any_thread(true)
-            .build();
-
-        let window_builder = WindowBuilder::new()
-            .with_x11_parent(parent_id.try_into().unwrap())
-            .with_resizable(false)
-            .with_inner_size(winit::dpi::LogicalSize {
-                width: SCREEN_WIDTH as f32,
-                height: SCREEN_HEIGHT as f32,
-            })
-            .with_title("egui_glow example");
-
-        let window = unsafe {
-            glutin::ContextBuilder::new()
-                .with_depth_buffer(0)
-                .with_srgb(true)
-                .with_stencil_buffer(0)
-                .with_vsync(true)
-                .build_windowed(window_builder, &event_loop)
-                .unwrap()
-                .make_current()
-                .unwrap()
-        };
-
-        println!("scale factor = {}", window.window().scale_factor());
-
-        let glow_context =
-            unsafe { glow::Context::from_loader_function(|s| window.get_proc_address(s)) };
-        let glow_context = Rc::new(glow_context);
-        let egui_glow = EguiGlow::new(window.window(), glow_context.clone());
-
+impl UI {
+    fn new() -> Self {
         let img_slider_border = Rc::new(
             RetainedImage::from_image_bytes("soyboy:slider:border", IMG_SLIDER_BORDER).unwrap(),
         );
@@ -856,7 +804,7 @@ impl GUIThread {
         let img_param_atlas =
             Rc::new(RetainedImage::from_image_bytes("name_atlas", IMG_PARAM_ATLAS).unwrap());
 
-        let thread = GUIThread {
+        Self {
             label_logo: ImageLabel::new(
                 Rc::new(RetainedImage::from_image_bytes("soyboy:logo", IMG_LOGO).unwrap()),
                 6.0,
@@ -1070,6 +1018,69 @@ impl GUIThread {
                 388.0,
                 378.0,
             ),
+        }
+    }
+}
+
+struct GUIThread {
+    ui: UI,
+    // window stuff
+    quit: bool,
+    needs_repaint: bool,
+    // threading stuff
+    receiver: Arc<Mutex<Receiver<GUIMessage>>>,
+    // egui stuff
+    egui_glow: EguiGlow,
+    window: WindowedContext<PossiblyCurrent>,
+    // glow_context: Rc<glow::Context>,
+}
+
+// originally from here:
+//   https://github.com/emilk/egui/blob/7cd285ecbc2d319f1feac7b9fd9464d06a5ccf77/egui_glow/examples/pure_glow.rs
+impl GUIThread {
+    fn setup(
+        parent: ParentWindow,
+        receiver: Arc<Mutex<Receiver<GUIMessage>>>,
+    ) -> (Self, EventLoop<GUIEvent>) {
+        let parent_id: usize = if parent.0.is_null() {
+            0
+        } else {
+            parent.0 as usize
+        };
+        let event_loop = EventLoopBuilder::<GUIEvent>::with_user_event()
+            .with_any_thread(true)
+            .build();
+
+        let window_builder = WindowBuilder::new()
+            .with_x11_parent(parent_id.try_into().unwrap())
+            .with_resizable(false)
+            .with_inner_size(winit::dpi::LogicalSize {
+                width: SCREEN_WIDTH as f32,
+                height: SCREEN_HEIGHT as f32,
+            })
+            .with_title("egui_glow example");
+
+        let window = unsafe {
+            glutin::ContextBuilder::new()
+                .with_depth_buffer(0)
+                .with_srgb(true)
+                .with_stencil_buffer(0)
+                .with_vsync(true)
+                .build_windowed(window_builder, &event_loop)
+                .unwrap()
+                .make_current()
+                .unwrap()
+        };
+
+        println!("scale factor = {}", window.window().scale_factor());
+
+        let glow_context =
+            unsafe { glow::Context::from_loader_function(|s| window.get_proc_address(s)) };
+        let glow_context = Rc::new(glow_context);
+        let egui_glow = EguiGlow::new(window.window(), glow_context.clone());
+
+        let thread = GUIThread {
+            ui: UI::new(),
             quit: false,
             needs_repaint: false,
             receiver: receiver,
@@ -1082,7 +1093,10 @@ impl GUIThread {
     }
 
     fn update(&mut self, proxy: EventLoopProxy<GUIEvent>) {
-        let mut stateful = [&mut self.button_reset_random, &mut self.button_reset_sine];
+        let mut stateful = [
+            &mut self.ui.button_reset_random,
+            &mut self.ui.button_reset_sine,
+        ];
         let mut needs_redraw = false;
 
         for widget in stateful.iter_mut() {
@@ -1114,18 +1128,18 @@ impl GUIThread {
                 .movable(false)
                 .show(egui_ctx, |ui| {
                     // logo
-                    let _ = ui.add(self.label_logo.clone());
+                    let _ = ui.add(self.ui.label_logo.clone());
 
                     // left side
-                    let _ = ui.add(self.label_global.clone());
-                    let _ = ui.add(self.label_square.clone());
-                    let _ = ui.add(self.label_noise.clone());
-                    let _ = ui.add(self.label_wavetable.clone());
+                    let _ = ui.add(self.ui.label_global.clone());
+                    let _ = ui.add(self.ui.label_square.clone());
+                    let _ = ui.add(self.ui.label_noise.clone());
+                    let _ = ui.add(self.ui.label_wavetable.clone());
 
                     // right side
-                    let _ = ui.add(self.label_envelope.clone());
-                    let _ = ui.add(self.label_sweep.clone());
-                    let _ = ui.add(self.label_stutter.clone());
+                    let _ = ui.add(self.ui.label_envelope.clone());
+                    let _ = ui.add(self.ui.label_sweep.clone());
+                    let _ = ui.add(self.ui.label_stutter.clone());
                 });
 
             // buttons
@@ -1133,13 +1147,13 @@ impl GUIThread {
                 .fixed_pos(egui::pos2(0.0, 0.0))
                 .movable(false)
                 .show(egui_ctx, |ui| {
-                    let resp = self.button_reset_random.show(ui);
+                    let resp = self.ui.button_reset_random.show(ui);
                     if resp.clicked() {
                         // TODO: write a code reset plugin's wavetable
                         println!("reset random!!!");
                     }
 
-                    let resp = self.button_reset_sine.show(ui);
+                    let resp = self.ui.button_reset_sine.show(ui);
                     if resp.clicked() {
                         // TODO: write a code reset plugin's wavetable
                         println!("reset sine!!!");
@@ -1151,19 +1165,19 @@ impl GUIThread {
                 .fixed_pos(egui::pos2(0.0, 0.0))
                 .movable(false)
                 .show(egui_ctx, |ui| {
-                    let _ = self.param_volume.show(ui);
-                    let _ = self.param_detune.show(ui);
-                    let _ = self.param_interval.show(ui);
-                    let _ = self.param_attack.show(ui);
-                    let _ = self.param_decay.show(ui);
-                    let _ = self.param_sustain.show(ui);
-                    let _ = self.param_release.show(ui);
+                    let _ = self.ui.param_volume.show(ui);
+                    let _ = self.ui.param_detune.show(ui);
+                    let _ = self.ui.param_interval.show(ui);
+                    let _ = self.ui.param_attack.show(ui);
+                    let _ = self.ui.param_decay.show(ui);
+                    let _ = self.ui.param_sustain.show(ui);
+                    let _ = self.ui.param_release.show(ui);
 
-                    let _ = self.param_amount.show(ui);
-                    let _ = self.param_period.show(ui);
+                    let _ = self.ui.param_amount.show(ui);
+                    let _ = self.ui.param_period.show(ui);
 
-                    let _ = self.param_time.show(ui);
-                    let _ = self.param_depth.show(ui);
+                    let _ = self.ui.param_time.show(ui);
+                    let _ = self.ui.param_depth.show(ui);
                 });
         });
 
