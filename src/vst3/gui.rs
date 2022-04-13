@@ -359,14 +359,6 @@ mod widget {
         pub fn new(param: Parameter, atlas: Rc<RetainedImage>, x: f32, y: f32) -> Self {
             Self { param, atlas, x, y }
         }
-
-        pub fn rect(&self) -> egui::Rect {
-            let topleft = egui::pos2(self.x, self.y);
-            egui::Rect {
-                min: topleft,
-                max: topleft + self.param.get_region().size,
-            }
-        }
     }
 
     impl Widget for ParameterName {
