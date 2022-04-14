@@ -52,6 +52,21 @@ const IMG_SLIDER_BORDER: &[u8] = include_bytes!("../../resources/slider-border.p
 const IMG_VALUE_ATLAS: &[u8] = include_bytes!("../../resources/paramval.png");
 const IMG_PARAM_ATLAS: &[u8] = include_bytes!("../../resources/paramname.png");
 
+#[derive(Clone)]
+pub struct Image {
+    texture_id: egui::TextureId,
+    size: egui::Vec2,
+}
+
+impl Image {
+    pub fn new(egui_ctx: &egui::Context, image: &RetainedImage) -> Self {
+        Self {
+            texture_id: image.texture_id(egui_ctx),
+            size: image.size_vec2(),
+        }
+    }
+}
+
 mod widget {
     use std::rc::Rc;
     use std::time;
@@ -62,7 +77,7 @@ mod widget {
 
     use crate::soyboy::parameters::{Normalizable, ParameterDef};
 
-    use super::{SCREEN_HEIGHT, SCREEN_WIDTH};
+    use super::{Image, SCREEN_HEIGHT, SCREEN_WIDTH};
 
     fn screen_rect() -> egui::Rect {
         egui::Rect {
@@ -404,18 +419,16 @@ mod widget {
 
     #[derive(Clone)]
     pub struct ImageLabel {
-        image: egui::TextureId,
-        image_size: egui::Vec2,
+        image: Image,
         sense: egui::Sense,
         x: f32,
         y: f32,
     }
 
     impl ImageLabel {
-        pub fn new(image: egui::TextureId, image_size: egui::Vec2, x: f32, y: f32) -> Self {
+        pub fn new(image: Image, x: f32, y: f32) -> Self {
             Self {
                 image,
-                image_size,
                 sense: egui::Sense::focusable_noninteractive(),
                 x: x,
                 y: y,
@@ -423,7 +436,7 @@ mod widget {
         }
 
         pub fn rect(&self) -> egui::Rect {
-            let size = self.image_size;
+            let size = self.image.size;
             egui::Rect {
                 min: egui::pos2(self.x, self.y),
                 max: egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
@@ -438,7 +451,7 @@ mod widget {
             let response = ui.allocate_rect(rect, self.sense);
 
             if ui.is_rect_visible(rect) {
-                let img = egui::widgets::Image::new(self.image, rect.size());
+                let img = egui::widgets::Image::new(self.image.texture_id, rect.size());
                 img.paint_at(ui, rect);
             }
 
@@ -817,18 +830,18 @@ unsafe impl Send for ParentWindow {}
 unsafe impl Sync for ParentWindow {}
 
 struct Images {
-    logo: RetainedImage,
-    global: RetainedImage,
-    square: RetainedImage,
-    noise: RetainedImage,
-    wavetable: RetainedImage,
-    envelope: RetainedImage,
-    sweep: RetainedImage,
-    stutter: RetainedImage,
+    label_logo: RetainedImage,
+    label_global: RetainedImage,
+    label_square: RetainedImage,
+    label_noise: RetainedImage,
+    label_wavetable: RetainedImage,
+    label_envelope: RetainedImage,
+    label_sweep: RetainedImage,
+    label_stutter: RetainedImage,
 }
 
 struct UI {
-    images: Images,
+    _images: Images,
     label_logo: ImageLabel,
     label_global: ImageLabel,
     label_square: ImageLabel,
@@ -855,22 +868,30 @@ struct UI {
 impl UI {
     fn new(egui_ctx: &egui::Context, param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Self {
         let images = Images {
-            logo: RetainedImage::from_image_bytes("soyboy:logo", IMG_LOGO).unwrap(),
-            global: RetainedImage::from_image_bytes("soyboy:label:global", IMG_LABEL_GLOBAL)
+            label_logo: RetainedImage::from_image_bytes("soyboy:logo", IMG_LOGO).unwrap(),
+            label_global: RetainedImage::from_image_bytes("soyboy:label:global", IMG_LABEL_GLOBAL)
                 .unwrap(),
-            square: RetainedImage::from_image_bytes("soyboy:label:square", IMG_LABEL_SQUARE)
+            label_square: RetainedImage::from_image_bytes("soyboy:label:square", IMG_LABEL_SQUARE)
                 .unwrap(),
-            noise: RetainedImage::from_image_bytes("soyboy:label:noise", IMG_LABEL_NOISE).unwrap(),
-            wavetable: RetainedImage::from_image_bytes(
+            label_noise: RetainedImage::from_image_bytes("soyboy:label:noise", IMG_LABEL_NOISE)
+                .unwrap(),
+            label_wavetable: RetainedImage::from_image_bytes(
                 "soyboy:label:wavetable",
                 IMG_LABEL_WAVETABLE,
             )
             .unwrap(),
-            envelope: RetainedImage::from_image_bytes("soyboy:label:envelope", IMG_LABEL_ENVELOPE)
+            label_envelope: RetainedImage::from_image_bytes(
+                "soyboy:label:envelope",
+                IMG_LABEL_ENVELOPE,
+            )
+            .unwrap(),
+            label_sweep: RetainedImage::from_image_bytes("soyboy:label:sweep", IMG_LABEL_SWEEP)
                 .unwrap(),
-            sweep: RetainedImage::from_image_bytes("soyboy:label:sweep", IMG_LABEL_SWEEP).unwrap(),
-            stutter: RetainedImage::from_image_bytes("soyboy:label:stutter", IMG_LABEL_STUTTER)
-                .unwrap(),
+            label_stutter: RetainedImage::from_image_bytes(
+                "soyboy:label:stutter",
+                IMG_LABEL_STUTTER,
+            )
+            .unwrap(),
         };
 
         let img_slider_border = Rc::new(
@@ -882,51 +903,23 @@ impl UI {
             Rc::new(RetainedImage::from_image_bytes("name_atlas", IMG_PARAM_ATLAS).unwrap());
 
         Self {
-            label_logo: ImageLabel::new(
-                images.logo.texture_id(egui_ctx),
-                images.logo.size_vec2(),
-                6.0,
-                6.0,
-            ),
-            label_global: ImageLabel::new(
-                images.global.texture_id(egui_ctx),
-                images.global.size_vec2(),
-                24.0,
-                86.0,
-            ),
-            label_square: ImageLabel::new(
-                images.square.texture_id(egui_ctx),
-                images.square.size_vec2(),
-                24.0,
-                216.0,
-            ),
-            label_noise: ImageLabel::new(
-                images.noise.texture_id(egui_ctx),
-                images.noise.size_vec2(),
-                24.0,
-                280.0,
-            ),
+            label_logo: ImageLabel::new(Image::new(egui_ctx, &images.label_logo), 6.0, 6.0),
+            label_global: ImageLabel::new(Image::new(egui_ctx, &images.label_global), 24.0, 86.0),
+            label_square: ImageLabel::new(Image::new(egui_ctx, &images.label_square), 24.0, 216.0),
+            label_noise: ImageLabel::new(Image::new(egui_ctx, &images.label_noise), 24.0, 280.0),
             label_wavetable: ImageLabel::new(
-                images.wavetable.texture_id(egui_ctx),
-                images.wavetable.size_vec2(),
+                Image::new(egui_ctx, &images.label_wavetable),
                 24.0,
                 408.0,
             ),
             label_envelope: ImageLabel::new(
-                images.envelope.texture_id(egui_ctx),
-                images.envelope.size_vec2(),
+                Image::new(egui_ctx, &images.label_envelope),
                 352.0,
                 12.0,
             ),
-            label_sweep: ImageLabel::new(
-                images.sweep.texture_id(egui_ctx),
-                images.sweep.size_vec2(),
-                352.0,
-                184.0,
-            ),
+            label_sweep: ImageLabel::new(Image::new(egui_ctx, &images.label_sweep), 352.0, 184.0),
             label_stutter: ImageLabel::new(
-                images.stutter.texture_id(egui_ctx),
-                images.stutter.size_vec2(),
+                Image::new(egui_ctx, &images.label_stutter),
                 352.0,
                 316.0,
             ),
@@ -1102,7 +1095,7 @@ impl UI {
                 388.0,
                 378.0,
             ),
-            images,
+            _images: images,
         }
     }
 }
