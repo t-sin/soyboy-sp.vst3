@@ -461,14 +461,14 @@ mod widget {
 
     #[derive(Clone)]
     pub struct Button {
-        image: Rc<RetainedImage>,
+        image: Image,
         sense: egui::Sense,
         clicked: bool,
         rect: egui::Rect,
     }
 
     impl Button {
-        pub fn new(image: Rc<RetainedImage>, clicked: bool, rect: egui::Rect) -> Self {
+        pub fn new(image: Image, clicked: bool, rect: egui::Rect) -> Self {
             Self {
                 image: image,
                 sense: egui::Sense::click().union(egui::Sense::hover()),
@@ -489,7 +489,7 @@ mod widget {
             let response = ui.allocate_rect(rect, self.sense);
 
             if ui.is_rect_visible(rect) {
-                let img = egui::widgets::Image::new(self.image.texture_id(ui.ctx()), rect.size());
+                let img = egui::widgets::Image::new(self.image.texture_id, rect.size());
                 img.paint_at(ui, rect);
 
                 if response.hovered() {
@@ -507,7 +507,7 @@ mod widget {
 
     #[derive(Clone)]
     pub struct ButtonBehavior {
-        image: Rc<RetainedImage>,
+        image: Image,
         clicked_at: time::Instant,
         clicked: Toggle,
         x: f32,
@@ -515,7 +515,7 @@ mod widget {
     }
 
     impl ButtonBehavior {
-        pub fn new(image: Rc<RetainedImage>, x: f32, y: f32) -> Self {
+        pub fn new(image: Image, x: f32, y: f32) -> Self {
             Self {
                 image: image,
                 clicked_at: time::Instant::now(),
@@ -528,7 +528,7 @@ mod widget {
 
     impl Behavior for ButtonBehavior {
         fn rect(&self) -> egui::Rect {
-            let size = self.image.size();
+            let size = self.image.size;
             egui::Rect {
                 min: egui::pos2(self.x, self.y),
                 max: egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
@@ -824,6 +824,8 @@ struct Images {
     label_envelope: RetainedImage,
     label_sweep: RetainedImage,
     label_stutter: RetainedImage,
+    button_reset_random: RetainedImage,
+    button_reset_sine: RetainedImage,
     slider_border: RetainedImage,
 }
 
@@ -879,7 +881,16 @@ impl UI {
                 IMG_LABEL_STUTTER,
             )
             .unwrap(),
-
+            button_reset_random: RetainedImage::from_image_bytes(
+                "soyboy:button:reset-random",
+                IMG_BUTTON_RESET_RANDOM,
+            )
+            .unwrap(),
+            button_reset_sine: RetainedImage::from_image_bytes(
+                "soyboy:button:reset-sine",
+                IMG_BUTTON_RESET_SINE,
+            )
+            .unwrap(),
             slider_border: RetainedImage::from_image_bytes(
                 "soyboy:slider:border",
                 IMG_SLIDER_BORDER,
@@ -914,24 +925,12 @@ impl UI {
                 316.0,
             ),
             button_reset_random: ButtonBehavior::new(
-                Rc::new(
-                    RetainedImage::from_image_bytes(
-                        "soyboy:button:reset-random",
-                        IMG_BUTTON_RESET_RANDOM,
-                    )
-                    .unwrap(),
-                ),
+                Image::new(egui_ctx, &images.button_reset_random),
                 206.0,
                 526.0,
             ),
             button_reset_sine: ButtonBehavior::new(
-                Rc::new(
-                    RetainedImage::from_image_bytes(
-                        "soyboy:button:reset-sine",
-                        IMG_BUTTON_RESET_SINE,
-                    )
-                    .unwrap(),
-                ),
+                Image::new(egui_ctx, &images.button_reset_sine),
                 274.0,
                 526.0,
             ),
