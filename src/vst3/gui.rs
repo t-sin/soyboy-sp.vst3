@@ -404,16 +404,18 @@ mod widget {
 
     #[derive(Clone)]
     pub struct ImageLabel {
-        image: Rc<RetainedImage>,
+        image: egui::TextureId,
+        image_size: egui::Vec2,
         sense: egui::Sense,
         x: f32,
         y: f32,
     }
 
     impl ImageLabel {
-        pub fn new(image: Rc<RetainedImage>, x: f32, y: f32) -> Self {
+        pub fn new(image: egui::TextureId, image_size: egui::Vec2, x: f32, y: f32) -> Self {
             Self {
-                image: image,
+                image,
+                image_size,
                 sense: egui::Sense::focusable_noninteractive(),
                 x: x,
                 y: y,
@@ -421,7 +423,7 @@ mod widget {
         }
 
         pub fn rect(&self) -> egui::Rect {
-            let size = self.image.size();
+            let size = self.image_size;
             egui::Rect {
                 min: egui::pos2(self.x, self.y),
                 max: egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
@@ -436,7 +438,7 @@ mod widget {
             let response = ui.allocate_rect(rect, self.sense);
 
             if ui.is_rect_visible(rect) {
-                let img = egui::widgets::Image::new(self.image.texture_id(ui.ctx()), rect.size());
+                let img = egui::widgets::Image::new(self.image, rect.size());
                 img.paint_at(ui, rect);
             }
 
@@ -814,7 +816,19 @@ struct ParentWindow(*mut c_void);
 unsafe impl Send for ParentWindow {}
 unsafe impl Sync for ParentWindow {}
 
+struct Images {
+    logo: RetainedImage,
+    global: RetainedImage,
+    square: RetainedImage,
+    noise: RetainedImage,
+    wavetable: RetainedImage,
+    envelope: RetainedImage,
+    sweep: RetainedImage,
+    stutter: RetainedImage,
+}
+
 struct UI {
+    images: Images,
     label_logo: ImageLabel,
     label_global: ImageLabel,
     label_square: ImageLabel,
@@ -839,7 +853,26 @@ struct UI {
 }
 
 impl UI {
-    fn new(param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Self {
+    fn new(egui_ctx: &egui::Context, param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Self {
+        let images = Images {
+            logo: RetainedImage::from_image_bytes("soyboy:logo", IMG_LOGO).unwrap(),
+            global: RetainedImage::from_image_bytes("soyboy:label:global", IMG_LABEL_GLOBAL)
+                .unwrap(),
+            square: RetainedImage::from_image_bytes("soyboy:label:square", IMG_LABEL_SQUARE)
+                .unwrap(),
+            noise: RetainedImage::from_image_bytes("soyboy:label:noise", IMG_LABEL_NOISE).unwrap(),
+            wavetable: RetainedImage::from_image_bytes(
+                "soyboy:label:wavetable",
+                IMG_LABEL_WAVETABLE,
+            )
+            .unwrap(),
+            envelope: RetainedImage::from_image_bytes("soyboy:label:envelope", IMG_LABEL_ENVELOPE)
+                .unwrap(),
+            sweep: RetainedImage::from_image_bytes("soyboy:label:sweep", IMG_LABEL_SWEEP).unwrap(),
+            stutter: RetainedImage::from_image_bytes("soyboy:label:stutter", IMG_LABEL_STUTTER)
+                .unwrap(),
+        };
+
         let img_slider_border = Rc::new(
             RetainedImage::from_image_bytes("soyboy:slider:border", IMG_SLIDER_BORDER).unwrap(),
         );
@@ -850,61 +883,50 @@ impl UI {
 
         Self {
             label_logo: ImageLabel::new(
-                Rc::new(RetainedImage::from_image_bytes("soyboy:logo", IMG_LOGO).unwrap()),
+                images.logo.texture_id(egui_ctx),
+                images.logo.size_vec2(),
                 6.0,
                 6.0,
             ),
             label_global: ImageLabel::new(
-                Rc::new(
-                    RetainedImage::from_image_bytes("soyboy:label:global", IMG_LABEL_GLOBAL)
-                        .unwrap(),
-                ),
+                images.global.texture_id(egui_ctx),
+                images.global.size_vec2(),
                 24.0,
                 86.0,
             ),
             label_square: ImageLabel::new(
-                Rc::new(
-                    RetainedImage::from_image_bytes("soyboy:label:square", IMG_LABEL_SQUARE)
-                        .unwrap(),
-                ),
+                images.square.texture_id(egui_ctx),
+                images.square.size_vec2(),
                 24.0,
                 216.0,
             ),
             label_noise: ImageLabel::new(
-                Rc::new(
-                    RetainedImage::from_image_bytes("soyboy:label:noise", IMG_LABEL_NOISE).unwrap(),
-                ),
+                images.noise.texture_id(egui_ctx),
+                images.noise.size_vec2(),
                 24.0,
                 280.0,
             ),
             label_wavetable: ImageLabel::new(
-                Rc::new(
-                    RetainedImage::from_image_bytes("soyboy:label:wavetable", IMG_LABEL_WAVETABLE)
-                        .unwrap(),
-                ),
+                images.wavetable.texture_id(egui_ctx),
+                images.wavetable.size_vec2(),
                 24.0,
                 408.0,
             ),
             label_envelope: ImageLabel::new(
-                Rc::new(
-                    RetainedImage::from_image_bytes("soyboy:label:envelope", IMG_LABEL_ENVELOPE)
-                        .unwrap(),
-                ),
+                images.envelope.texture_id(egui_ctx),
+                images.envelope.size_vec2(),
                 352.0,
                 12.0,
             ),
             label_sweep: ImageLabel::new(
-                Rc::new(
-                    RetainedImage::from_image_bytes("soyboy:label:sweep", IMG_LABEL_SWEEP).unwrap(),
-                ),
+                images.sweep.texture_id(egui_ctx),
+                images.sweep.size_vec2(),
                 352.0,
                 184.0,
             ),
             label_stutter: ImageLabel::new(
-                Rc::new(
-                    RetainedImage::from_image_bytes("soyboy:label:stutter", IMG_LABEL_STUTTER)
-                        .unwrap(),
-                ),
+                images.stutter.texture_id(egui_ctx),
+                images.stutter.size_vec2(),
                 352.0,
                 316.0,
             ),
@@ -1080,6 +1102,7 @@ impl UI {
                 388.0,
                 378.0,
             ),
+            images,
         }
     }
 }
@@ -1143,7 +1166,7 @@ impl GUIThread {
         let egui_glow = EguiGlow::new(window.window(), glow_context.clone());
 
         let thread = GUIThread {
-            ui: UI::new(param_defs),
+            ui: UI::new(&egui_glow.egui_ctx, param_defs),
             quit: false,
             needs_repaint: false,
             receiver: receiver,
