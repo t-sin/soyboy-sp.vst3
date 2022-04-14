@@ -558,7 +558,7 @@ mod widget {
     }
 
     pub struct Slider {
-        border_img: Rc<RetainedImage>,
+        border_img: Image,
         sense: egui::Sense,
         rect: egui::Rect,
         bipolar: bool,
@@ -566,12 +566,7 @@ mod widget {
     }
 
     impl Slider {
-        pub fn new(
-            border_img: Rc<RetainedImage>,
-            value: f64,
-            bipolar: bool,
-            rect: egui::Rect,
-        ) -> Self {
+        pub fn new(border_img: Image, value: f64, bipolar: bool, rect: egui::Rect) -> Self {
             Self {
                 border_img: border_img,
                 sense: egui::Sense::drag(),
@@ -657,10 +652,7 @@ mod widget {
                     );
                 }
 
-                let img = egui::widgets::Image::new(
-                    self.border_img.texture_id(ui.ctx()),
-                    self.rect.size(),
-                );
+                let img = egui::widgets::Image::new(self.border_img.texture_id, self.rect.size());
                 img.paint_at(ui, self.rect);
             }
 
@@ -669,7 +661,7 @@ mod widget {
     }
 
     pub struct SliderBehavior {
-        border_img: Rc<RetainedImage>,
+        border_img: Image,
         bipolar: bool,
         value: f64,
         x: f32,
@@ -677,13 +669,7 @@ mod widget {
     }
 
     impl SliderBehavior {
-        pub fn new(
-            border_img: Rc<RetainedImage>,
-            value: f64,
-            bipolar: bool,
-            x: f32,
-            y: f32,
-        ) -> Self {
+        pub fn new(border_img: Image, value: f64, bipolar: bool, x: f32, y: f32) -> Self {
             Self {
                 border_img: border_img,
                 value: value,
@@ -725,7 +711,7 @@ mod widget {
         }
 
         fn rect(&self) -> egui::Rect {
-            let size = self.border_img.size();
+            let size = self.border_img.size;
             egui::Rect::from_two_pos(
                 egui::pos2(self.x, self.y),
                 egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
@@ -752,7 +738,7 @@ mod widget {
             value: f64,
             bipolar: bool,
             unit: ParameterUnit,
-            border_img: Rc<RetainedImage>,
+            border_img: Image,
             param_atlas: Rc<RetainedImage>,
             value_atlas: Rc<RetainedImage>,
             x: f32,
@@ -838,6 +824,7 @@ struct Images {
     label_envelope: RetainedImage,
     label_sweep: RetainedImage,
     label_stutter: RetainedImage,
+    slider_border: RetainedImage,
 }
 
 struct UI {
@@ -892,11 +879,14 @@ impl UI {
                 IMG_LABEL_STUTTER,
             )
             .unwrap(),
+
+            slider_border: RetainedImage::from_image_bytes(
+                "soyboy:slider:border",
+                IMG_SLIDER_BORDER,
+            )
+            .unwrap(),
         };
 
-        let img_slider_border = Rc::new(
-            RetainedImage::from_image_bytes("soyboy:slider:border", IMG_SLIDER_BORDER).unwrap(),
-        );
         let img_value_atlas =
             Rc::new(RetainedImage::from_image_bytes("value_atlas", IMG_VALUE_ATLAS).unwrap());
         let img_param_atlas =
@@ -954,7 +944,7 @@ impl UI {
                 0.1,
                 false,
                 ParameterUnit::Decibel,
-                img_slider_border.clone(),
+                Image::new(egui_ctx, &images.slider_border),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
                 60.0,
@@ -966,7 +956,7 @@ impl UI {
                 0.1,
                 true,
                 ParameterUnit::Cent,
-                img_slider_border.clone(),
+                Image::new(egui_ctx, &images.slider_border),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
                 60.0,
@@ -981,7 +971,7 @@ impl UI {
                 0.1,
                 false,
                 ParameterUnit::MilliSec,
-                img_slider_border.clone(),
+                Image::new(egui_ctx, &images.slider_border),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
                 60.0,
@@ -993,7 +983,7 @@ impl UI {
                 0.1,
                 false,
                 ParameterUnit::Sec,
-                img_slider_border.clone(),
+                Image::new(egui_ctx, &images.slider_border),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
                 388.0,
@@ -1005,7 +995,7 @@ impl UI {
                 0.1,
                 false,
                 ParameterUnit::Sec,
-                img_slider_border.clone(),
+                Image::new(egui_ctx, &images.slider_border),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
                 388.0,
@@ -1017,7 +1007,7 @@ impl UI {
                 0.1,
                 false,
                 ParameterUnit::None,
-                img_slider_border.clone(),
+                Image::new(egui_ctx, &images.slider_border),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
                 388.0,
@@ -1029,7 +1019,7 @@ impl UI {
                 0.1,
                 false,
                 ParameterUnit::Sec,
-                img_slider_border.clone(),
+                Image::new(egui_ctx, &images.slider_border),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
                 388.0,
@@ -1044,7 +1034,7 @@ impl UI {
                 0.1,
                 false,
                 ParameterUnit::None,
-                img_slider_border.clone(),
+                Image::new(egui_ctx, &images.slider_border),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
                 388.0,
@@ -1059,7 +1049,7 @@ impl UI {
                 0.1,
                 false,
                 ParameterUnit::None,
-                img_slider_border.clone(),
+                Image::new(egui_ctx, &images.slider_border),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
                 388.0,
@@ -1074,7 +1064,7 @@ impl UI {
                 0.1,
                 false,
                 ParameterUnit::Sec,
-                img_slider_border.clone(),
+                Image::new(egui_ctx, &images.slider_border),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
                 388.0,
@@ -1089,7 +1079,7 @@ impl UI {
                 0.1,
                 false,
                 ParameterUnit::Percent,
-                img_slider_border.clone(),
+                Image::new(egui_ctx, &images.slider_border),
                 img_param_atlas.clone(),
                 img_value_atlas.clone(),
                 388.0,
