@@ -14,33 +14,25 @@ use vst3_sys::{
     VST3,
 };
 
+use crate::gui::{GUIMessage, GUIThread, ParentWindow, SCREEN_HEIGHT, SCREEN_WIDTH};
 use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
 use crate::vst3::utils;
 
-mod constants;
-mod gui_thread;
-mod types;
-mod widget;
-
-use constants::*;
-use gui_thread::*;
-use types::*;
-
 #[VST3(implements(IPlugView, IPlugFrame, IPlugViewContentScaleSupport))]
-pub struct SoyBoyGUI {
+pub struct SoyBoyVST3GUI {
     scale_factor: RefCell<f32>,
     handle: RefCell<Option<thread::JoinHandle<()>>>,
     sender: RefCell<Option<Sender<GUIMessage>>>,
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
 }
 
-impl SoyBoyGUI {
+impl SoyBoyVST3GUI {
     pub fn new(param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Box<Self> {
         let scale_factor = RefCell::new(1.0);
         let handle = RefCell::new(None);
         let sender = RefCell::new(None);
 
-        SoyBoyGUI::allocate(scale_factor, handle, sender, param_defs)
+        SoyBoyVST3GUI::allocate(scale_factor, handle, sender, param_defs)
     }
 
     fn start_gui(&self, parent: ParentWindow) {
@@ -57,7 +49,7 @@ impl SoyBoyGUI {
     }
 }
 
-impl IPlugFrame for SoyBoyGUI {
+impl IPlugFrame for SoyBoyVST3GUI {
     unsafe fn resize_view(
         &self,
         _view: SharedVstPtr<dyn IPlugView>,
@@ -75,7 +67,7 @@ impl IPlugFrame for SoyBoyGUI {
     }
 }
 
-impl IPlugViewContentScaleSupport for SoyBoyGUI {
+impl IPlugViewContentScaleSupport for SoyBoyVST3GUI {
     unsafe fn set_scale_factor(&self, scale_factor: f32) -> tresult {
         #[cfg(debug_assertions)]
         println!(
@@ -88,7 +80,7 @@ impl IPlugViewContentScaleSupport for SoyBoyGUI {
     }
 }
 
-impl IPlugView for SoyBoyGUI {
+impl IPlugView for SoyBoyVST3GUI {
     unsafe fn is_platform_type_supported(&self, type_: FIDString) -> tresult {
         #[cfg(debug_assertions)]
         println!("IPlugView::is_platform_type_supported()");

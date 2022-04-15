@@ -21,3 +21,11 @@ impl Image {
         }
     }
 }
+
+pub enum GUIMessage {
+    Terminate,
+}
+
+pub enum GUIEvent {
+    Redraw,
+}

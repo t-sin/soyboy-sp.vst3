@@ -25,14 +25,6 @@ use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
 
 use super::{constants::*, types::*, widget::*};
 
-pub enum GUIMessage {
-    Terminate,
-}
-
-pub enum GUIEvent {
-    Redraw,
-}
-
 pub struct Images {
     label_logo: RetainedImage,
     label_global: RetainedImage,
