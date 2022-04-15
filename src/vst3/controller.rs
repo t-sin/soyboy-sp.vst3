@@ -262,6 +262,7 @@ impl IEditController for SoyBoyController {
 
     unsafe fn create_view(&self, name: FIDString) -> *mut c_void {
         if utils::fidstring_to_string(name) == "editor" {
+            #[cfg(debug_assertions)]
             println!("IEditController::create_view()");
 
             // MEMO: When re-open the plugin window, the VST3 host calls this IEditController::create_view() but

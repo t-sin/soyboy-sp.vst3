@@ -376,6 +376,7 @@ impl GUIThread {
                 .unwrap()
         };
 
+        #[cfg(debug_assertions)]
         println!("scale factor = {}", window.window().scale_factor());
 
         let glow_context =
@@ -499,15 +500,18 @@ impl GUIThread {
         match self.receiver.lock().unwrap().try_recv() {
             Ok(message) => match message {
                 GUIMessage::Terminate => {
+                    #[cfg(debug_assertions)]
                     println!("try_recv() receive Message::Terminate");
                     self.quit = true;
                 }
             },
             Err(err) => match err {
                 TryRecvError::Empty => {
+                    // #[cfg(debug_assertions)]
                     // println!("try_recv() fails because empty");
                 }
                 TryRecvError::Disconnected => {
+                    #[cfg(debug_assertions)]
                     println!("try_recv() fails because disconnected");
                     self.quit = true;
                 }

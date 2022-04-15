@@ -61,7 +61,9 @@ impl IPlugFrame for SoyBoyGUI {
         _view: SharedVstPtr<dyn IPlugView>,
         new_size: *mut ViewRect,
     ) -> tresult {
+        #[cfg(debug_assertions)]
         println!("IPlugFrame::reqise_view()");
+
         (*new_size).left = 0;
         (*new_size).top = 0;
         (*new_size).right = SCREEN_WIDTH as i32;
@@ -73,10 +75,12 @@ impl IPlugFrame for SoyBoyGUI {
 
 impl IPlugViewContentScaleSupport for SoyBoyGUI {
     unsafe fn set_scale_factor(&self, scale_factor: f32) -> tresult {
+        #[cfg(debug_assertions)]
         println!(
             "IPlugViewContentScaleSupport::set_scale_factor({})",
             scale_factor
         );
+
         (*self.scale_factor.borrow_mut()) = scale_factor;
         kResultOk
     }
@@ -84,7 +88,9 @@ impl IPlugViewContentScaleSupport for SoyBoyGUI {
 
 impl IPlugView for SoyBoyGUI {
     unsafe fn is_platform_type_supported(&self, type_: FIDString) -> tresult {
+        #[cfg(debug_assertions)]
         println!("IPlugView::is_platform_type_supported()");
+
         let type_ = utils::fidstring_to_string(type_);
 
         if type_ == "X11EmbedWindowID" {
@@ -97,7 +103,9 @@ impl IPlugView for SoyBoyGUI {
     }
 
     unsafe fn attached(&self, parent: *mut c_void, type_: FIDString) -> tresult {
+        #[cfg(debug_assertions)]
         println!("IPlugView::attached()");
+
         let type_ = utils::fidstring_to_string(type_);
 
         if type_ == "X11EmbedWindowID" {
@@ -114,58 +122,92 @@ impl IPlugView for SoyBoyGUI {
     }
 
     unsafe fn removed(&self) -> tresult {
+        #[cfg(debug_assertions)]
         println!("IPlugView::removed()");
+
         let old_handle = self.handle.replace(None);
         let _ = (*self.sender.borrow())
             .as_ref()
             .unwrap()
             .send(GUIMessage::Terminate);
+
+        #[cfg(debug_assertions)]
         println!("sended terminate.");
+
+        #[allow(unused_variables)]
         let res = old_handle.unwrap().join();
+
+        #[cfg(debug_assertions)]
         println!("joined: {:?}", res);
+
         let _ = self.sender.replace(None);
         kResultOk
     }
     unsafe fn on_wheel(&self, _distance: f32) -> tresult {
+        #[cfg(debug_assertions)]
         println!("IPlugView::on_wheel()");
+
         kResultOk
     }
+
     unsafe fn on_key_down(&self, _key: char16, _key_code: i16, _modifiers: i16) -> tresult {
+        #[cfg(debug_assertions)]
         println!("IPlugView::on_key_down()");
+
         kResultOk
     }
+
     unsafe fn on_key_up(&self, _key: char16, _key_code: i16, _modifiers: i16) -> tresult {
+        #[cfg(debug_assertions)]
         println!("IPlugView::on_key_up()");
+
         kResultOk
     }
+
     unsafe fn get_size(&self, size: *mut ViewRect) -> tresult {
+        #[cfg(debug_assertions)]
         println!("IPlugView::get_size()");
+
         (*size).left = 0;
         (*size).top = 0;
         (*size).right = SCREEN_WIDTH as i32;
         (*size).bottom = SCREEN_HEIGHT as i32;
         kResultOk
     }
+
     unsafe fn on_size(&self, _new_size: *mut ViewRect) -> tresult {
+        #[cfg(debug_assertions)]
         println!("IPlugView::on_size()");
+
         kResultOk
     }
+
     unsafe fn on_focus(&self, _state: TBool) -> tresult {
+        #[cfg(debug_assertions)]
         println!("IPlugView::on_focus()");
+
         kResultOk
     }
     unsafe fn set_frame(&self, frame: *mut c_void) -> tresult {
+        #[cfg(debug_assertions)]
         println!("IPlugView::set_frame()");
+
         let frame = frame as *mut _;
         *frame = self as &dyn IPlugFrame;
         kResultOk
     }
+
     unsafe fn can_resize(&self) -> tresult {
+        #[cfg(debug_assertions)]
         println!("IPlugView::can_resize()");
+
         kResultFalse
     }
+
     unsafe fn check_size_constraint(&self, _rect: *mut ViewRect) -> tresult {
+        #[cfg(debug_assertions)]
         println!("IPlugView::check_size_constraint()");
+
         kResultOk
     }
 }
