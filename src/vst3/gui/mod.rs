@@ -87,8 +87,9 @@ impl IPlugView for SoyBoyGUI {
         println!("IPlugView::is_platform_type_supported()");
         let type_ = utils::fidstring_to_string(type_);
 
-        // TODO: currently supports GUI only on GNU/Linux
         if type_ == "X11EmbedWindowID" {
+            kResultOk
+        } else if type_ == "HWND" {
             kResultOk
         } else {
             kResultFalse
@@ -100,6 +101,10 @@ impl IPlugView for SoyBoyGUI {
         let type_ = utils::fidstring_to_string(type_);
 
         if type_ == "X11EmbedWindowID" {
+            let parent = ParentWindow(parent);
+            self.start_gui(parent);
+            kResultOk
+        } else if type_ == "HWND" {
             let parent = ParentWindow(parent);
             self.start_gui(parent);
             kResultOk

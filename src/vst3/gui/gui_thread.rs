@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+#[cfg(target_os = "windows")]
+use std::ptr::null_mut;
 use std::rc::Rc;
 use std::sync::{
     mpsc::{Receiver, TryRecvError},
@@ -8,13 +10,13 @@ use std::sync::{
 use egui_extras::image::RetainedImage;
 use egui_glow::{egui_winit::egui, glow, EguiGlow};
 #[cfg(target_os = "linux")]
-use glutin::platform::{
-    run_return::EventLoopExtRunReturn,
-    unix::{EventLoopBuilderExtUnix, WindowBuilderExtUnix},
-};
+use glutin::platform::unix::{EventLoopBuilderExtUnix, WindowBuilderExtUnix};
+#[cfg(target_os = "windows")]
+use glutin::platform::windows::{EventLoopBuilderExtWindows, WindowBuilderExtWindows};
 use glutin::{
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop, EventLoopBuilder, EventLoopProxy},
+    platform::run_return::EventLoopExtRunReturn,
     window::WindowBuilder,
     PossiblyCurrent, WindowedContext,
 };
@@ -337,9 +339,27 @@ impl GUIThread {
             let event_loop = EventLoopBuilder::<GUIEvent>::with_user_event()
                 .with_any_thread(true)
                 .build();
-
             let window_builder =
                 WindowBuilder::new().with_x11_parent(parent_id.try_into().unwrap());
+
+            (event_loop, window_builder)
+        };
+
+        #[cfg(target_os = "windows")]
+        let (event_loop, window_builder) = {
+            let parent_id = if parent.0.is_null() {
+                null_mut()
+            } else {
+                parent.0
+            };
+
+            let event_loop = EventLoopBuilder::<GUIEvent>::with_user_event()
+                .with_any_thread(true)
+                .build();
+            let window_builder = WindowBuilder::new()
+                .with_parent_window(parent_id as isize)
+                .with_decorations(false)
+                .with_resizable(false);
 
             (event_loop, window_builder)
         };
@@ -548,7 +568,6 @@ impl GUIThread {
         let (mut thread, mut event_loop) = GUIThread::setup(parent, param_defs, receiver);
         let proxy = event_loop.create_proxy();
 
-        #[cfg(target_os = "linux")]
         event_loop.run_return(move |event, _, control_flow| {
             thread.update(proxy.clone());
             thread.proc_events(event, control_flow);
