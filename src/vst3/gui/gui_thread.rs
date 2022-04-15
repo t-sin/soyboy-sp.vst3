@@ -6,10 +6,7 @@ use std::sync::{
 };
 
 use egui_extras::image::RetainedImage;
-use egui_glow::{
-    egui_winit::{egui, winit},
-    glow, EguiGlow,
-};
+use egui_glow::{egui_winit::egui, glow, EguiGlow};
 #[cfg(target_os = "linux")]
 use glutin::platform::{
     run_return::EventLoopExtRunReturn,
@@ -341,14 +338,8 @@ impl GUIThread {
                 .with_any_thread(true)
                 .build();
 
-            let window_builder = WindowBuilder::new()
-                .with_x11_parent(parent_id.try_into().unwrap())
-                .with_resizable(false)
-                .with_inner_size(winit::dpi::LogicalSize {
-                    width: SCREEN_WIDTH as f32,
-                    height: SCREEN_HEIGHT as f32,
-                })
-                .with_title("egui_glow example");
+            let window_builder =
+                WindowBuilder::new().with_x11_parent(parent_id.try_into().unwrap());
 
             (event_loop, window_builder)
         };
