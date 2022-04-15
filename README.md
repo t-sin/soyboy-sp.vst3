@@ -41,6 +41,7 @@ I want to do some chiptunes on GNU/Linux.
     - [x] frequency sweep for all oscillators
     - [x] make soyboy a single voice unit (preparation for be a polyphonic synth)
     - [ ] structured VST3 state
+    - [ ] can be polyphonic
 
 ## References
 
