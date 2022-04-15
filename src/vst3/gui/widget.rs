@@ -7,7 +7,7 @@ use num;
 
 use crate::soyboy::parameters::{Normalizable, ParameterDef};
 
-use super::basis::{Image, SCREEN_HEIGHT, SCREEN_WIDTH};
+use super::{constants::*, types::*};
 
 fn screen_rect() -> egui::Rect {
     egui::Rect {

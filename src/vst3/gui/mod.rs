@@ -17,12 +17,14 @@ use vst3_sys::{
 use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
 use crate::vst3::utils;
 
-mod basis;
+mod constants;
 mod gui_thread;
+mod types;
 mod widget;
 
-use basis::*;
+use constants::*;
 use gui_thread::*;
+use types::*;
 
 #[VST3(implements(IPlugView, IPlugFrame, IPlugViewContentScaleSupport))]
 pub struct SoyBoyGUI {

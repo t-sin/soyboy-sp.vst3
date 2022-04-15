@@ -23,7 +23,7 @@ use glutin::{
 
 use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
 
-use super::{basis::*, widget::*};
+use super::{constants::*, types::*, widget::*};
 
 pub enum GUIMessage {
     Terminate,
