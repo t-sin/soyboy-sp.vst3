@@ -10,13 +10,14 @@ use egui_glow::{
     egui_winit::{egui, winit},
     glow, EguiGlow,
 };
+#[cfg(target_os = "linux")]
+use glutin::platform::{
+    run_return::EventLoopExtRunReturn,
+    unix::{EventLoopBuilderExtUnix, WindowBuilderExtUnix},
+};
 use glutin::{
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop, EventLoopBuilder, EventLoopProxy},
-    platform::{
-        run_return::EventLoopExtRunReturn,
-        unix::{EventLoopBuilderExtUnix, WindowBuilderExtUnix},
-    },
     window::WindowBuilder,
     PossiblyCurrent, WindowedContext,
 };
@@ -328,23 +329,29 @@ impl GUIThread {
         param_defs: HashMap<SoyBoyParameter, ParameterDef>,
         receiver: Arc<Mutex<Receiver<GUIMessage>>>,
     ) -> (Self, EventLoop<GUIEvent>) {
-        let parent_id: usize = if parent.0.is_null() {
-            0
-        } else {
-            parent.0 as usize
-        };
-        let event_loop = EventLoopBuilder::<GUIEvent>::with_user_event()
-            .with_any_thread(true)
-            .build();
+        #[cfg(target_os = "linux")]
+        let (event_loop, window_builder) = {
+            let parent_id: usize = if parent.0.is_null() {
+                0
+            } else {
+                parent.0 as usize
+            };
 
-        let window_builder = WindowBuilder::new()
-            .with_x11_parent(parent_id.try_into().unwrap())
-            .with_resizable(false)
-            .with_inner_size(winit::dpi::LogicalSize {
-                width: SCREEN_WIDTH as f32,
-                height: SCREEN_HEIGHT as f32,
-            })
-            .with_title("egui_glow example");
+            let event_loop = EventLoopBuilder::<GUIEvent>::with_user_event()
+                .with_any_thread(true)
+                .build();
+
+            let window_builder = WindowBuilder::new()
+                .with_x11_parent(parent_id.try_into().unwrap())
+                .with_resizable(false)
+                .with_inner_size(winit::dpi::LogicalSize {
+                    width: SCREEN_WIDTH as f32,
+                    height: SCREEN_HEIGHT as f32,
+                })
+                .with_title("egui_glow example");
+
+            (event_loop, window_builder)
+        };
 
         let window = unsafe {
             glutin::ContextBuilder::new()
@@ -550,6 +557,7 @@ impl GUIThread {
         let (mut thread, mut event_loop) = GUIThread::setup(parent, param_defs, receiver);
         let proxy = event_loop.create_proxy();
 
+        #[cfg(target_os = "linux")]
         event_loop.run_return(move |event, _, control_flow| {
             thread.update(proxy.clone());
             thread.proc_events(event, control_flow);
