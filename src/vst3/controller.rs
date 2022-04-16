@@ -280,6 +280,8 @@ impl IEditController for SoyBoyController {
                 self.param_defs.clone(),
                 self.param_values.borrow_mut().clone(),
             ));
+            #[cfg(debug_assertions)]
+            println!("IEditController::create_view(): self.gui is replaced with new GUI object");
 
             // MEMO: When I implement IPlugView as IEditController itself but self in here
             //       is not mutable, so I wrote a complex casting and it does not works
