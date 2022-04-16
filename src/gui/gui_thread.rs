@@ -149,7 +149,6 @@ impl UI {
                 526.0,
             ),
             param_volume: ParameterSlider::new(
-                Parameter::Volume,
                 SoyBoyParameter::MasterVolume,
                 param_defs
                     .get(&SoyBoyParameter::MasterVolume)
@@ -166,7 +165,6 @@ impl UI {
                 event_handler.clone(),
             ),
             param_detune: ParameterSlider::new(
-                Parameter::Detune,
                 SoyBoyParameter::Detune,
                 param_defs.get(&SoyBoyParameter::Detune).unwrap().clone(),
                 0.1,
@@ -180,7 +178,6 @@ impl UI {
                 event_handler.clone(),
             ),
             param_interval: ParameterSlider::new(
-                Parameter::Interval,
                 SoyBoyParameter::OscNsInterval,
                 param_defs
                     .get(&SoyBoyParameter::OscNsInterval)
@@ -197,7 +194,6 @@ impl UI {
                 event_handler.clone(),
             ),
             param_attack: ParameterSlider::new(
-                Parameter::Attack,
                 SoyBoyParameter::EgAttack,
                 param_defs.get(&SoyBoyParameter::EgAttack).unwrap().clone(),
                 0.1,
@@ -211,7 +207,6 @@ impl UI {
                 event_handler.clone(),
             ),
             param_decay: ParameterSlider::new(
-                Parameter::Decay,
                 SoyBoyParameter::EgDecay,
                 param_defs.get(&SoyBoyParameter::EgDecay).unwrap().clone(),
                 0.1,
@@ -225,7 +220,6 @@ impl UI {
                 event_handler.clone(),
             ),
             param_sustain: ParameterSlider::new(
-                Parameter::Sustain,
                 SoyBoyParameter::EgSustain,
                 param_defs.get(&SoyBoyParameter::EgSustain).unwrap().clone(),
                 0.1,
@@ -239,7 +233,6 @@ impl UI {
                 event_handler.clone(),
             ),
             param_release: ParameterSlider::new(
-                Parameter::Release,
                 SoyBoyParameter::EgRelease,
                 param_defs.get(&SoyBoyParameter::EgRelease).unwrap().clone(),
                 0.1,
@@ -253,7 +246,6 @@ impl UI {
                 event_handler.clone(),
             ),
             param_amount: ParameterSlider::new(
-                Parameter::SweepAmount,
                 SoyBoyParameter::SweepAmount,
                 param_defs
                     .get(&SoyBoyParameter::SweepAmount)
@@ -270,7 +262,6 @@ impl UI {
                 event_handler.clone(),
             ),
             param_period: ParameterSlider::new(
-                Parameter::SweepPeriod,
                 SoyBoyParameter::SweepPeriod,
                 param_defs
                     .get(&SoyBoyParameter::SweepPeriod)
@@ -287,7 +278,6 @@ impl UI {
                 event_handler.clone(),
             ),
             param_time: ParameterSlider::new(
-                Parameter::StutterTime,
                 SoyBoyParameter::StutterTime,
                 param_defs
                     .get(&SoyBoyParameter::StutterTime)
@@ -304,7 +294,6 @@ impl UI {
                 event_handler.clone(),
             ),
             param_depth: ParameterSlider::new(
-                Parameter::StutterDepth,
                 SoyBoyParameter::StutterDepth,
                 param_defs
                     .get(&SoyBoyParameter::StutterDepth)

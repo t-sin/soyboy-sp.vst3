@@ -261,55 +261,38 @@ impl Widget for ParameterValue {
 }
 
 // available parameters in resources/paramval.png
-#[derive(Clone)]
-pub enum Parameter {
-    Volume,
-    Detune,
-    OscType,
-    DutyRatio,
-    Interval,
-    Attack,
-    Decay,
-    Sustain,
-    Release,
-    SweepType,
-    SweepAmount,
-    SweepPeriod,
-    StutterTime,
-    StutterDepth,
-}
-
-impl Parameter {
-    fn get_region(&self) -> Region {
+impl SoyBoyParameter {
+    fn get_region(&self) -> Option<Region> {
         match self {
-            Parameter::Volume => Region::new(0.0, 0.0, 66.0, 14.0),
-            Parameter::Detune => Region::new(0.0, 16.0, 74.0, 14.0),
-            Parameter::OscType => Region::new(0.0, 32.0, 88.0, 14.0),
-            Parameter::DutyRatio => Region::new(0.0, 48.0, 104.0, 14.0),
-            Parameter::Interval => Region::new(0.0, 64.0, 82.0, 14.0),
-            Parameter::Attack => Region::new(0.0, 80.0, 70.0, 14.0),
-            Parameter::Decay => Region::new(0.0, 96.0, 58.0, 14.0),
-            Parameter::Sustain => Region::new(0.0, 112.0, 74.0, 14.0),
-            Parameter::Release => Region::new(0.0, 128.0, 78.0, 14.0),
-            Parameter::SweepType => Region::new(0.0, 144.0, 46.0, 14.0),
-            Parameter::SweepAmount => Region::new(0.0, 160.0, 70.0, 14.0),
-            Parameter::SweepPeriod => Region::new(0.0, 176.0, 62.0, 14.0),
-            Parameter::StutterTime => Region::new(0.0, 192.0, 38.0, 14.0),
-            Parameter::StutterDepth => Region::new(0.0, 208.0, 58.0, 14.0),
+            SoyBoyParameter::MasterVolume => Some(Region::new(0.0, 0.0, 66.0, 14.0)),
+            SoyBoyParameter::Detune => Some(Region::new(0.0, 16.0, 74.0, 14.0)),
+            SoyBoyParameter::OscillatorType => Some(Region::new(0.0, 32.0, 88.0, 14.0)),
+            SoyBoyParameter::OscSqDuty => Some(Region::new(0.0, 48.0, 104.0, 14.0)),
+            SoyBoyParameter::OscNsInterval => Some(Region::new(0.0, 64.0, 82.0, 14.0)),
+            SoyBoyParameter::EgAttack => Some(Region::new(0.0, 80.0, 70.0, 14.0)),
+            SoyBoyParameter::EgDecay => Some(Region::new(0.0, 96.0, 58.0, 14.0)),
+            SoyBoyParameter::EgSustain => Some(Region::new(0.0, 112.0, 74.0, 14.0)),
+            SoyBoyParameter::EgRelease => Some(Region::new(0.0, 128.0, 78.0, 14.0)),
+            SoyBoyParameter::SweepType => Some(Region::new(0.0, 144.0, 46.0, 14.0)),
+            SoyBoyParameter::SweepAmount => Some(Region::new(0.0, 160.0, 70.0, 14.0)),
+            SoyBoyParameter::SweepPeriod => Some(Region::new(0.0, 176.0, 62.0, 14.0)),
+            SoyBoyParameter::StutterTime => Some(Region::new(0.0, 192.0, 38.0, 14.0)),
+            SoyBoyParameter::StutterDepth => Some(Region::new(0.0, 208.0, 58.0, 14.0)),
+            _ => None,
         }
     }
 }
 
 #[derive(Clone)]
 pub struct ParameterName {
-    param: Parameter,
+    param: SoyBoyParameter,
     atlas: Rc<RetainedImage>,
     x: f32,
     y: f32,
 }
 
 impl ParameterName {
-    pub fn new(param: Parameter, atlas: Rc<RetainedImage>, x: f32, y: f32) -> Self {
+    pub fn new(param: SoyBoyParameter, atlas: Rc<RetainedImage>, x: f32, y: f32) -> Self {
         Self { param, atlas, x, y }
     }
 }
@@ -317,7 +300,7 @@ impl ParameterName {
 impl Widget for ParameterName {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
         let topleft = egui::pos2(self.x, self.y);
-        let region = self.param.get_region();
+        let region = self.param.get_region().unwrap();
 
         let rect = egui::Rect {
             min: topleft,
@@ -664,8 +647,7 @@ impl Behavior for SliderBehavior {
 //    #[derive(Clone)]
 pub struct ParameterSlider {
     slider: SliderBehavior,
-    param: Parameter,
-    param2: SoyBoyParameter,
+    param: SoyBoyParameter,
     param_def: ParameterDef,
     unit: ParameterUnit,
     param_atlas: Rc<RetainedImage>,
@@ -676,8 +658,7 @@ pub struct ParameterSlider {
 
 impl ParameterSlider {
     pub fn new(
-        param: Parameter,
-        param2: SoyBoyParameter,
+        param: SoyBoyParameter,
         param_def: ParameterDef,
         value: f64,
         bipolar: bool,
@@ -691,7 +672,6 @@ impl ParameterSlider {
     ) -> Self {
         Self {
             param,
-            param2,
             param_def,
             unit,
             slider: SliderBehavior::new(
@@ -700,7 +680,7 @@ impl ParameterSlider {
                 bipolar,
                 x,
                 y + 16.0,
-                param2,
+                param,
                 event_handler,
             ),
             param_atlas,
