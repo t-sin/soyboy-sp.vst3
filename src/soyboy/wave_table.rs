@@ -55,7 +55,13 @@ impl Triggered for WaveTableOscillator {
         match event {
             Event::PitchBend { ratio } => {
                 self.pitch = *ratio;
-            } //Event::SetTable { idx } => {}
+            }
+            Event::ResetWaveTableAsSine => {
+                self.initialize_table();
+            }
+            Event::ResetWaveTableAtRandom => {
+                self.randomize_table();
+            }
             _ => (),
         }
     }

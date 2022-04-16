@@ -90,6 +90,8 @@ impl Triggered for VoiceUnit {
                 self.square_osc.trigger(event);
                 self.wavetable_osc.trigger(event);
             }
+            Event::ResetWaveTableAsSine => self.wavetable_osc.trigger(event),
+            Event::ResetWaveTableAtRandom => self.wavetable_osc.trigger(event),
             _ => (),
         }
     }
