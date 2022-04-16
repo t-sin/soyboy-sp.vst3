@@ -558,6 +558,8 @@ impl GUIThread {
 
     pub fn run_loop(
         parent: ParentWindow,
+        event_handler: Arc<dyn EventHandler>,
+
         param_defs: HashMap<SoyBoyParameter, ParameterDef>,
         receiver: Arc<Mutex<Receiver<GUIMessage>>>,
     ) {
