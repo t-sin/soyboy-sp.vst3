@@ -172,10 +172,11 @@ impl IPlugView for SoyBoyVST3GUI {
         println!("sended terminate.");
 
         #[allow(unused_variables)]
-        let res = old_handle.unwrap().join();
-
-        #[cfg(debug_assertions)]
-        println!("joined: {:?}", res);
+        if let Some(handle) = old_handle {
+            let res = handle.join();
+            #[cfg(debug_assertions)]
+            println!("joined: {:?}", res);
+        }
 
         let _ = self.sender.replace(None);
         kResultOk
