@@ -275,11 +275,11 @@ impl IEditController for SoyBoyController {
             // MEMO: When re-open the plugin window, the VST3 host calls this IEditController::create_view() but
             //       self.gui have did borrow_mut() and casted as *mut c_void in previous call, it goes non-safe,
             //       so we make a fresh GUI object for a new IEditController::create_view() call.
-            (*self.gui.borrow_mut()) = SoyBoyVST3GUI::new(
+            let _old_gui = self.gui.replace(SoyBoyVST3GUI::new(
                 self.component_handler.borrow().clone(),
                 self.param_defs.clone(),
                 self.param_values.borrow_mut().clone(),
-            );
+            ));
 
             // MEMO: When I implement IPlugView as IEditController itself but self in here
             //       is not mutable, so I wrote a complex casting and it does not works
