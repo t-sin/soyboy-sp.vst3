@@ -95,6 +95,9 @@ impl IPluginBase for SoyBoyController {
     }
 
     unsafe fn terminate(&self) -> tresult {
+        #[cfg(debug_assertions)]
+        println!("SoyBoyController::terminate()");
+
         kResultOk
     }
 }
