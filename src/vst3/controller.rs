@@ -30,6 +30,7 @@ pub struct SoyBoyController {
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     vst3_params: RefCell<HashMap<u32, ParameterInfo>>,
     param_values: Arc<Mutex<HashMap<u32, f64>>>,
+    component_handler: RefCell<Option<Arc<SharedVstPtr<dyn IComponentHandler>>>>,
     gui: RefCell<Box<SoyBoyVST3GUI>>,
 }
 
@@ -69,8 +70,9 @@ impl SoyBoyController {
         let vst3_params = RefCell::new(HashMap::new());
         let param_vals = Arc::new(Mutex::new(HashMap::new()));
         let gui = RefCell::new(SoyBoyVST3GUI::new(param_defs.clone()));
+        let component_handler = RefCell::new(None);
 
-        SoyBoyController::allocate(param_defs, vst3_params, param_vals, gui)
+        SoyBoyController::allocate(param_defs, vst3_params, param_vals, component_handler, gui)
     }
 }
 
@@ -255,8 +257,12 @@ impl IEditController for SoyBoyController {
 
     unsafe fn set_component_handler(
         &self,
-        _handler: SharedVstPtr<dyn IComponentHandler>,
+        handler: SharedVstPtr<dyn IComponentHandler>,
     ) -> tresult {
+        #[cfg(debug_assertion)]
+        println!("IEditController::set_component_handler()");
+
+        (*self.component_handler.borrow_mut()) = Some(Arc::new(handler));
         kResultOk
     }
 
