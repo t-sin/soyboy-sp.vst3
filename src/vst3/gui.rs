@@ -11,6 +11,7 @@ use vst3_sys::{
     base::{char16, kResultFalse, kResultOk, tresult, FIDString, TBool},
     gui::{IPlugFrame, IPlugView, IPlugViewContentScaleSupport, ViewRect},
     utils::SharedVstPtr,
+    vst::IComponentHandler,
     VST3,
 };
 
@@ -20,6 +21,7 @@ use crate::vst3::utils;
 
 #[VST3(implements(IPlugView, IPlugFrame, IPlugViewContentScaleSupport))]
 pub struct SoyBoyVST3GUI {
+    component_handler: RefCell<Option<Arc<SharedVstPtr<dyn IComponentHandler>>>>,
     scale_factor: RefCell<f32>,
     handle: RefCell<Option<thread::JoinHandle<()>>>,
     sender: RefCell<Option<Sender<GUIMessage>>>,
@@ -27,12 +29,16 @@ pub struct SoyBoyVST3GUI {
 }
 
 impl SoyBoyVST3GUI {
-    pub fn new(param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Box<Self> {
+    pub fn new(
+        component_handler: Option<Arc<SharedVstPtr<dyn IComponentHandler>>>,
+        param_defs: HashMap<SoyBoyParameter, ParameterDef>,
+    ) -> Box<Self> {
+        let component_handler = RefCell::new(component_handler);
         let scale_factor = RefCell::new(1.0);
         let handle = RefCell::new(None);
         let sender = RefCell::new(None);
 
-        SoyBoyVST3GUI::allocate(scale_factor, handle, sender, param_defs)
+        SoyBoyVST3GUI::allocate(component_handler, scale_factor, handle, sender, param_defs)
     }
 
     fn start_gui(&self, parent: ParentWindow) {

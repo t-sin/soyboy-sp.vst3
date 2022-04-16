@@ -69,8 +69,8 @@ impl SoyBoyController {
     pub unsafe fn new(param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Box<SoyBoyController> {
         let vst3_params = RefCell::new(HashMap::new());
         let param_vals = Arc::new(Mutex::new(HashMap::new()));
-        let gui = RefCell::new(SoyBoyVST3GUI::new(param_defs.clone()));
         let component_handler = RefCell::new(None);
+        let gui = RefCell::new(SoyBoyVST3GUI::new(None, param_defs.clone()));
 
         SoyBoyController::allocate(param_defs, vst3_params, param_vals, component_handler, gui)
     }
@@ -274,7 +274,10 @@ impl IEditController for SoyBoyController {
             // MEMO: When re-open the plugin window, the VST3 host calls this IEditController::create_view() but
             //       self.gui have did borrow_mut() and casted as *mut c_void in previous call, it goes non-safe,
             //       so we make a fresh GUI object for a new IEditController::create_view() call.
-            (*self.gui.borrow_mut()) = SoyBoyVST3GUI::new(self.param_defs.clone());
+            (*self.gui.borrow_mut()) = SoyBoyVST3GUI::new(
+                self.component_handler.borrow().clone(),
+                self.param_defs.clone(),
+            );
 
             // MEMO: When I implement IPlugView as IEditController itself but self in here
             //       is not mutable, so I wrote a complex casting and it does not works
