@@ -1,11 +1,12 @@
 use std::rc::Rc;
+use std::sync::Arc;
 use std::time;
 
 use egui_extras::image::RetainedImage;
 use egui_glow::egui_winit::{egui, egui::Widget};
 use num;
 
-use crate::soyboy::parameters::{Normalizable, ParameterDef};
+use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
 
 use super::{constants::*, types::*};
 
@@ -593,16 +594,28 @@ pub struct SliderBehavior {
     value: f64,
     x: f32,
     y: f32,
+    parameter: SoyBoyParameter,
+    event_handler: Arc<dyn EventHandler>,
 }
 
 impl SliderBehavior {
-    pub fn new(border_img: Image, value: f64, bipolar: bool, x: f32, y: f32) -> Self {
+    pub fn new(
+        border_img: Image,
+        value: f64,
+        bipolar: bool,
+        x: f32,
+        y: f32,
+        parameter: SoyBoyParameter,
+        event_handler: Arc<dyn EventHandler>,
+    ) -> Self {
         Self {
             border_img: border_img,
             value: value,
             bipolar: bipolar,
             x: x,
             y: y,
+            parameter,
+            event_handler,
         }
     }
 }
@@ -632,6 +645,8 @@ impl Behavior for SliderBehavior {
             let delta_x = response.drag_delta().x;
             let delta_v = delta_x as f64 / delta_factor;
             self.value = num::clamp(self.value + delta_v, 0.0, 1.0);
+            self.event_handler
+                .change_parameter(self.parameter, self.value);
         }
 
         response
@@ -650,6 +665,7 @@ impl Behavior for SliderBehavior {
 pub struct ParameterSlider {
     slider: SliderBehavior,
     param: Parameter,
+    param2: SoyBoyParameter,
     param_def: ParameterDef,
     unit: ParameterUnit,
     param_atlas: Rc<RetainedImage>,
@@ -661,6 +677,7 @@ pub struct ParameterSlider {
 impl ParameterSlider {
     pub fn new(
         param: Parameter,
+        param2: SoyBoyParameter,
         param_def: ParameterDef,
         value: f64,
         bipolar: bool,
@@ -670,12 +687,22 @@ impl ParameterSlider {
         value_atlas: Rc<RetainedImage>,
         x: f32,
         y: f32,
+        event_handler: Arc<dyn EventHandler>,
     ) -> Self {
         Self {
             param,
+            param2,
             param_def,
             unit,
-            slider: SliderBehavior::new(border_img, value, bipolar, x, y + 16.0),
+            slider: SliderBehavior::new(
+                border_img,
+                value,
+                bipolar,
+                x,
+                y + 16.0,
+                param2,
+                event_handler,
+            ),
             param_atlas,
             value_atlas,
             x,

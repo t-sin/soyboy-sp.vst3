@@ -25,7 +25,7 @@ impl Image {
 }
 
 pub trait EventHandler {
-    fn tell_parameter_changes(&self, p: SoyBoyParameter, value_normalized: f64);
+    fn change_parameter(&self, p: SoyBoyParameter, value_normalized: f64);
 }
 
 pub enum GUIMessage {

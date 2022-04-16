@@ -33,7 +33,7 @@ impl VST3EventHandler {
 }
 
 impl EventHandler for VST3EventHandler {
-    fn tell_parameter_changes(&self, p: SoyBoyParameter, value_normalized: f64) {
+    fn change_parameter(&self, p: SoyBoyParameter, value_normalized: f64) {
         if let Some(ref handler) = self.component_handler {
             let p = p as u32;
             unsafe {
@@ -76,7 +76,7 @@ impl SoyBoyVST3GUI {
         (*self.sender.borrow_mut()) = Some(send);
 
         let handle = thread::spawn(move || {
-            GUIThread::run_loop(parent, event_handler, param_defs, recv);
+            GUIThread::run_loop(parent, param_defs, event_handler, recv);
         });
         *self.handle.borrow_mut() = Some(handle);
     }

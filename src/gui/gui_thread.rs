@@ -65,7 +65,11 @@ pub struct UI {
 }
 
 impl UI {
-    fn new(egui_ctx: &egui::Context, param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Self {
+    fn new(
+        egui_ctx: &egui::Context,
+        param_defs: HashMap<SoyBoyParameter, ParameterDef>,
+        event_handler: Arc<dyn EventHandler>,
+    ) -> Self {
         let images = Images {
             label_logo: RetainedImage::from_image_bytes("soyboy:logo", IMG_LOGO).unwrap(),
             label_global: RetainedImage::from_image_bytes("soyboy:label:global", IMG_LABEL_GLOBAL)
@@ -146,6 +150,7 @@ impl UI {
             ),
             param_volume: ParameterSlider::new(
                 Parameter::Volume,
+                SoyBoyParameter::MasterVolume,
                 param_defs
                     .get(&SoyBoyParameter::MasterVolume)
                     .unwrap()
@@ -158,9 +163,11 @@ impl UI {
                 img_value_atlas.clone(),
                 60.0,
                 86.0 + 2.0,
+                event_handler.clone(),
             ),
             param_detune: ParameterSlider::new(
                 Parameter::Detune,
+                SoyBoyParameter::Detune,
                 param_defs.get(&SoyBoyParameter::Detune).unwrap().clone(),
                 0.1,
                 true,
@@ -170,9 +177,11 @@ impl UI {
                 img_value_atlas.clone(),
                 60.0,
                 122.0 + 2.0,
+                event_handler.clone(),
             ),
             param_interval: ParameterSlider::new(
                 Parameter::Interval,
+                SoyBoyParameter::OscNsInterval,
                 param_defs
                     .get(&SoyBoyParameter::OscNsInterval)
                     .unwrap()
@@ -185,9 +194,11 @@ impl UI {
                 img_value_atlas.clone(),
                 60.0,
                 292.0 + 2.0,
+                event_handler.clone(),
             ),
             param_attack: ParameterSlider::new(
                 Parameter::Attack,
+                SoyBoyParameter::EgAttack,
                 param_defs.get(&SoyBoyParameter::EgAttack).unwrap().clone(),
                 0.1,
                 false,
@@ -197,9 +208,11 @@ impl UI {
                 img_value_atlas.clone(),
                 388.0,
                 24.0 + 2.0,
+                event_handler.clone(),
             ),
             param_decay: ParameterSlider::new(
                 Parameter::Decay,
+                SoyBoyParameter::EgDecay,
                 param_defs.get(&SoyBoyParameter::EgDecay).unwrap().clone(),
                 0.1,
                 false,
@@ -209,9 +222,11 @@ impl UI {
                 img_value_atlas.clone(),
                 388.0,
                 58.0 + 2.0,
+                event_handler.clone(),
             ),
             param_sustain: ParameterSlider::new(
                 Parameter::Sustain,
+                SoyBoyParameter::EgSustain,
                 param_defs.get(&SoyBoyParameter::EgSustain).unwrap().clone(),
                 0.1,
                 false,
@@ -221,9 +236,11 @@ impl UI {
                 img_value_atlas.clone(),
                 388.0,
                 92.0 + 2.0,
+                event_handler.clone(),
             ),
             param_release: ParameterSlider::new(
                 Parameter::Release,
+                SoyBoyParameter::EgRelease,
                 param_defs.get(&SoyBoyParameter::EgRelease).unwrap().clone(),
                 0.1,
                 false,
@@ -233,9 +250,11 @@ impl UI {
                 img_value_atlas.clone(),
                 388.0,
                 126.0 + 2.0,
+                event_handler.clone(),
             ),
             param_amount: ParameterSlider::new(
                 Parameter::SweepAmount,
+                SoyBoyParameter::SweepAmount,
                 param_defs
                     .get(&SoyBoyParameter::SweepAmount)
                     .unwrap()
@@ -248,9 +267,11 @@ impl UI {
                 img_value_atlas.clone(),
                 388.0,
                 232.0,
+                event_handler.clone(),
             ),
             param_period: ParameterSlider::new(
                 Parameter::SweepPeriod,
+                SoyBoyParameter::SweepPeriod,
                 param_defs
                     .get(&SoyBoyParameter::SweepPeriod)
                     .unwrap()
@@ -263,9 +284,11 @@ impl UI {
                 img_value_atlas.clone(),
                 388.0,
                 268.0,
+                event_handler.clone(),
             ),
             param_time: ParameterSlider::new(
                 Parameter::StutterTime,
+                SoyBoyParameter::StutterTime,
                 param_defs
                     .get(&SoyBoyParameter::StutterTime)
                     .unwrap()
@@ -278,9 +301,11 @@ impl UI {
                 img_value_atlas.clone(),
                 388.0,
                 342.0,
+                event_handler.clone(),
             ),
             param_depth: ParameterSlider::new(
                 Parameter::StutterDepth,
+                SoyBoyParameter::StutterDepth,
                 param_defs
                     .get(&SoyBoyParameter::StutterDepth)
                     .unwrap()
@@ -293,6 +318,7 @@ impl UI {
                 img_value_atlas.clone(),
                 388.0,
                 378.0,
+                event_handler.clone(),
             ),
             _images: images,
         }
@@ -318,6 +344,7 @@ impl GUIThread {
     pub fn setup(
         parent: ParentWindow,
         param_defs: HashMap<SoyBoyParameter, ParameterDef>,
+        event_handler: Arc<dyn EventHandler>,
         receiver: Arc<Mutex<Receiver<GUIMessage>>>,
     ) -> (Self, EventLoop<GUIEvent>) {
         #[cfg(target_os = "linux")]
@@ -377,7 +404,7 @@ impl GUIThread {
         let egui_glow = EguiGlow::new(window.window(), glow_context.clone());
 
         let thread = GUIThread {
-            ui: UI::new(&egui_glow.egui_ctx, param_defs),
+            ui: UI::new(&egui_glow.egui_ctx, param_defs, event_handler.clone()),
             quit: false,
             needs_repaint: false,
             receiver: receiver,
@@ -558,12 +585,12 @@ impl GUIThread {
 
     pub fn run_loop(
         parent: ParentWindow,
-        event_handler: Arc<dyn EventHandler>,
-
         param_defs: HashMap<SoyBoyParameter, ParameterDef>,
+        event_handler: Arc<dyn EventHandler>,
         receiver: Arc<Mutex<Receiver<GUIMessage>>>,
     ) {
-        let (mut thread, mut event_loop) = GUIThread::setup(parent, param_defs, receiver);
+        let (mut thread, mut event_loop) =
+            GUIThread::setup(parent, param_defs, event_handler, receiver);
         let proxy = event_loop.create_proxy();
 
         event_loop.run_return(move |event, _, control_flow| {
