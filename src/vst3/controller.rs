@@ -5,7 +5,7 @@ use std::mem;
 use std::ops::DerefMut;
 use std::os::raw::c_void;
 use std::ptr::null_mut;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use vst3_com::sys::GUID;
 use vst3_sys::{
@@ -29,7 +29,7 @@ use crate::vst3::{gui::SoyBoyVST3GUI, plugin_data, utils};
 pub struct SoyBoyController {
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     vst3_params: RefCell<HashMap<u32, ParameterInfo>>,
-    param_values: Arc<Mutex<HashMap<u32, f64>>>,
+    param_values: RefCell<HashMap<u32, f64>>,
     component_handler: RefCell<Option<Arc<dyn IComponentHandler>>>,
     gui: RefCell<Box<SoyBoyVST3GUI>>,
 }
@@ -50,7 +50,7 @@ impl SoyBoyController {
         flags: i32,
     ) {
         let mut vst3_params = self.vst3_params.borrow_mut();
-        let mut param_vals = self.param_values.lock().unwrap();
+        let mut param_vals = self.param_values.borrow_mut();
 
         let mut param = utils::make_empty_param_info();
         param.id = id;
@@ -68,7 +68,7 @@ impl SoyBoyController {
 
     pub unsafe fn new(param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Box<SoyBoyController> {
         let vst3_params = RefCell::new(HashMap::new());
-        let param_vals = Arc::new(Mutex::new(HashMap::new()));
+        let param_vals = RefCell::new(HashMap::new());
         let component_handler = RefCell::new(None);
         let gui = RefCell::new(SoyBoyVST3GUI::new(None, param_defs.clone()));
 
@@ -139,10 +139,7 @@ impl IEditController for SoyBoyController {
             let ptr = &mut value as *mut f64 as *mut c_void;
 
             state.read(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_read);
-            self.param_values
-                .lock()
-                .unwrap()
-                .insert(param as u32, value);
+            self.param_values.borrow_mut().insert(param as u32, value);
         }
 
         kResultOk
@@ -242,14 +239,14 @@ impl IEditController for SoyBoyController {
     }
 
     unsafe fn get_param_normalized(&self, id: u32) -> f64 {
-        match self.param_values.lock().unwrap().get(&id) {
+        match self.param_values.borrow_mut().get(&id) {
             Some(val) => *val,
             _ => 0.0,
         }
     }
 
     unsafe fn set_param_normalized(&self, id: u32, value: f64) -> tresult {
-        match self.param_values.lock().unwrap().insert(id, value) {
+        match self.param_values.borrow_mut().insert(id, value) {
             Some(_) => kResultTrue,
             _ => kResultFalse,
         }
