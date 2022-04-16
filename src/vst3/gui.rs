@@ -15,13 +15,38 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::gui::{GUIMessage, GUIThread, ParentWindow, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::gui::{EventHandler, GUIMessage, GUIThread, ParentWindow, SCREEN_HEIGHT, SCREEN_WIDTH};
 use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
 use crate::vst3::utils;
 
+pub struct VST3EventHandler {
+    component_handler: Option<Arc<SharedVstPtr<dyn IComponentHandler>>>,
+}
+
+impl VST3EventHandler {
+    fn new(component_handler: Option<Arc<SharedVstPtr<dyn IComponentHandler>>>) -> Self {
+        Self { component_handler }
+    }
+}
+
+impl EventHandler for VST3EventHandler {
+    fn tell_parameter_changes(&self, p: SoyBoyParameter, value_normalized: f64) {
+        if let Some(ref handler) = self.component_handler {
+            if let Some(handler) = handler.upgrade() {
+                let p = p as u32;
+                unsafe {
+                    handler.begin_edit(p);
+                    handler.perform_edit(p, value_normalized);
+                    handler.end_edit(p);
+                }
+            }
+        }
+    }
+}
+
 #[VST3(implements(IPlugView, IPlugFrame, IPlugViewContentScaleSupport))]
 pub struct SoyBoyVST3GUI {
-    component_handler: RefCell<Option<Arc<SharedVstPtr<dyn IComponentHandler>>>>,
+    event_handler: VST3EventHandler,
     scale_factor: RefCell<f32>,
     handle: RefCell<Option<thread::JoinHandle<()>>>,
     sender: RefCell<Option<Sender<GUIMessage>>>,
@@ -33,12 +58,12 @@ impl SoyBoyVST3GUI {
         component_handler: Option<Arc<SharedVstPtr<dyn IComponentHandler>>>,
         param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     ) -> Box<Self> {
-        let component_handler = RefCell::new(component_handler);
+        let handler = VST3EventHandler::new(component_handler);
         let scale_factor = RefCell::new(1.0);
         let handle = RefCell::new(None);
         let sender = RefCell::new(None);
 
-        SoyBoyVST3GUI::allocate(component_handler, scale_factor, handle, sender, param_defs)
+        SoyBoyVST3GUI::allocate(handler, scale_factor, handle, sender, param_defs)
     }
 
     fn start_gui(&self, parent: ParentWindow) {

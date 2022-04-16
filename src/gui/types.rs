@@ -3,6 +3,8 @@ use std::os::raw::c_void;
 use egui_extras::image::RetainedImage;
 use egui_glow::egui_winit::egui;
 
+use crate::soyboy::parameters::SoyBoyParameter;
+
 pub struct ParentWindow(pub *mut c_void);
 unsafe impl Send for ParentWindow {}
 unsafe impl Sync for ParentWindow {}
@@ -20,6 +22,10 @@ impl Image {
             size: image.size_vec2(),
         }
     }
+}
+
+pub trait EventHandler {
+    fn tell_parameter_changes(&self, p: SoyBoyParameter, value_normalized: f64);
 }
 
 pub enum GUIMessage {
