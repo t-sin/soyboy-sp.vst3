@@ -1,3 +1,4 @@
+mod constants;
 mod dac;
 mod envelope_generator;
 mod noise;

@@ -1,13 +1,11 @@
 use rand::prelude::*;
 
 use crate::soyboy::{
+    constants::{WAVETABLE_SIZE, WAVETABLE_SIZE_F64},
     event::{Event, Triggered},
     parameters::{Parametric, SoyBoyParameter},
     types::{i4, AudioProcessor},
 };
-
-const WAVETABLE_SIZE: usize = 32;
-const WAVETABLE_SIZE_F64: f64 = WAVETABLE_SIZE as f64;
 
 pub struct WaveTableOscillator {
     phase: f64,
