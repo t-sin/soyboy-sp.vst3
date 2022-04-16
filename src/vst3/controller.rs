@@ -290,7 +290,13 @@ impl IEditController for SoyBoyController {
             //
             //       So I decided IPlugView as new object (in gui.rs). In this way, the VST3 host
             //       recognizes IPlugView and proceeds GUI initialization sequence.
-            self.gui.borrow_mut().deref_mut().as_mut() as *mut dyn IPlugView as *mut c_void
+            let gui =
+                self.gui.borrow_mut().deref_mut().as_mut() as *mut dyn IPlugView as *mut c_void;
+
+            #[cfg(debug_assertions)]
+            println!("IEditController::create_view(): casted self.gui into *mut c_void");
+
+            gui
         } else {
             null_mut()
         }
