@@ -70,7 +70,7 @@ impl SoyBoyController {
         let vst3_params = RefCell::new(HashMap::new());
         let param_vals = RefCell::new(HashMap::new());
         let component_handler = RefCell::new(None);
-        let gui = RefCell::new(SoyBoyVST3GUI::new(None, param_defs.clone()));
+        let gui = RefCell::new(SoyBoyVST3GUI::new(None, param_defs.clone(), HashMap::new()));
 
         SoyBoyController::allocate(param_defs, vst3_params, param_vals, component_handler, gui)
     }
@@ -278,6 +278,7 @@ impl IEditController for SoyBoyController {
             (*self.gui.borrow_mut()) = SoyBoyVST3GUI::new(
                 self.component_handler.borrow().clone(),
                 self.param_defs.clone(),
+                self.param_values.borrow_mut().clone(),
             );
 
             // MEMO: When I implement IPlugView as IEditController itself but self in here
