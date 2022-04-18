@@ -2,7 +2,6 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
-use std::ops::DerefMut;
 use std::os::raw::c_void;
 use std::ptr::null_mut;
 use std::sync::Arc;
@@ -31,7 +30,6 @@ pub struct SoyBoyController {
     vst3_params: RefCell<HashMap<u32, ParameterInfo>>,
     param_values: RefCell<HashMap<u32, f64>>,
     component_handler: RefCell<Option<Arc<dyn IComponentHandler>>>,
-    gui: RefCell<Box<SoyBoyVST3GUI>>,
 }
 
 impl SoyBoyController {
@@ -70,9 +68,8 @@ impl SoyBoyController {
         let vst3_params = RefCell::new(HashMap::new());
         let param_vals = RefCell::new(HashMap::new());
         let component_handler = RefCell::new(None);
-        let gui = RefCell::new(SoyBoyVST3GUI::new(None, param_defs.clone(), HashMap::new()));
 
-        SoyBoyController::allocate(param_defs, vst3_params, param_vals, component_handler, gui)
+        SoyBoyController::allocate(param_defs, vst3_params, param_vals, component_handler)
     }
 }
 
@@ -278,13 +275,11 @@ impl IEditController for SoyBoyController {
             // MEMO: When re-open the plugin window, the VST3 host calls this IEditController::create_view() but
             //       self.gui have did borrow_mut() and casted as *mut c_void in previous call, it goes non-safe,
             //       so we make a fresh GUI object for a new IEditController::create_view() call.
-            let _old_gui = self.gui.replace(SoyBoyVST3GUI::new(
+            let gui = SoyBoyVST3GUI::new(
                 self.component_handler.borrow().clone(),
                 self.param_defs.clone(),
                 self.param_values.borrow_mut().clone(),
-            ));
-            #[cfg(debug_assertions)]
-            println!("IEditController::create_view(): self.gui is replaced with new GUI object");
+            );
 
             // MEMO: When I implement IPlugView as IEditController itself but self in here
             //       is not mutable, so I wrote a complex casting and it does not works
@@ -293,8 +288,7 @@ impl IEditController for SoyBoyController {
             //
             //       So I decided IPlugView as new object (in gui.rs). In this way, the VST3 host
             //       recognizes IPlugView and proceeds GUI initialization sequence.
-            let gui =
-                self.gui.borrow_mut().deref_mut().as_mut() as *mut dyn IPlugView as *mut c_void;
+            let gui = Box::into_raw(gui) as *mut dyn IPlugView as *mut c_void;
 
             #[cfg(debug_assertions)]
             println!("IEditController::create_view(): casted self.gui into *mut c_void");
