@@ -6,6 +6,7 @@ use std::sync::{
     mpsc::{Receiver, TryRecvError},
     Arc, Mutex,
 };
+use std::time;
 
 use egui_extras::image::RetainedImage;
 use egui_glow::{egui_winit::egui, glow, EguiGlow};
@@ -341,7 +342,7 @@ pub struct GUIThread {
     ui: UI,
     // window stuff
     quit: bool,
-    needs_repaint: bool,
+    needs_redraw: bool,
     // threading stuff
     receiver: Arc<Mutex<Receiver<GUIMessage>>>,
     // egui stuff
@@ -426,7 +427,7 @@ impl GUIThread {
                 event_handler.clone(),
             ),
             quit: false,
-            needs_repaint: false,
+            needs_redraw: false,
             receiver: receiver,
             egui_glow: egui_glow,
             window: window,
@@ -437,23 +438,23 @@ impl GUIThread {
     }
 
     pub fn update(&mut self, proxy: EventLoopProxy<GUIEvent>) {
-        let mut stateful = [
-            &mut self.ui.button_reset_random,
-            &mut self.ui.button_reset_sine,
+        let behaviors: &mut [&mut dyn Behavior] = &mut [
+            &mut self.ui.button_reset_random as &mut dyn Behavior,
+            &mut self.ui.button_reset_sine as &mut dyn Behavior,
         ];
-        let mut needs_redraw = false;
+        self.needs_redraw = false;
 
-        for widget in stateful.iter_mut() {
-            needs_redraw |= widget.update();
+        for widget in behaviors.iter_mut() {
+            self.needs_redraw |= widget.update();
         }
 
-        if needs_redraw {
+        if self.needs_redraw {
             let _ = proxy.send_event(GUIEvent::Redraw);
         }
     }
 
     pub fn draw(&mut self) {
-        self.needs_repaint = self.egui_glow.run(self.window.window(), |egui_ctx| {
+        self.needs_redraw |= self.egui_glow.run(self.window.window(), |egui_ctx| {
             // background
             egui::Area::new("background").show(egui_ctx, |ui| {
                 ui.painter().rect_filled(
@@ -559,11 +560,8 @@ impl GUIThread {
 
         let mut redraw = || {
             self.draw();
-            if self.needs_repaint {
+            if self.needs_redraw {
                 self.window.window().request_redraw();
-                *control_flow = ControlFlow::Poll;
-            } else {
-                *control_flow = ControlFlow::Wait;
             }
         };
 
@@ -599,6 +597,11 @@ impl GUIThread {
 
         if self.quit {
             *control_flow = ControlFlow::Exit;
+        } else if self.needs_redraw {
+            *control_flow = ControlFlow::Poll;
+        } else {
+            *control_flow =
+                ControlFlow::WaitUntil(time::Instant::now() + time::Duration::from_millis(100));
         }
     }
 
