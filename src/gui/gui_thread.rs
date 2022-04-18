@@ -563,8 +563,7 @@ impl GUIThread {
                 self.window.window().request_redraw();
                 *control_flow = ControlFlow::Poll;
             } else {
-                //*control_flow = ControlFlow::Wait;
-                *control_flow = ControlFlow::Poll;
+                *control_flow = ControlFlow::Wait;
             }
         };
 
