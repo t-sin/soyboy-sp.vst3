@@ -181,6 +181,7 @@ impl IPlugView for SoyBoyVST3GUI {
         let _ = self.sender.replace(None);
         kResultOk
     }
+
     unsafe fn on_wheel(&self, _distance: f32) -> tresult {
         #[cfg(debug_assertions)]
         println!("IPlugView::on_wheel()");
