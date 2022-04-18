@@ -408,13 +408,15 @@ impl GUIThread {
                 .unwrap()
         };
 
-        #[cfg(debug_assertions)]
-        println!("scale factor = {}", window.window().scale_factor());
-
         let glow_context =
             unsafe { glow::Context::from_loader_function(|s| window.get_proc_address(s)) };
         let glow_context = Rc::new(glow_context);
         let egui_glow = EguiGlow::new(window.window(), glow_context.clone());
+
+        let scale_factor = window.window().scale_factor();
+        #[cfg(debug_assertions)]
+        println!("scale factor = {}", scale_factor);
+        egui_glow.egui_ctx.set_pixels_per_point(1.0);
 
         let thread = GUIThread {
             ui: UI::new(
