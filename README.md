@@ -6,11 +6,6 @@ I want to do some chiptunes on GNU/Linux.
 
 [*Edamame* is the Humboldt penguin living in Tobu Zoo](https://twitter.com/tobuzoo7/status/982488509725327361).
 
-## Known issues
-
-- don't work correctly with high DPI screens
-- tested with Bitwig Studio only
-
 ## TODOs
 
 - [ ] VST3 related
