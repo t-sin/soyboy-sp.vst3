@@ -92,24 +92,6 @@ impl SoyBoyVST3GUI {
     }
 }
 
-impl IPlugFrame for SoyBoyVST3GUI {
-    unsafe fn resize_view(
-        &self,
-        _view: SharedVstPtr<dyn IPlugView>,
-        new_size: *mut ViewRect,
-    ) -> tresult {
-        #[cfg(debug_assertions)]
-        println!("IPlugFrame::reqise_view()");
-
-        (*new_size).left = 0;
-        (*new_size).top = 0;
-        (*new_size).right = SCREEN_WIDTH as i32;
-        (*new_size).bottom = SCREEN_HEIGHT as i32;
-
-        kResultOk
-    }
-}
-
 impl IPlugViewContentScaleSupport for SoyBoyVST3GUI {
     unsafe fn set_scale_factor(&self, scale_factor: f32) -> tresult {
         #[cfg(debug_assertions)]
@@ -227,12 +209,14 @@ impl IPlugView for SoyBoyVST3GUI {
 
         kResultOk
     }
-    unsafe fn set_frame(&self, frame: *mut c_void) -> tresult {
+    unsafe fn set_frame(&self, _frame: *mut c_void) -> tresult {
         #[cfg(debug_assertions)]
         println!("IPlugView::set_frame()");
 
-        let frame = frame as *mut _;
-        *frame = self as &dyn IPlugFrame;
+        // SoyBoy-SP does not allow GUI resizing so does not implement IPlugFrame inteface.
+        // If you need to implement IPlugFrame in Rust, you should implement IPlugFrame not on &self,
+        // because if you passed &self as IPlugFrame as a raw pointer (with like `Box::into_raw()`)
+        // you cannot drop this object.
         kResultOk
     }
 
