@@ -13,6 +13,10 @@ pub const IMG_BUTTON_RESET_SINE: &[u8] = include_bytes!("../../resources/button-
 pub const IMG_SLIDER_BORDER: &[u8] = include_bytes!("../../resources/slider-border.png");
 pub const IMG_VALUE_ATLAS: &[u8] = include_bytes!("../../resources/paramval.png");
 pub const IMG_PARAM_ATLAS: &[u8] = include_bytes!("../../resources/paramname.png");
+pub const IMG_SELECT_OSC_TYPE: &[u8] = include_bytes!("../../resources/select-osc-type.png");
+pub const IMG_SELECT_OSC_SQ_DUTY: &[u8] =
+    include_bytes!("../../resources/select-osc-square-duty.png");
+pub const IMG_SELECT_SWEEP_TYPE: &[u8] = include_bytes!("../../resources/select-sweep-type.png");
 
 pub const SCREEN_WIDTH: u32 = 680;
 pub const SCREEN_HEIGHT: u32 = 560;

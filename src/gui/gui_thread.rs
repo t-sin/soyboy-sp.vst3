@@ -38,6 +38,9 @@ pub struct Images {
     button_reset_random: RetainedImage,
     button_reset_sine: RetainedImage,
     slider_border: RetainedImage,
+    select_osc_type: RetainedImage,
+    select_osc_sq_duty: RetainedImage,
+    select_osc_sweep_type: RetainedImage,
 }
 
 pub struct UI {
@@ -110,6 +113,21 @@ impl UI {
             slider_border: RetainedImage::from_image_bytes(
                 "soyboy:slider:border",
                 IMG_SLIDER_BORDER,
+            )
+            .unwrap(),
+            select_osc_type: RetainedImage::from_image_bytes(
+                "soyboy:select:osc-type",
+                IMG_SELECT_OSC_TYPE,
+            )
+            .unwrap(),
+            select_osc_sq_duty: RetainedImage::from_image_bytes(
+                "soyboy:select:osc-square-duty",
+                IMG_SELECT_OSC_SQ_DUTY,
+            )
+            .unwrap(),
+            select_osc_sweep_type: RetainedImage::from_image_bytes(
+                "soyboy:select:sweep-type",
+                IMG_SELECT_SWEEP_TYPE,
             )
             .unwrap(),
         };
