@@ -9,8 +9,7 @@ use std::thread;
 
 use vst3_sys::{
     base::{char16, kResultFalse, kResultOk, tresult, FIDString, TBool},
-    gui::{IPlugFrame, IPlugView, IPlugViewContentScaleSupport, ViewRect},
-    utils::SharedVstPtr,
+    gui::{IPlugView, IPlugViewContentScaleSupport, ViewRect},
     vst::IComponentHandler,
     VST3,
 };
@@ -45,7 +44,7 @@ impl EventHandler for VST3EventHandler {
     }
 }
 
-#[VST3(implements(IPlugView, IPlugFrame, IPlugViewContentScaleSupport))]
+#[VST3(implements(IPlugView, IPlugViewContentScaleSupport))]
 pub struct SoyBoyVST3GUI {
     event_handler: Arc<VST3EventHandler>,
     scale_factor: RefCell<f32>,
