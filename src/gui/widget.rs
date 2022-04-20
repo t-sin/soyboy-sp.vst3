@@ -739,3 +739,184 @@ impl Behavior for ParameterSlider {
         }
     }
 }
+
+impl SoyBoyParameter {
+    fn get_select_button_regions(&self) -> Option<Vec<Region>> {
+        match self {
+            SoyBoyParameter::OscillatorType => Some(vec![
+                Region::new(2.0, 2.0, 58.0, 22.0),
+                Region::new(62.0, 2.0, 58.0, 22.0),
+                Region::new(122.0, 2.0, 54.0, 22.0),
+            ]),
+            SoyBoyParameter::OscSqDuty => Some(vec![
+                Region::new(2.0, 2.0, 46.0, 44.0),
+                Region::new(50.0, 2.0, 40.0, 44.0),
+                Region::new(92.0, 2.0, 42.0, 44.0),
+                Region::new(136.0, 2.0, 40.0, 44.0),
+            ]),
+            SoyBoyParameter::SweepType => Some(vec![
+                Region::new(2.0, 2.0, 48.0, 40.0),
+                Region::new(50.0, 2.0, 64.0, 40.0),
+                Region::new(116.0, 2.0, 58.0, 40.0),
+            ]),
+            _ => None,
+        }
+    }
+}
+
+pub struct SelectButton {
+    param: SoyBoyParameter,
+    value: usize,
+    image: Image,
+    x: f32,
+    y: f32,
+}
+
+impl SelectButton {
+    pub fn new(param: SoyBoyParameter, value: usize, image: Image, x: f32, y: f32) -> Self {
+        Self {
+            param,
+            value,
+            image,
+            x,
+            y,
+        }
+    }
+}
+
+impl Widget for SelectButton {
+    fn ui(self, ui: &mut egui::Ui) -> egui::Response {
+        let topleft = egui::pos2(self.x, self.y);
+        let rect = egui::Rect {
+            min: topleft,
+            max: topleft + self.image.size,
+        };
+
+        let sense = egui::Sense {
+            click: false,
+            drag: false,
+            focusable: false,
+        };
+        let response = ui.allocate_rect(rect, sense);
+
+        if ui.is_rect_visible(rect) {
+            let img = egui::widgets::Image::new(self.image.texture_id, self.image.size);
+            img.paint_at(ui, rect);
+
+            let regions = self.param.get_select_button_regions().unwrap();
+            let region = regions.iter().nth(self.value).unwrap();
+            let topleft = topleft + region.pos.to_vec2();
+            let selected_rect = egui::Rect {
+                min: topleft,
+                max: topleft + region.size,
+            };
+            ui.painter().rect_filled(
+                selected_rect,
+                egui::Rounding::none(),
+                egui::Color32::from_rgba_unmultiplied(0x33, 0x3f, 0x32, 80),
+            );
+        }
+
+        response
+    }
+}
+
+pub struct ParameterSelector {
+    param: SoyBoyParameter,
+    param_def: ParameterDef,
+    value: usize,
+    button_image: Image,
+    param_atlas: Rc<RetainedImage>,
+    x: f32,
+    y: f32,
+    event_handler: Arc<dyn EventHandler>,
+}
+
+impl ParameterSelector {
+    pub fn new(
+        param: SoyBoyParameter,
+        param_def: ParameterDef,
+        value: f64,
+        button_image: Image,
+        param_atlas: Rc<RetainedImage>,
+        x: f32,
+        y: f32,
+        event_handler: Arc<dyn EventHandler>,
+    ) -> Self {
+        println!("value: {}", value);
+        Self {
+            param,
+            param_def,
+            value: value as usize,
+            button_image,
+            param_atlas,
+            x,
+            y,
+            event_handler,
+        }
+    }
+}
+
+impl Behavior for ParameterSelector {
+    fn update(&mut self) -> bool {
+        false
+    }
+
+    fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
+        ui.add(ParameterName::new(
+            self.param.clone(),
+            self.param_atlas.clone(),
+            self.x,
+            self.y,
+        ));
+
+        let topleft = egui::pos2(self.x, self.y + 16.0);
+        let button_rect = egui::Rect {
+            min: topleft,
+            max: topleft + self.button_image.size,
+        };
+        ui.set_clip_rect(button_rect);
+        let _ = SelectButton::new(
+            self.param,
+            self.value,
+            self.button_image.clone(),
+            topleft.x,
+            topleft.y,
+        )
+        .ui(ui);
+
+        let responses: Vec<egui::Response> = self
+            .param
+            .get_select_button_regions()
+            .unwrap()
+            .iter()
+            .map(|reg| {
+                let topleft = topleft + reg.pos.to_vec2();
+                ui.allocate_rect(
+                    egui::Rect {
+                        min: topleft,
+                        max: topleft + reg.size,
+                    },
+                    egui::Sense::click(),
+                )
+            })
+            .collect();
+
+        if let Some(pos) = responses.iter().position(|res| res.clicked()) {
+            self.value = pos;
+            self.event_handler
+                .change_parameter(self.param, self.param_def.normalize(self.value as f64));
+        }
+
+        responses[self.value].clone()
+    }
+
+    fn rect(&self) -> egui::Rect {
+        let topleft = egui::pos2(self.x, self.y);
+
+        egui::Rect {
+            min: topleft,
+            max: topleft + self.button_image.size,
+        }
+    }
+}

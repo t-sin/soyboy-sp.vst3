@@ -66,6 +66,7 @@ pub struct UI {
     param_period: ParameterSlider,
     param_time: ParameterSlider,
     param_depth: ParameterSlider,
+    param_osc_type: ParameterSelector,
 }
 
 impl UI {
@@ -351,6 +352,21 @@ impl UI {
                 378.0,
                 event_handler.clone(),
             ),
+            param_osc_type: ParameterSelector::new(
+                SoyBoyParameter::OscillatorType,
+                param_defs
+                    .get(&SoyBoyParameter::OscillatorType)
+                    .unwrap()
+                    .clone(),
+                *initial_values
+                    .get(&(SoyBoyParameter::OscillatorType as u32))
+                    .unwrap(),
+                Image::new(egui_ctx, &images.select_osc_type),
+                img_param_atlas.clone(),
+                60.0,
+                159.0,
+                event_handler.clone(),
+            ),
             _images: images,
         }
     }
@@ -541,6 +557,8 @@ impl GUIThread {
 
                     let _ = self.ui.param_time.show(ui);
                     let _ = self.ui.param_depth.show(ui);
+
+                    let _ = self.ui.param_osc_type.show(ui);
                 });
         });
 
