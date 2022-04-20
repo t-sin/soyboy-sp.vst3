@@ -40,7 +40,7 @@ pub struct Images {
     slider_border: RetainedImage,
     select_osc_type: RetainedImage,
     select_osc_sq_duty: RetainedImage,
-    select_osc_sweep_type: RetainedImage,
+    select_sweep_type: RetainedImage,
 }
 
 pub struct UI {
@@ -67,6 +67,8 @@ pub struct UI {
     param_time: ParameterSlider,
     param_depth: ParameterSlider,
     param_osc_type: ParameterSelector,
+    param_osc_sq_duty: ParameterSelector,
+    param_sweep_type: ParameterSelector,
 }
 
 impl UI {
@@ -126,7 +128,7 @@ impl UI {
                 IMG_SELECT_OSC_SQ_DUTY,
             )
             .unwrap(),
-            select_osc_sweep_type: RetainedImage::from_image_bytes(
+            select_sweep_type: RetainedImage::from_image_bytes(
                 "soyboy:select:sweep-type",
                 IMG_SELECT_SWEEP_TYPE,
             )
@@ -367,6 +369,30 @@ impl UI {
                 159.0,
                 event_handler.clone(),
             ),
+            param_osc_sq_duty: ParameterSelector::new(
+                SoyBoyParameter::OscSqDuty,
+                param_defs.get(&SoyBoyParameter::OscSqDuty).unwrap().clone(),
+                *initial_values
+                    .get(&(SoyBoyParameter::OscSqDuty as u32))
+                    .unwrap(),
+                Image::new(egui_ctx, &images.select_osc_sq_duty),
+                img_param_atlas.clone(),
+                60.0,
+                220.0,
+                event_handler.clone(),
+            ),
+            param_sweep_type: ParameterSelector::new(
+                SoyBoyParameter::SweepType,
+                param_defs.get(&SoyBoyParameter::SweepType).unwrap().clone(),
+                *initial_values
+                    .get(&(SoyBoyParameter::SweepType as u32))
+                    .unwrap(),
+                Image::new(egui_ctx, &images.select_sweep_type),
+                img_param_atlas.clone(),
+                388.0,
+                186.0,
+                event_handler.clone(),
+            ),
             _images: images,
         }
     }
@@ -559,6 +585,8 @@ impl GUIThread {
                     let _ = self.ui.param_depth.show(ui);
 
                     let _ = self.ui.param_osc_type.show(ui);
+                    let _ = self.ui.param_osc_sq_duty.show(ui);
+                    let _ = self.ui.param_sweep_type.show(ui);
                 });
         });
 
