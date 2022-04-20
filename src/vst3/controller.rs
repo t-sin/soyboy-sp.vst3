@@ -272,24 +272,13 @@ impl IEditController for SoyBoyController {
             #[cfg(debug_assertions)]
             println!("IEditController::create_view()");
 
-            // MEMO: When re-open the plugin window, the VST3 host calls this IEditController::create_view() but
-            //       self.gui have did borrow_mut() and casted as *mut c_void in previous call, it goes non-safe,
-            //       so we make a fresh GUI object for a new IEditController::create_view() call.
             let gui = SoyBoyVST3GUI::new(
                 self.component_handler.borrow().clone(),
                 self.param_defs.clone(),
                 self.param_values.borrow_mut().clone(),
             );
 
-            // MEMO: When I implement IPlugView as IEditController itself but self in here
-            //       is not mutable, so I wrote a complex casting and it does not works
-            //       (the VST host doesn't seem it as IPlugVIew)
-            //       (because of mutabillity difference? or complex casting? I don't know)
-            //
-            //       So I decided IPlugView as new object (in gui.rs). In this way, the VST3 host
-            //       recognizes IPlugView and proceeds GUI initialization sequence.
             let gui = Box::into_raw(gui) as *mut dyn IPlugView as *mut c_void;
-
             #[cfg(debug_assertions)]
             println!("IEditController::create_view(): casted self.gui into *mut c_void");
 

@@ -572,8 +572,10 @@ impl GUIThread {
             Event::RedrawEventsCleared if cfg!(windows) => redraw(),
             Event::RedrawRequested(_) if !cfg!(windows) => redraw(),
             Event::WindowEvent { event, .. } => {
-                if matches!(event, WindowEvent::CloseRequested | WindowEvent::Destroyed) {
-                    self.quit = true;
+                match event {
+                    WindowEvent::Destroyed => println!("WindowEvent::Destroyed received, but it may be re-opened GUI so ignore it."),
+                    WindowEvent::CloseRequested => self.quit = true,
+                    _ => (),
                 }
 
                 // if let WindowEvent::Resized(physical_size) = &event {
