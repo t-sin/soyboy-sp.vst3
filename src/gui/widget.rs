@@ -578,6 +578,7 @@ pub struct SliderBehavior {
     x: f32,
     y: f32,
     parameter: SoyBoyParameter,
+    param_def: ParameterDef,
     event_handler: Arc<dyn EventHandler>,
 }
 
@@ -589,6 +590,7 @@ impl SliderBehavior {
         x: f32,
         y: f32,
         parameter: SoyBoyParameter,
+        param_def: ParameterDef,
         event_handler: Arc<dyn EventHandler>,
     ) -> Self {
         Self {
@@ -598,6 +600,7 @@ impl SliderBehavior {
             x: x,
             y: y,
             parameter,
+            param_def,
             event_handler,
         }
     }
@@ -611,7 +614,8 @@ impl Behavior for SliderBehavior {
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
         let widget = Slider::new(
             self.border_img.clone(),
-            self.value,
+            self.param_def
+                .normalize(self.param_def.denormalize(self.value)),
             self.bipolar,
             self.rect(),
         );
@@ -672,7 +676,7 @@ impl ParameterSlider {
     ) -> Self {
         Self {
             param,
-            param_def,
+            param_def: param_def.clone(),
             unit,
             slider: SliderBehavior::new(
                 border_img,
@@ -681,6 +685,7 @@ impl ParameterSlider {
                 x,
                 y + 16.0,
                 param,
+                param_def,
                 event_handler,
             ),
             param_atlas,
