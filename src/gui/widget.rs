@@ -488,22 +488,9 @@ impl Slider {
 
 impl Widget for Slider {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        let rect_label = self.rect.clone();
-        let _ = ui.allocate_rect(
-            rect_label,
-            egui::Sense {
-                click: false,
-                drag: false,
-                focusable: false,
-            },
-        );
+        let response = ui.allocate_rect(self.rect, self.sense);
 
-        if ui.is_rect_visible(rect_label) {}
-
-        let rect_slider = self.rect.clone().translate(egui::vec2(0.0, 8.0));
-        let response = ui.allocate_rect(rect_slider, self.sense);
-
-        if ui.is_rect_visible(rect_slider) {
+        if ui.is_rect_visible(self.rect) {
             let w = self.rect.max.x - 2.0 - self.rect.min.x + 2.0;
 
             if self.bipolar {
@@ -616,14 +603,14 @@ impl Behavior for SliderBehavior {
         );
         let response = ui.add(widget);
 
-        if response.dragged() {
-            let delta_factor = if ui.input().modifiers.shift {
-                // It may be wrong this way...
-                3000.0
-            } else {
-                300.0
-            };
+        let delta_factor = if ui.input().modifiers.shift {
+            // It may be wrong this way...
+            3000.0
+        } else {
+            300.0
+        };
 
+        if response.dragged_by(egui::PointerButton::Primary) {
             let delta_x = response.drag_delta().x;
             let delta_v = delta_x as f64 / delta_factor;
             self.value = num::clamp(self.value + delta_v, 0.0, 1.0);
