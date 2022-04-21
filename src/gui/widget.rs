@@ -1,8 +1,6 @@
-use std::rc::Rc;
 use std::sync::Arc;
 use std::time;
 
-use egui_extras::image::RetainedImage;
 use egui_glow::egui_winit::{egui, egui::Widget};
 use num;
 
@@ -145,7 +143,7 @@ impl ParameterUnit {
 
 #[derive(Clone)]
 pub struct ParameterValue {
-    atlas: Rc<RetainedImage>,
+    atlas: Image,
     regions: Vec<Region>,
     x: f32,
     y: f32,
@@ -154,13 +152,7 @@ pub struct ParameterValue {
 }
 
 impl ParameterValue {
-    pub fn new(
-        value_str: String,
-        unit: ParameterUnit,
-        atlas: Rc<RetainedImage>,
-        x: f32,
-        y: f32,
-    ) -> Self {
+    pub fn new(value_str: String, unit: ParameterUnit, atlas: Image, x: f32, y: f32) -> Self {
         let (regions, w, h) = ParameterValue::layout(value_str, unit);
         Self {
             atlas,
@@ -229,11 +221,9 @@ impl Widget for ParameterValue {
         let response = ui.allocate_rect(rect, egui::Sense::focusable_noninteractive());
 
         if ui.is_rect_visible(rect) {
-            let atlas_size = self.atlas.size();
-            let atlas_size = egui::vec2(atlas_size[0] as f32, atlas_size[1] as f32);
             let top_left = egui::pos2(self.x, self.y);
             let mut offset = egui::pos2(0.0, 0.0);
-            let img = egui::widgets::Image::new(self.atlas.texture_id(ui.ctx()), atlas_size);
+            let img = egui::widgets::Image::new(self.atlas.texture_id, self.atlas.size);
 
             for region in self.regions.iter() {
                 let clip_rect = egui::Rect {
@@ -244,7 +234,7 @@ impl Widget for ParameterValue {
 
                 let draw_rect = egui::Rect {
                     min: top_left,
-                    max: top_left + atlas_size.into(),
+                    max: top_left + self.atlas.size,
                 };
 
                 img.paint_at(
@@ -286,13 +276,13 @@ impl SoyBoyParameter {
 #[derive(Clone)]
 pub struct ParameterName {
     param: SoyBoyParameter,
-    atlas: Rc<RetainedImage>,
+    atlas: Image,
     x: f32,
     y: f32,
 }
 
 impl ParameterName {
-    pub fn new(param: SoyBoyParameter, atlas: Rc<RetainedImage>, x: f32, y: f32) -> Self {
+    pub fn new(param: SoyBoyParameter, atlas: Image, x: f32, y: f32) -> Self {
         Self { param, atlas, x, y }
     }
 }
@@ -311,13 +301,11 @@ impl Widget for ParameterName {
         let response = ui.allocate_rect(rect, egui::Sense::focusable_noninteractive());
 
         if ui.is_rect_visible(rect) {
-            let atlas_size = self.atlas.size();
-            let atlas_size = egui::vec2(atlas_size[0] as f32, atlas_size[1] as f32);
-            let img = egui::widgets::Image::new(self.atlas.texture_id(ui.ctx()), atlas_size);
+            let img = egui::widgets::Image::new(self.atlas.texture_id, self.atlas.size);
 
             let draw_rect = egui::Rect {
                 min: topleft,
-                max: topleft + atlas_size.into(),
+                max: topleft + self.atlas.size,
             };
             img.paint_at(ui, draw_rect.translate(-region.pos.to_vec2()));
         }
@@ -737,8 +725,8 @@ pub struct ParameterSlider {
     param: SoyBoyParameter,
     param_def: ParameterDef,
     unit: ParameterUnit,
-    param_atlas: Rc<RetainedImage>,
-    value_atlas: Rc<RetainedImage>,
+    param_atlas: Image,
+    value_atlas: Image,
     x: f32,
     y: f32,
 }
@@ -751,8 +739,8 @@ impl ParameterSlider {
         bipolar: bool,
         unit: ParameterUnit,
         border_img: Image,
-        param_atlas: Rc<RetainedImage>,
-        value_atlas: Rc<RetainedImage>,
+        param_atlas: Image,
+        value_atlas: Image,
         x: f32,
         y: f32,
         event_handler: Arc<dyn EventHandler>,
@@ -910,7 +898,7 @@ pub struct ParameterSelector {
     param_def: ParameterDef,
     value: usize,
     button_image: Image,
-    param_atlas: Rc<RetainedImage>,
+    param_atlas: Image,
     x: f32,
     y: f32,
     event_handler: Arc<dyn EventHandler>,
@@ -922,7 +910,7 @@ impl ParameterSelector {
         param_def: ParameterDef,
         value: f64,
         button_image: Image,
-        param_atlas: Rc<RetainedImage>,
+        param_atlas: Image,
         x: f32,
         y: f32,
         event_handler: Arc<dyn EventHandler>,
