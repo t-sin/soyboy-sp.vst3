@@ -19,6 +19,7 @@ use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
 use crate::vst3::utils;
 
 pub struct VST3EventHandler {
+    param_values: Arc<Mutex<HashMap<u32, f64>>>,
     component_handler: Option<Arc<dyn IComponentHandler>>,
 }
 
@@ -26,8 +27,14 @@ unsafe impl Send for VST3EventHandler {}
 unsafe impl Sync for VST3EventHandler {}
 
 impl VST3EventHandler {
-    fn new(component_handler: Option<Arc<dyn IComponentHandler>>) -> Self {
-        Self { component_handler }
+    fn new(
+        param_values: Arc<Mutex<HashMap<u32, f64>>>,
+        component_handler: Option<Arc<dyn IComponentHandler>>,
+    ) -> Self {
+        Self {
+            param_values,
+            component_handler,
+        }
     }
 }
 
@@ -35,11 +42,17 @@ impl EventHandler for VST3EventHandler {
     fn change_parameter(&self, p: SoyBoyParameter, value_normalized: f64) {
         if let Some(ref handler) = self.component_handler {
             let p = p as u32;
+
             unsafe {
                 handler.begin_edit(p);
                 handler.perform_edit(p, value_normalized);
                 handler.end_edit(p);
             }
+
+            self.param_values
+                .lock()
+                .unwrap()
+                .insert(p, value_normalized);
         }
     }
 }
@@ -51,16 +64,19 @@ pub struct SoyBoyVST3GUI {
     handle: RefCell<Option<thread::JoinHandle<()>>>,
     sender: RefCell<Option<Sender<GUIMessage>>>,
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
-    initial_values: HashMap<u32, f64>,
+    param_values: Arc<Mutex<HashMap<u32, f64>>>,
 }
 
 impl SoyBoyVST3GUI {
     pub fn new(
         component_handler: Option<Arc<dyn IComponentHandler>>,
         param_defs: HashMap<SoyBoyParameter, ParameterDef>,
-        initial_values: HashMap<u32, f64>,
+        param_values: Arc<Mutex<HashMap<u32, f64>>>,
     ) -> Box<Self> {
-        let handler = Arc::new(VST3EventHandler::new(component_handler));
+        let handler = Arc::new(VST3EventHandler::new(
+            param_values.clone(),
+            component_handler,
+        ));
         let scale_factor = RefCell::new(1.0);
         let handle = RefCell::new(None);
         let sender = RefCell::new(None);
@@ -71,13 +87,13 @@ impl SoyBoyVST3GUI {
             handle,
             sender,
             param_defs,
-            initial_values,
+            param_values,
         )
     }
 
     fn start_gui(&self, parent: ParentWindow) {
-        let initial_values = self.initial_values.clone();
         let param_defs = self.param_defs.clone();
+        let param_values = self.param_values.clone();
         let event_handler = self.event_handler.clone();
 
         let (send, resv) = channel();
@@ -85,7 +101,7 @@ impl SoyBoyVST3GUI {
         (*self.sender.borrow_mut()) = Some(send);
 
         let handle = thread::spawn(move || {
-            GUIThread::run_loop(parent, initial_values, param_defs, event_handler, recv);
+            GUIThread::run_loop(parent, param_defs, param_values, event_handler, recv);
         });
         *self.handle.borrow_mut() = Some(handle);
     }
