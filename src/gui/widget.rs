@@ -839,7 +839,6 @@ impl ParameterSelector {
         y: f32,
         event_handler: Arc<dyn EventHandler>,
     ) -> Self {
-        println!("value: {}", value);
         Self {
             param,
             param_def,
