@@ -306,6 +306,7 @@ impl Widget for ParameterName {
             min: topleft,
             max: topleft + egui::vec2(region.size.x, region.size.y),
         };
+        ui.set_clip_rect(rect);
 
         let response = ui.allocate_rect(rect, egui::Sense::focusable_noninteractive());
 
@@ -313,12 +314,6 @@ impl Widget for ParameterName {
             let atlas_size = self.atlas.size();
             let atlas_size = egui::vec2(atlas_size[0] as f32, atlas_size[1] as f32);
             let img = egui::widgets::Image::new(self.atlas.texture_id(ui.ctx()), atlas_size);
-
-            let clip_rect = egui::Rect {
-                min: topleft,
-                max: topleft + region.size.into(),
-            };
-            ui.set_clip_rect(clip_rect);
 
             let draw_rect = egui::Rect {
                 min: topleft,
@@ -871,7 +866,7 @@ impl Behavior for ParameterSelector {
             self.y,
         ));
 
-        let topleft = egui::pos2(self.x, self.y + 16.0);
+        let topleft = egui::pos2(self.x, self.y) + egui::vec2(0.0, 16.0);
         let button_rect = egui::Rect {
             min: topleft,
             max: topleft + self.button_image.size,
