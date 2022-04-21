@@ -369,6 +369,107 @@ impl Widget for ImageLabel {
 }
 
 #[derive(Clone)]
+pub struct Edamame {
+    image: Image,
+    jumping: bool,
+    sense: egui::Sense,
+    pos: egui::Pos2,
+}
+
+impl Edamame {
+    pub fn new(image: Image, jumping: bool, pos: egui::Pos2) -> Self {
+        Self {
+            image,
+            jumping,
+            sense: egui::Sense::click(),
+            pos,
+        }
+    }
+}
+
+impl Widget for Edamame {
+    fn ui(self, ui: &mut egui::Ui) -> egui::Response {
+        let half_x = self.image.size.x / 2.0;
+        let rect = egui::Rect {
+            min: self.pos,
+            max: self.pos + egui::vec2(self.image.size.x, self.image.size.y),
+        };
+        let clip_rect = egui::Rect {
+            min: self.pos,
+            max: self.pos + egui::vec2(half_x, self.image.size.y),
+        };
+
+        if ui.is_rect_visible(clip_rect) {
+            let img = egui::widgets::Image::new(self.image.texture_id, rect.size());
+
+            ui.set_clip_rect(clip_rect);
+
+            if self.jumping {
+                img.paint_at(ui, rect.translate(egui::vec2(-half_x, 0.0)));
+            } else {
+                img.paint_at(ui, rect);
+            }
+
+            ui.set_clip_rect(egui::Rect {
+                min: egui::pos2(0.0, 0.0),
+                max: egui::pos2(SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32),
+            });
+        }
+
+        ui.allocate_rect(clip_rect, self.sense)
+    }
+}
+
+#[derive(Clone)]
+pub struct AnimatedEdamame {
+    image: Image,
+    jumped_at: time::Instant,
+    jumping: Toggle,
+    pos: egui::Pos2,
+}
+
+impl AnimatedEdamame {
+    pub fn new(image: Image, x: f32, y: f32) -> Self {
+        Self {
+            image,
+            jumping: Toggle::new(false, false),
+            jumped_at: time::Instant::now(),
+            pos: egui::pos2(x, y),
+        }
+    }
+}
+
+impl Behavior for AnimatedEdamame {
+    fn update(&mut self) -> bool {
+        if self.jumped_at.elapsed() <= time::Duration::from_millis(100) {
+            self.jumping.set(true);
+        } else {
+            self.jumping.set(false);
+        }
+
+        self.jumping.toggled()
+    }
+
+    fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
+        let edamame = Edamame::new(self.image.clone(), self.jumping.val(), self.pos);
+        let response = ui.add(edamame);
+
+        if response.clicked() {
+            self.jumped_at = time::Instant::now();
+        }
+
+        response
+    }
+
+    fn rect(&self) -> egui::Rect {
+        egui::Rect {
+            min: self.pos,
+            max: self.pos + egui::vec2(self.image.size.x, self.image.size.y),
+        }
+    }
+}
+
+#[derive(Clone)]
 pub struct Button {
     image: Image,
     sense: egui::Sense,

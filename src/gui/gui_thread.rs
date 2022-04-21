@@ -27,6 +27,7 @@ use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
 use super::{constants::*, types::*, widget::*};
 
 pub struct Images {
+    edamame: RetainedImage,
     label_logo: RetainedImage,
     label_global: RetainedImage,
     label_square: RetainedImage,
@@ -45,6 +46,7 @@ pub struct Images {
 
 pub struct UI {
     _images: Images,
+    edamame: AnimatedEdamame,
     label_logo: ImageLabel,
     label_global: ImageLabel,
     label_square: ImageLabel,
@@ -79,6 +81,7 @@ impl UI {
         event_handler: Arc<dyn EventHandler>,
     ) -> Self {
         let images = Images {
+            edamame: RetainedImage::from_image_bytes("soyboy:edamame", IMG_EDAMAME).unwrap(),
             label_logo: RetainedImage::from_image_bytes("soyboy:logo", IMG_LOGO).unwrap(),
             label_global: RetainedImage::from_image_bytes("soyboy:label:global", IMG_LABEL_GLOBAL)
                 .unwrap(),
@@ -141,6 +144,7 @@ impl UI {
             Rc::new(RetainedImage::from_image_bytes("name_atlas", IMG_PARAM_ATLAS).unwrap());
 
         Self {
+            edamame: AnimatedEdamame::new(Image::new(egui_ctx, &images.edamame), 18.0, 14.0),
             label_logo: ImageLabel::new(Image::new(egui_ctx, &images.label_logo), 6.0, 6.0),
             label_global: ImageLabel::new(Image::new(egui_ctx, &images.label_global), 24.0, 86.0),
             label_square: ImageLabel::new(Image::new(egui_ctx, &images.label_square), 24.0, 216.0),
@@ -499,6 +503,7 @@ impl GUIThread {
 
     pub fn update(&mut self, proxy: EventLoopProxy<GUIEvent>) {
         let behaviors: &mut [&mut dyn Behavior] = &mut [
+            &mut self.ui.edamame as &mut dyn Behavior,
             &mut self.ui.button_reset_random as &mut dyn Behavior,
             &mut self.ui.button_reset_sine as &mut dyn Behavior,
         ];
@@ -547,11 +552,13 @@ impl GUIThread {
                     let _ = ui.add(self.ui.label_stutter.clone());
                 });
 
-            // buttons
-            let _ = egui::Area::new("buttons")
+            // params
+            let _ = egui::Area::new("params")
                 .fixed_pos(egui::pos2(0.0, 0.0))
                 .movable(false)
                 .show(egui_ctx, |ui| {
+                    let _ = self.ui.edamame.show(ui);
+
                     let resp = self.ui.button_reset_random.show(ui);
                     if resp.clicked() {
                         // TODO: write a code reset plugin's wavetable
@@ -563,13 +570,7 @@ impl GUIThread {
                         // TODO: write a code reset plugin's wavetable
                         println!("reset sine!!!");
                     }
-                });
 
-            // params
-            let _ = egui::Area::new("params")
-                .fixed_pos(egui::pos2(0.0, 0.0))
-                .movable(false)
-                .show(egui_ctx, |ui| {
                     let _ = self.ui.param_volume.show(ui);
                     let _ = self.ui.param_detune.show(ui);
                     let _ = self.ui.param_interval.show(ui);

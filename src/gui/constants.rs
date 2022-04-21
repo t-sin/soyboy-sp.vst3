@@ -1,4 +1,5 @@
 // images
+pub const IMG_EDAMAME: &[u8] = include_bytes!("../../resources/edamame.png");
 pub const IMG_LOGO: &[u8] = include_bytes!("../../resources/logo.png");
 pub const IMG_LABEL_GLOBAL: &[u8] = include_bytes!("../../resources/label-global.png");
 pub const IMG_LABEL_SQUARE: &[u8] = include_bytes!("../../resources/label-osc-square.png");
