@@ -755,9 +755,10 @@ impl SoyBoyParameter {
                 Region::new(136.0, 2.0, 40.0, 44.0),
             ]),
             SoyBoyParameter::SweepType => Some(vec![
-                Region::new(2.0, 2.0, 48.0, 40.0),
-                Region::new(50.0, 2.0, 64.0, 40.0),
-                Region::new(116.0, 2.0, 58.0, 40.0),
+                Region::new(2.0, 2.0, 62.0, 20.0),
+                Region::new(66.0, 2.0, 48.0, 20.0),
+                Region::new(116.0, 2.0, 64.0, 20.0),
+                Region::new(182.0, 2.0, 58.0, 20.0),
             ]),
             _ => None,
         }
