@@ -14,8 +14,8 @@ use vst3_sys::{
     utils::SharedVstPtr,
     vst::{
         AudioBusBuffers, BusDirections, BusFlags, BusInfo, BusTypes, EventTypes, IAudioProcessor,
-        IComponent, IEventList, IParamValueQueue, IParameterChanges, MediaTypes, ProcessData,
-        ProcessSetup, RoutingInfo, K_SAMPLE32, K_SAMPLE64,
+        IComponent, IConnectionPoint, IEventList, IMessage, IParamValueQueue, IParameterChanges,
+        MediaTypes, ProcessData, ProcessSetup, RoutingInfo, K_SAMPLE32, K_SAMPLE64,
     },
     VST3,
 };
@@ -25,14 +25,19 @@ use crate::soyboy::{
     parameters::{Normalizable, ParameterDef, Parametric, SoyBoyParameter},
     AudioProcessor, SoyBoy,
 };
-use crate::vst3::{controller::SoyBoyController, plugin_data, utils};
+use crate::vst3::{
+    controller::SoyBoyController,
+    message::{Vst3Message, Vst3MessageId},
+    plugin_data, utils,
+};
 
-#[VST3(implements(IComponent, IAudioProcessor))]
+#[VST3(implements(IComponent, IAudioProcessor, IConnectionPoint))]
 pub struct SoyBoyPlugin {
     soyboy: RefCell<SoyBoy>,
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     audio_out: RefCell<BusInfo>,
     event_in: RefCell<BusInfo>,
+    controller: RefCell<Option<SharedVstPtr<dyn IConnectionPoint>>>,
 }
 
 impl SoyBoyPlugin {
@@ -66,8 +71,9 @@ impl SoyBoyPlugin {
         let soyboy = RefCell::new(SoyBoy::new());
         let audio_out = RefCell::new(utils::make_empty_bus_info());
         let event_in = RefCell::new(utils::make_empty_bus_info());
+        let controller = RefCell::new(None);
 
-        SoyBoyPlugin::allocate(soyboy, param_defs, audio_out, event_in)
+        SoyBoyPlugin::allocate(soyboy, param_defs, audio_out, event_in, controller)
     }
 
     pub fn bus_count(&self, media_type: MediaTypes, dir: BusDirections) -> i32 {
@@ -400,5 +406,21 @@ impl IAudioProcessor for SoyBoyPlugin {
             }
             _ => unreachable!(),
         }
+    }
+}
+
+impl IConnectionPoint for SoyBoyPlugin {
+    unsafe fn connect(&self, other: SharedVstPtr<dyn IConnectionPoint>) -> tresult {
+        let _ = self.controller.replace(Some(other));
+        kResultOk
+    }
+
+    unsafe fn disconnect(&self, _other: SharedVstPtr<dyn IConnectionPoint>) -> tresult {
+        let _ = self.controller.replace(None);
+        kResultOk
+    }
+
+    unsafe fn notify(&self, _message: SharedVstPtr<dyn IMessage>) -> tresult {
+        kResultOk
     }
 }
