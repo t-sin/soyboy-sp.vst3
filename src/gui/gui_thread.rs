@@ -417,15 +417,9 @@ pub struct GUIThread {
 // originally from here:
 //   https://github.com/emilk/egui/blob/7cd285ecbc2d319f1feac7b9fd9464d06a5ccf77/egui_glow/examples/pure_glow.rs
 impl GUIThread {
-    pub fn setup(
-        parent: ParentWindow,
-        initial_values: HashMap<u32, f64>,
-        param_defs: HashMap<SoyBoyParameter, ParameterDef>,
-        event_handler: Arc<dyn EventHandler>,
-        receiver: Arc<Mutex<Receiver<GUIMessage>>>,
-    ) -> (Self, EventLoop<GUIEvent>) {
+    fn setup_event_loop(parent: ParentWindow) -> (EventLoop<GUIEvent>, WindowBuilder) {
         #[cfg(target_os = "linux")]
-        let (event_loop, window_builder) = {
+        {
             let parent_id: usize = if parent.0.is_null() {
                 0
             } else {
@@ -439,10 +433,10 @@ impl GUIThread {
                 WindowBuilder::new().with_x11_parent(parent_id.try_into().unwrap());
 
             (event_loop, window_builder)
-        };
+        }
 
         #[cfg(target_os = "windows")]
-        let (event_loop, window_builder) = {
+        {
             let parent_id = if parent.0.is_null() {
                 null_mut()
             } else {
@@ -458,8 +452,17 @@ impl GUIThread {
                 .with_resizable(false);
 
             (event_loop, window_builder)
-        };
+        }
+    }
 
+    fn setup(
+        parent: ParentWindow,
+        initial_values: HashMap<u32, f64>,
+        param_defs: HashMap<SoyBoyParameter, ParameterDef>,
+        event_handler: Arc<dyn EventHandler>,
+        receiver: Arc<Mutex<Receiver<GUIMessage>>>,
+    ) -> (Self, EventLoop<GUIEvent>) {
+        let (event_loop, window_builder) = Self::setup_event_loop(parent);
         let window = unsafe {
             glutin::ContextBuilder::new()
                 .with_depth_buffer(0)
