@@ -646,10 +646,11 @@ impl ParameterSelector {
         y: f32,
         event_handler: Arc<dyn EventHandler>,
     ) -> Self {
+        let value = param_def.denormalize(value) as usize;
         Self {
             param,
             param_def,
-            value: value as usize,
+            value,
             button_image,
             param_atlas,
             pos: egui::pos2(x, y),
