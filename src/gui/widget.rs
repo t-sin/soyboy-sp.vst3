@@ -31,21 +31,6 @@ enum Character {
     Minus,
 }
 
-#[derive(Clone)]
-struct Region {
-    pos: egui::Pos2,
-    size: egui::Vec2,
-}
-
-impl Region {
-    fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
-        Self {
-            pos: egui::pos2(x, y),
-            size: egui::vec2(w, h),
-        }
-    }
-}
-
 impl Character {
     fn from_char(ch: char) -> Option<Character> {
         match ch {

@@ -68,3 +68,18 @@ impl Toggle {
         self.value != self.prev_value
     }
 }
+
+#[derive(Clone)]
+pub struct Region {
+    pub pos: egui::Pos2,
+    pub size: egui::Vec2,
+}
+
+impl Region {
+    pub fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
+        Self {
+            pos: egui::pos2(x, y),
+            size: egui::vec2(w, h),
+        }
+    }
+}
