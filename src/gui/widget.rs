@@ -15,39 +15,6 @@ fn screen_rect() -> egui::Rect {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct Toggle {
-    value: bool,
-    prev_value: bool,
-}
-
-impl Toggle {
-    fn new(v: bool, prev: bool) -> Self {
-        Self {
-            value: v,
-            prev_value: prev,
-        }
-    }
-
-    fn val(&self) -> bool {
-        self.value
-    }
-
-    fn set(&mut self, v: bool) {
-        self.prev_value = self.value;
-        self.value = v;
-    }
-
-    fn toggled(&self) -> bool {
-        self.value != self.prev_value
-    }
-}
-
-pub trait Behavior {
-    fn update(&mut self) -> bool;
-    fn show(&mut self, ui: &mut egui::Ui) -> egui::Response;
-}
-
 // available characters in resources/paramval.png
 enum Character {
     Digit0,

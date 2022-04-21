@@ -35,3 +35,36 @@ pub enum GUIMessage {
 pub enum GUIEvent {
     Redraw,
 }
+
+pub trait Behavior {
+    fn update(&mut self) -> bool;
+    fn show(&mut self, ui: &mut egui::Ui) -> egui::Response;
+}
+
+#[derive(Clone, Debug)]
+pub struct Toggle {
+    value: bool,
+    prev_value: bool,
+}
+
+impl Toggle {
+    pub fn new(v: bool, prev: bool) -> Self {
+        Self {
+            value: v,
+            prev_value: prev,
+        }
+    }
+
+    pub fn val(&self) -> bool {
+        self.value
+    }
+
+    pub fn set(&mut self, v: bool) {
+        self.prev_value = self.value;
+        self.value = v;
+    }
+
+    pub fn toggled(&self) -> bool {
+        self.value != self.prev_value
+    }
+}
