@@ -15,8 +15,9 @@ use vst3_sys::{
     gui::IPlugView,
     utils::SharedVstPtr,
     vst::{
-        kRootUnitId, CtrlNumber, IComponentHandler, IEditController, IMidiMapping, IUnitInfo,
-        ParamID, ParameterFlags, ParameterInfo, ProgramListInfo, TChar, UnitInfo,
+        kRootUnitId, CtrlNumber, IComponentHandler, IConnectionPoint, IEditController, IMessage,
+        IMidiMapping, IUnitInfo, ParamID, ParameterFlags, ParameterInfo, ProgramListInfo, TChar,
+        UnitInfo,
     },
     VST3,
 };
@@ -24,11 +25,12 @@ use vst3_sys::{
 use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
 use crate::vst3::{gui::SoyBoyVST3GUI, plugin_data, utils};
 
-#[VST3(implements(IEditController, IUnitInfo, IMidiMapping))]
+#[VST3(implements(IEditController, IUnitInfo, IMidiMapping, IConnectionPoint))]
 pub struct SoyBoyController {
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     vst3_params: RefCell<HashMap<u32, ParameterInfo>>,
     param_values: Arc<Mutex<HashMap<u32, f64>>>,
+    processor: RefCell<Option<SharedVstPtr<dyn IConnectionPoint>>>,
     component_handler: RefCell<Option<Arc<dyn IComponentHandler>>>,
 }
 
@@ -67,9 +69,16 @@ impl SoyBoyController {
     pub unsafe fn new(param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Box<SoyBoyController> {
         let vst3_params = RefCell::new(HashMap::new());
         let param_vals = Arc::new(Mutex::new(HashMap::new()));
+        let processor = RefCell::new(None);
         let component_handler = RefCell::new(None);
 
-        SoyBoyController::allocate(param_defs, vst3_params, param_vals, component_handler)
+        SoyBoyController::allocate(
+            param_defs,
+            vst3_params,
+            param_vals,
+            processor,
+            component_handler,
+        )
     }
 }
 
@@ -363,5 +372,24 @@ impl IUnitInfo for SoyBoyController {
         _data: SharedVstPtr<dyn IBStream>,
     ) -> i32 {
         kResultFalse
+    }
+}
+
+impl IConnectionPoint for SoyBoyController {
+    unsafe fn connect(&self, other: SharedVstPtr<dyn IConnectionPoint>) -> tresult {
+        let _ = self.processor.replace(Some(other));
+        kResultOk
+    }
+
+    unsafe fn disconnect(&self, _other: SharedVstPtr<dyn IConnectionPoint>) -> tresult {
+        let _ = self.processor.replace(None);
+        kResultOk
+    }
+
+    unsafe fn notify(&self, message: SharedVstPtr<dyn IMessage>) -> tresult {
+        let msg = message.upgrade().unwrap();
+        let id = utils::fidstring_to_string(msg.get_message_id());
+        println!("message received: {}", id);
+        kResultOk
     }
 }
