@@ -208,16 +208,10 @@ impl Widget for ParameterValue {
             let img = egui::widgets::Image::new(self.atlas.texture_id, self.atlas.size);
 
             for region in self.regions.iter() {
-                let clip_rect = egui::Rect {
-                    min: self.pos,
-                    max: self.pos + region.size.into(),
-                };
+                let clip_rect = egui::Rect::from_two_pos(self.pos, self.pos + region.size.into());
                 ui.set_clip_rect(clip_rect.translate(offset.to_vec2()));
 
-                let draw_rect = egui::Rect {
-                    min: self.pos,
-                    max: self.pos + self.atlas.size,
-                };
+                let draw_rect = egui::Rect::from_two_pos(self.pos, self.pos + self.atlas.size);
 
                 img.paint_at(
                     ui,
@@ -272,10 +266,10 @@ impl Widget for ParameterName {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
         let region = self.param.get_region().unwrap();
 
-        let rect = egui::Rect {
-            min: self.pos,
-            max: self.pos + egui::vec2(region.size.x, region.size.y),
-        };
+        let rect = egui::Rect::from_two_pos(
+            self.pos,
+            self.pos + egui::vec2(region.size.x, region.size.y),
+        );
         ui.set_clip_rect(rect);
 
         let response = ui.allocate_rect(rect, egui::Sense::focusable_noninteractive());
@@ -283,10 +277,7 @@ impl Widget for ParameterName {
         if ui.is_rect_visible(rect) {
             let img = egui::widgets::Image::new(self.atlas.texture_id, self.atlas.size);
 
-            let draw_rect = egui::Rect {
-                min: self.pos,
-                max: self.pos + self.atlas.size,
-            };
+            let draw_rect = egui::Rect::from_two_pos(self.pos, self.pos + self.atlas.size);
             img.paint_at(ui, draw_rect.translate(-region.pos.to_vec2()));
         }
 
@@ -313,10 +304,7 @@ impl ImageLabel {
 
 impl Widget for ImageLabel {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        let rect = egui::Rect {
-            min: self.pos,
-            max: self.pos + self.image.size,
-        };
+        let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.image.size);
 
         let response = ui.allocate_rect(rect, self.sense);
 
@@ -351,14 +339,12 @@ impl Edamame {
 impl Widget for Edamame {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
         let half_x = self.image.size.x / 2.0;
-        let rect = egui::Rect {
-            min: self.pos,
-            max: self.pos + egui::vec2(self.image.size.x, self.image.size.y),
-        };
-        let clip_rect = egui::Rect {
-            min: self.pos,
-            max: self.pos + egui::vec2(half_x, self.image.size.y),
-        };
+        let rect = egui::Rect::from_two_pos(
+            self.pos,
+            self.pos + egui::vec2(self.image.size.x, self.image.size.y),
+        );
+        let clip_rect =
+            egui::Rect::from_two_pos(self.pos, self.pos + egui::vec2(half_x, self.image.size.y));
 
         if ui.is_rect_visible(clip_rect) {
             let img = egui::widgets::Image::new(self.image.texture_id, rect.size());
@@ -371,10 +357,7 @@ impl Widget for Edamame {
                 img.paint_at(ui, rect);
             }
 
-            ui.set_clip_rect(egui::Rect {
-                min: egui::pos2(0.0, 0.0),
-                max: egui::pos2(SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32),
-            });
+            ui.set_clip_rect(screen_rect());
         }
 
         ui.allocate_rect(clip_rect, self.sense)
@@ -500,10 +483,7 @@ impl Behavior for ButtonBehavior {
     }
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
-        let rect = egui::Rect {
-            min: self.pos,
-            max: self.pos + self.image.size,
-        };
+        let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.image.size);
         let mut widget = Button::new(self.image.clone(), self.clicked.val(), rect);
         let response = widget.ui(ui);
 
@@ -546,10 +526,10 @@ impl Widget for Slider {
                 let color = egui::Color32::from_rgb(0x33, 0x3f, 0x32);
                 if self.value >= 0.5 {
                     ui.painter().rect_filled(
-                        egui::Rect {
-                            min: egui::pos2(0.0, 0.0),
-                            max: egui::pos2(w / 2.0 * (self.value as f32 - 0.5) * 2.0, 14.0),
-                        }
+                        egui::Rect::from_two_pos(
+                            egui::pos2(0.0, 0.0),
+                            egui::pos2(w / 2.0 * (self.value as f32 - 0.5) * 2.0, 14.0),
+                        )
                         .translate(egui::vec2(self.rect.min.x + w / 2.0, self.rect.min.y)),
                         egui::Rounding::none(),
                         color,
@@ -557,10 +537,10 @@ impl Widget for Slider {
                 } else {
                     let ratio = self.value as f32 * 2.0;
                     ui.painter().rect_filled(
-                        egui::Rect {
-                            min: egui::pos2(0.0, 0.0),
-                            max: egui::pos2(w / 2.0 * (1.0 - ratio), 14.0),
-                        }
+                        egui::Rect::from_two_pos(
+                            egui::pos2(0.0, 0.0),
+                            egui::pos2(w / 2.0 * (1.0 - ratio), 14.0),
+                        )
                         .translate(egui::vec2(
                             self.rect.min.x + w / 2.0 * ratio,
                             self.rect.min.y,
@@ -572,23 +552,20 @@ impl Widget for Slider {
 
                 // center bar
                 ui.painter().rect_filled(
-                    egui::Rect {
-                        min: egui::pos2(0.0, 0.0),
-                        max: egui::pos2(2.0, 10.0),
-                    }
-                    .translate(egui::vec2(
-                        self.rect.min.x + (w / 2.0 - 1.0),
-                        self.rect.min.y + 2.0,
-                    )),
+                    egui::Rect::from_two_pos(egui::pos2(0.0, 0.0), egui::pos2(2.0, 10.0))
+                        .translate(egui::vec2(
+                            self.rect.min.x + (w / 2.0 - 1.0),
+                            self.rect.min.y + 2.0,
+                        )),
                     egui::Rounding::none(),
                     egui::Color32::from_rgb(0x33, 0x3f, 0x32),
                 );
             } else {
                 ui.painter().rect_filled(
-                    egui::Rect {
-                        min: self.rect.min,
-                        max: egui::pos2(self.rect.min.x + w * self.value as f32, self.rect.max.y),
-                    },
+                    egui::Rect::from_two_pos(
+                        self.rect.min,
+                        egui::pos2(self.rect.min.x + w * self.value as f32, self.rect.max.y),
+                    ),
                     egui::Rounding::none(),
                     egui::Color32::from_rgb(0x33, 0x3f, 0x32),
                 );
@@ -777,8 +754,7 @@ pub struct SelectButton {
     param: SoyBoyParameter,
     value: usize,
     image: Image,
-    x: f32,
-    y: f32,
+    pos: egui::Pos2,
 }
 
 impl SelectButton {
@@ -787,19 +763,14 @@ impl SelectButton {
             param,
             value,
             image,
-            x,
-            y,
+            pos: egui::pos2(x, y),
         }
     }
 }
 
 impl Widget for SelectButton {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        let topleft = egui::pos2(self.x, self.y);
-        let rect = egui::Rect {
-            min: topleft,
-            max: topleft + self.image.size,
-        };
+        let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.image.size);
 
         let sense = egui::Sense {
             click: false,
@@ -814,11 +785,8 @@ impl Widget for SelectButton {
 
             let regions = self.param.get_select_button_regions().unwrap();
             let region = regions.iter().nth(self.value).unwrap();
-            let topleft = topleft + region.pos.to_vec2();
-            let selected_rect = egui::Rect {
-                min: topleft,
-                max: topleft + region.size,
-            };
+            let topleft = self.pos + region.pos.to_vec2();
+            let selected_rect = egui::Rect::from_two_pos(topleft, topleft + region.size);
             ui.painter().rect_filled(
                 selected_rect,
                 egui::Rounding::none(),
