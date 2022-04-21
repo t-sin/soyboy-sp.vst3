@@ -46,7 +46,6 @@ impl Toggle {
 pub trait Behavior {
     fn update(&mut self) -> bool;
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response;
-    fn rect(&self) -> egui::Rect;
 }
 
 // available characters in resources/paramval.png
@@ -145,10 +144,8 @@ impl ParameterUnit {
 pub struct ParameterValue {
     atlas: Image,
     regions: Vec<Region>,
-    x: f32,
-    y: f32,
-    w: f32,
-    h: f32,
+    pos: egui::Pos2,
+    size: egui::Vec2,
 }
 
 impl ParameterValue {
@@ -157,24 +154,13 @@ impl ParameterValue {
         Self {
             atlas,
             regions,
-            x,
-            y,
-            w: w,
-            h: h,
+            pos: egui::pos2(x, y),
+            size: egui::vec2(w, h),
         }
     }
 
-    pub fn set_pos(&mut self, x: f32, y: f32) {
-        self.x = x;
-        self.y = y;
-    }
-
-    pub fn rect(&self) -> egui::Rect {
-        let top_left = egui::pos2(self.x, self.y);
-        egui::Rect {
-            min: top_left,
-            max: top_left + egui::vec2(self.w, self.h),
-        }
+    pub fn set_pos(&mut self, pos: egui::Pos2) {
+        self.pos = pos;
     }
 
     fn layout(value_str: String, unit: ParameterUnit) -> (Vec<Region>, f32, f32) {
@@ -213,28 +199,24 @@ impl ParameterValue {
 
 impl Widget for ParameterValue {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        let rect = egui::Rect {
-            min: egui::pos2(self.x, self.y),
-            max: egui::pos2(self.x + self.w as f32, self.y + self.w as f32),
-        };
+        let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.size);
 
         let response = ui.allocate_rect(rect, egui::Sense::focusable_noninteractive());
 
         if ui.is_rect_visible(rect) {
-            let top_left = egui::pos2(self.x, self.y);
             let mut offset = egui::pos2(0.0, 0.0);
             let img = egui::widgets::Image::new(self.atlas.texture_id, self.atlas.size);
 
             for region in self.regions.iter() {
                 let clip_rect = egui::Rect {
-                    min: top_left,
-                    max: top_left + region.size.into(),
+                    min: self.pos,
+                    max: self.pos + region.size.into(),
                 };
                 ui.set_clip_rect(clip_rect.translate(offset.to_vec2()));
 
                 let draw_rect = egui::Rect {
-                    min: top_left,
-                    max: top_left + self.atlas.size,
+                    min: self.pos,
+                    max: self.pos + self.atlas.size,
                 };
 
                 img.paint_at(
@@ -277,24 +259,22 @@ impl SoyBoyParameter {
 pub struct ParameterName {
     param: SoyBoyParameter,
     atlas: Image,
-    x: f32,
-    y: f32,
+    pos: egui::Pos2,
 }
 
 impl ParameterName {
-    pub fn new(param: SoyBoyParameter, atlas: Image, x: f32, y: f32) -> Self {
-        Self { param, atlas, x, y }
+    pub fn new(param: SoyBoyParameter, atlas: Image, pos: egui::Pos2) -> Self {
+        Self { param, atlas, pos }
     }
 }
 
 impl Widget for ParameterName {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        let topleft = egui::pos2(self.x, self.y);
         let region = self.param.get_region().unwrap();
 
         let rect = egui::Rect {
-            min: topleft,
-            max: topleft + egui::vec2(region.size.x, region.size.y),
+            min: self.pos,
+            max: self.pos + egui::vec2(region.size.x, region.size.y),
         };
         ui.set_clip_rect(rect);
 
@@ -304,8 +284,8 @@ impl Widget for ParameterName {
             let img = egui::widgets::Image::new(self.atlas.texture_id, self.atlas.size);
 
             let draw_rect = egui::Rect {
-                min: topleft,
-                max: topleft + self.atlas.size,
+                min: self.pos,
+                max: self.pos + self.atlas.size,
             };
             img.paint_at(ui, draw_rect.translate(-region.pos.to_vec2()));
         }
@@ -318,8 +298,7 @@ impl Widget for ParameterName {
 pub struct ImageLabel {
     image: Image,
     sense: egui::Sense,
-    x: f32,
-    y: f32,
+    pos: egui::Pos2,
 }
 
 impl ImageLabel {
@@ -327,23 +306,17 @@ impl ImageLabel {
         Self {
             image,
             sense: egui::Sense::focusable_noninteractive(),
-            x: x,
-            y: y,
-        }
-    }
-
-    pub fn rect(&self) -> egui::Rect {
-        let size = self.image.size;
-        egui::Rect {
-            min: egui::pos2(self.x, self.y),
-            max: egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
+            pos: egui::pos2(x, y),
         }
     }
 }
 
 impl Widget for ImageLabel {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        let rect = self.rect();
+        let rect = egui::Rect {
+            min: self.pos,
+            max: self.pos + self.image.size,
+        };
 
         let response = ui.allocate_rect(rect, self.sense);
 
@@ -448,13 +421,6 @@ impl Behavior for AnimatedEdamame {
 
         response
     }
-
-    fn rect(&self) -> egui::Rect {
-        egui::Rect {
-            min: self.pos,
-            max: self.pos + egui::vec2(self.image.size.x, self.image.size.y),
-        }
-    }
 }
 
 #[derive(Clone)]
@@ -508,8 +474,7 @@ pub struct ButtonBehavior {
     image: Image,
     clicked_at: time::Instant,
     clicked: Toggle,
-    x: f32,
-    y: f32,
+    pos: egui::Pos2,
 }
 
 impl ButtonBehavior {
@@ -518,21 +483,12 @@ impl ButtonBehavior {
             image: image,
             clicked_at: time::Instant::now(),
             clicked: Toggle::new(false, false),
-            x: x,
-            y: y,
+            pos: egui::pos2(x, y),
         }
     }
 }
 
 impl Behavior for ButtonBehavior {
-    fn rect(&self) -> egui::Rect {
-        let size = self.image.size;
-        egui::Rect {
-            min: egui::pos2(self.x, self.y),
-            max: egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
-        }
-    }
-
     fn update(&mut self) -> bool {
         if self.clicked_at.elapsed() <= time::Duration::from_millis(100) {
             self.clicked.set(true);
@@ -544,7 +500,11 @@ impl Behavior for ButtonBehavior {
     }
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
-        let mut widget = Button::new(self.image.clone(), self.clicked.val(), self.rect());
+        let rect = egui::Rect {
+            min: self.pos,
+            max: self.pos + self.image.size,
+        };
+        let mut widget = Button::new(self.image.clone(), self.clicked.val(), rect);
         let response = widget.ui(ui);
 
         if response.clicked() {
@@ -646,8 +606,7 @@ pub struct SliderBehavior {
     border_img: Image,
     bipolar: bool,
     value: f64,
-    x: f32,
-    y: f32,
+    pos: egui::Pos2,
     parameter: SoyBoyParameter,
     param_def: ParameterDef,
     event_handler: Arc<dyn EventHandler>,
@@ -658,8 +617,7 @@ impl SliderBehavior {
         border_img: Image,
         value: f64,
         bipolar: bool,
-        x: f32,
-        y: f32,
+        pos: egui::Pos2,
         parameter: SoyBoyParameter,
         param_def: ParameterDef,
         event_handler: Arc<dyn EventHandler>,
@@ -668,8 +626,7 @@ impl SliderBehavior {
             border_img: border_img,
             value: value,
             bipolar: bipolar,
-            x: x,
-            y: y,
+            pos,
             parameter,
             param_def,
             event_handler,
@@ -683,12 +640,13 @@ impl Behavior for SliderBehavior {
     }
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
+        let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.border_img.size);
         let widget = Slider::new(
             self.border_img.clone(),
             self.param_def
                 .normalize(self.param_def.denormalize(self.value)),
             self.bipolar,
-            self.rect(),
+            rect,
         );
         let response = ui.add(widget);
 
@@ -709,14 +667,6 @@ impl Behavior for SliderBehavior {
 
         response
     }
-
-    fn rect(&self) -> egui::Rect {
-        let size = self.border_img.size;
-        egui::Rect::from_two_pos(
-            egui::pos2(self.x, self.y),
-            egui::pos2(self.x + size[0] as f32, self.y + size[1] as f32),
-        )
-    }
 }
 
 //    #[derive(Clone)]
@@ -727,8 +677,7 @@ pub struct ParameterSlider {
     unit: ParameterUnit,
     param_atlas: Image,
     value_atlas: Image,
-    x: f32,
-    y: f32,
+    pos: egui::Pos2,
 }
 
 impl ParameterSlider {
@@ -753,16 +702,14 @@ impl ParameterSlider {
                 border_img,
                 value,
                 bipolar,
-                x,
-                y + 16.0,
+                egui::pos2(x, y + 16.0),
                 param,
                 param_def,
                 event_handler,
             ),
             param_atlas,
             value_atlas,
-            x,
-            y,
+            pos: egui::pos2(x, y),
         }
     }
 }
@@ -773,14 +720,13 @@ impl Behavior for ParameterSlider {
     }
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
-        let rect = self.rect();
+        let rect = egui::Rect::from_two_pos(self.pos, self.pos + egui::vec2(266.0, 30.0));
 
         ui.set_clip_rect(rect);
         ui.add(ParameterName::new(
             self.param.clone(),
             self.param_atlas.clone(),
-            self.x,
-            self.y,
+            self.pos,
         ));
         ui.set_clip_rect(rect);
 
@@ -792,22 +738,13 @@ impl Behavior for ParameterSlider {
             0.0,
         );
         let size = egui::vec2(266.0, 30.0);
-        let value_rect = value.rect().size();
-        value.set_pos(self.x + (size.x - value_rect.x), self.y);
+        let value_rect = value.size;
+        value.set_pos(self.pos + egui::vec2(size.x - value_rect.x, 0.0));
         ui.add(value);
 
         ui.set_clip_rect(screen_rect());
 
         self.slider.show(ui)
-    }
-
-    fn rect(&self) -> egui::Rect {
-        let topleft = egui::pos2(self.x, self.y);
-        let size = egui::vec2(266.0, 30.0);
-        egui::Rect {
-            min: topleft,
-            max: topleft + size,
-        }
     }
 }
 
@@ -899,8 +836,7 @@ pub struct ParameterSelector {
     value: usize,
     button_image: Image,
     param_atlas: Image,
-    x: f32,
-    y: f32,
+    pos: egui::Pos2,
     event_handler: Arc<dyn EventHandler>,
 }
 
@@ -921,8 +857,7 @@ impl ParameterSelector {
             value: value as usize,
             button_image,
             param_atlas,
-            x,
-            y,
+            pos: egui::pos2(x, y),
             event_handler,
         }
     }
@@ -937,11 +872,10 @@ impl Behavior for ParameterSelector {
         ui.add(ParameterName::new(
             self.param.clone(),
             self.param_atlas.clone(),
-            self.x,
-            self.y,
+            self.pos,
         ));
 
-        let topleft = egui::pos2(self.x, self.y) + egui::vec2(0.0, 16.0);
+        let topleft = self.pos + egui::vec2(0.0, 16.0);
         let button_rect = egui::Rect {
             min: topleft,
             max: topleft + self.button_image.size,
@@ -980,14 +914,5 @@ impl Behavior for ParameterSelector {
         }
 
         responses[self.value].clone()
-    }
-
-    fn rect(&self) -> egui::Rect {
-        let topleft = egui::pos2(self.x, self.y);
-
-        egui::Rect {
-            min: topleft,
-            max: topleft + self.button_image.size,
-        }
     }
 }
