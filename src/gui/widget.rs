@@ -749,10 +749,10 @@ impl SoyBoyParameter {
                 Region::new(122.0, 2.0, 54.0, 22.0),
             ]),
             SoyBoyParameter::OscSqDuty => Some(vec![
-                Region::new(2.0, 2.0, 46.0, 44.0),
-                Region::new(50.0, 2.0, 40.0, 44.0),
-                Region::new(92.0, 2.0, 42.0, 44.0),
-                Region::new(136.0, 2.0, 40.0, 44.0),
+                Region::new(2.0, 2.0, 46.0, 22.0),
+                Region::new(50.0, 2.0, 40.0, 22.0),
+                Region::new(92.0, 2.0, 42.0, 22.0),
+                Region::new(136.0, 2.0, 40.0, 22.0),
             ]),
             SoyBoyParameter::SweepType => Some(vec![
                 Region::new(2.0, 2.0, 62.0, 20.0),
