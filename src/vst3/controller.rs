@@ -386,7 +386,10 @@ impl IConnectionPoint for SoyBoyController {
         kResultOk
     }
 
-    unsafe fn notify(&self, _message: SharedVstPtr<dyn IMessage>) -> tresult {
+    unsafe fn notify(&self, message: SharedVstPtr<dyn IMessage>) -> tresult {
+        let msg = message.upgrade().unwrap();
+        let name = utils::fidstring_to_string(msg.get_message_id());
+        println!("receive message: {}", name);
         kResultOk
     }
 }

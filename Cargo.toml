@@ -11,8 +11,8 @@ crate-type = ["cdylib"]
 [dev-dependencies]
 
 [dependencies]
-vst3-sys = { version = "0.1.0", git = "https://github.com/RustAudio/vst3-sys" }
-vst3-com = { version = "0.1.0", git = "https://github.com/RustAudio/vst3-sys" }
+vst3-sys = { branch = "feature/null-shared-vst-ptr", git = "https://github.com/t-sin/vst3-sys" }
+vst3-com = { branch = "feature/null-shared-vst-ptr", git = "https://github.com/t-sin/vst3-sys" }
 
 # workarround for parent window
 egui_glow = { git = "https://github.com/t-sin/egui" }

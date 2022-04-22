@@ -2,10 +2,10 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
-
 use std::os::raw::c_void;
+use std::ptr::null_mut;
 
-use vst3_com::{sys::GUID, IID};
+use vst3_com::{interfaces::IUnknown, sys::GUID, ComInterface, IID};
 use vst3_sys::{
     base::{
         kInvalidArgument, kResultFalse, kResultOk, kResultTrue, tresult, IBStream, IPluginBase,
@@ -14,10 +14,11 @@ use vst3_sys::{
     utils::SharedVstPtr,
     vst::{
         AudioBusBuffers, BusDirections, BusFlags, BusInfo, BusTypes, EventTypes, IAudioProcessor,
-        IComponent, IConnectionPoint, IEventList, IMessage, IParamValueQueue, IParameterChanges,
-        MediaTypes, ProcessData, ProcessSetup, RoutingInfo, K_SAMPLE32, K_SAMPLE64,
+        IComponent, IConnectionPoint, IEventList, IHostApplication, IMessage, IParamValueQueue,
+        IParameterChanges, MediaTypes, ProcessData, ProcessSetup, RoutingInfo, K_SAMPLE32,
+        K_SAMPLE64,
     },
-    VST3,
+    RawVstPtr, VST3,
 };
 
 use crate::soyboy::{
@@ -25,11 +26,7 @@ use crate::soyboy::{
     parameters::{Normalizable, ParameterDef, Parametric, SoyBoyParameter},
     AudioProcessor, SoyBoy,
 };
-use crate::vst3::{
-    controller::SoyBoyController,
-    message::{Vst3Message, Vst3MessageId},
-    plugin_data, utils,
-};
+use crate::vst3::{controller::SoyBoyController, message::Vst3Message, plugin_data, utils};
 
 #[VST3(implements(IComponent, IAudioProcessor, IConnectionPoint))]
 pub struct SoyBoyPlugin {
@@ -37,6 +34,7 @@ pub struct SoyBoyPlugin {
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     audio_out: RefCell<BusInfo>,
     event_in: RefCell<BusInfo>,
+    host: RefCell<Option<RawVstPtr<dyn IHostApplication>>>,
     controller: RefCell<Option<SharedVstPtr<dyn IConnectionPoint>>>,
 }
 
@@ -71,9 +69,10 @@ impl SoyBoyPlugin {
         let soyboy = RefCell::new(SoyBoy::new());
         let audio_out = RefCell::new(utils::make_empty_bus_info());
         let event_in = RefCell::new(utils::make_empty_bus_info());
+        let host = RefCell::new(None);
         let controller = RefCell::new(None);
 
-        SoyBoyPlugin::allocate(soyboy, param_defs, audio_out, event_in, controller)
+        SoyBoyPlugin::allocate(soyboy, param_defs, audio_out, event_in, host, controller)
     }
 
     pub fn bus_count(&self, media_type: MediaTypes, dir: BusDirections) -> i32 {
@@ -92,7 +91,16 @@ impl SoyBoyPlugin {
 }
 
 impl IPluginBase for SoyBoyPlugin {
-    unsafe fn initialize(&self, _host_context: *mut c_void) -> tresult {
+    unsafe fn initialize(&self, host_context: *mut c_void) -> tresult {
+        if host_context.is_null() {
+            #[cfg(debug_assertions)]
+            println!("SoyBoyPlugin::initialize(): host_context is null");
+        } else {
+            let host = host_context as *mut *mut _;
+            let host = RawVstPtr::<dyn IHostApplication>::new(host);
+            let _ = self.host.replace(host);
+        }
+
         let mut sb = self.soyboy.borrow_mut();
         for param in SoyBoyParameter::iter() {
             if let Some(sp) = self.param_defs.get(&param) {
@@ -354,10 +362,35 @@ impl IAudioProcessor for SoyBoyPlugin {
                 if input_events.get_event(c, &mut e) == kResultOk {
                     let mut soyboy = self.soyboy.borrow_mut();
                     match utils::as_event_type(e.type_) {
-                        Some(EventTypes::kNoteOnEvent) => soyboy.trigger(&Event::NoteOn {
-                            note: e.event.note_on.pitch as u16,
-                            velocity: e.event.note_on.velocity as f64,
-                        }),
+                        Some(EventTypes::kNoteOnEvent) => {
+                            soyboy.trigger(&Event::NoteOn {
+                                note: e.event.note_on.pitch as u16,
+                                velocity: e.event.note_on.velocity as f64,
+                            });
+
+                            let iid = <dyn IMessage>::IID;
+                            let mut ptr: *mut <dyn IMessage as ComInterface>::VTable = null_mut();
+                            let host = self.host.as_ptr().as_ref().unwrap().as_ref().unwrap();
+                            println!("create_instance()");
+                            let result = host.create_instance(
+                                iid,
+                                iid,
+                                &mut ptr as *mut *mut _ as *mut *mut c_void,
+                            );
+                            println!("create_instance() ok");
+                            let mut msg = SharedVstPtr::new(&mut ptr as *mut _);
+                            if result == kResultOk {
+                                Vst3Message::NoteOn.set(&mut msg);
+                                (*self.controller.borrow())
+                                    .as_ref()
+                                    .unwrap()
+                                    .upgrade()
+                                    .unwrap()
+                                    .notify(msg);
+                            } else {
+                                println!("not ok");
+                            }
+                        }
                         Some(EventTypes::kNoteOffEvent) => soyboy.trigger(&Event::NoteOff {
                             note: e.event.note_off.pitch as u16,
                         }),
