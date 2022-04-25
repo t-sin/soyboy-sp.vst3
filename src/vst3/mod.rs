@@ -1,6 +1,7 @@
 mod controller;
 mod factory;
 mod gui;
+mod message;
 mod plugin;
 mod plugin_data;
 mod utils;
