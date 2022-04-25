@@ -33,6 +33,7 @@ pub struct SoyBoyPlugin {
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     audio_out: RefCell<BusInfo>,
     event_in: RefCell<BusInfo>,
+    context: RefCell<Option<VstPtr<dyn IUnknown>>>,
     controller: RefCell<Option<SharedVstPtr<dyn IConnectionPoint>>>,
 }
 
@@ -68,8 +69,9 @@ impl SoyBoyPlugin {
         let audio_out = RefCell::new(utils::make_empty_bus_info());
         let event_in = RefCell::new(utils::make_empty_bus_info());
         let controller = RefCell::new(None);
+        let context = RefCell::new(None);
 
-        SoyBoyPlugin::allocate(soyboy, param_defs, audio_out, event_in, controller)
+        SoyBoyPlugin::allocate(soyboy, param_defs, audio_out, event_in, controller, context)
     }
 
     pub fn bus_count(&self, media_type: MediaTypes, dir: BusDirections) -> i32 {
@@ -88,7 +90,14 @@ impl SoyBoyPlugin {
 }
 
 impl IPluginBase for SoyBoyPlugin {
-    unsafe fn initialize(&self, _host_context: *mut c_void) -> tresult {
+    unsafe fn initialize(&self, host_context: *mut c_void) -> tresult {
+        if host_context.is_null() {
+            panic!("host context is null");
+        }
+
+        let context: VstPtr<dyn IUnknown> = VstPtr::shared(host_context as *mut _).unwrap();
+        let _ = self.context.replace(Some(context));
+
         let mut sb = self.soyboy.borrow_mut();
         for param in SoyBoyParameter::iter() {
             if let Some(sp) = self.param_defs.get(&param) {
