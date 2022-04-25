@@ -2,10 +2,10 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
-
 use std::os::raw::c_void;
+use std::ptr::null_mut;
 
-use vst3_com::{sys::GUID, IID};
+use vst3_com::{interfaces::IUnknown, sys::GUID, ComInterface, IID};
 use vst3_sys::{
     base::{
         kInvalidArgument, kResultFalse, kResultOk, kResultTrue, tresult, IBStream, IPluginBase,
@@ -14,10 +14,11 @@ use vst3_sys::{
     utils::SharedVstPtr,
     vst::{
         AudioBusBuffers, BusDirections, BusFlags, BusInfo, BusTypes, EventTypes, IAudioProcessor,
-        IComponent, IEventList, IParamValueQueue, IParameterChanges, MediaTypes, ProcessData,
-        ProcessSetup, RoutingInfo, K_SAMPLE32, K_SAMPLE64,
+        IComponent, IConnectionPoint, IEventList, IHostApplication, IMessage, IParamValueQueue,
+        IParameterChanges, MediaTypes, ProcessData, ProcessSetup, RoutingInfo, K_SAMPLE32,
+        K_SAMPLE64,
     },
-    VST3,
+    VstPtr, VST3,
 };
 
 use crate::soyboy::{
@@ -25,14 +26,18 @@ use crate::soyboy::{
     parameters::{Normalizable, ParameterDef, Parametric, SoyBoyParameter},
     AudioProcessor, SoyBoy,
 };
-use crate::vst3::{controller::SoyBoyController, plugin_data, utils};
+use crate::vst3::{
+    controller::SoyBoyController, message::Vst3Message, plugin_data, utils, utils::ComPtr,
+};
 
-#[VST3(implements(IComponent, IAudioProcessor))]
+#[VST3(implements(IComponent, IAudioProcessor, IConnectionPoint))]
 pub struct SoyBoyPlugin {
     soyboy: RefCell<SoyBoy>,
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     audio_out: RefCell<BusInfo>,
     event_in: RefCell<BusInfo>,
+    context: RefCell<Option<VstPtr<dyn IUnknown>>>,
+    controller: RefCell<Option<SharedVstPtr<dyn IConnectionPoint>>>,
 }
 
 impl SoyBoyPlugin {
@@ -66,8 +71,10 @@ impl SoyBoyPlugin {
         let soyboy = RefCell::new(SoyBoy::new());
         let audio_out = RefCell::new(utils::make_empty_bus_info());
         let event_in = RefCell::new(utils::make_empty_bus_info());
+        let controller = RefCell::new(None);
+        let context = RefCell::new(None);
 
-        SoyBoyPlugin::allocate(soyboy, param_defs, audio_out, event_in)
+        SoyBoyPlugin::allocate(soyboy, param_defs, audio_out, event_in, controller, context)
     }
 
     pub fn bus_count(&self, media_type: MediaTypes, dir: BusDirections) -> i32 {
@@ -83,10 +90,56 @@ impl SoyBoyPlugin {
             MediaTypes::kNumMediaTypes => 0,
         }
     }
+
+    fn get_host_app(&self) -> ComPtr<dyn IHostApplication> {
+        let context = self.context.borrow();
+        let context = context.as_ref().unwrap();
+
+        let host_iid = <dyn IHostApplication as ComInterface>::IID;
+        let mut host_ptr: *mut c_void = null_mut();
+
+        let result =
+            unsafe { context.query_interface(&host_iid as *const _, &mut host_ptr as *mut _) };
+
+        if result != kResultOk {
+            panic!("host context is not implemented IHostApplication");
+        }
+
+        let host_obj = unsafe { VstPtr::shared(host_ptr as *mut _).unwrap() };
+
+        ComPtr::new(host_ptr, host_obj)
+    }
+
+    fn send_message(&self, msg: Vst3Message) {
+        let controller = self.controller.borrow_mut();
+        if let Some(controller) = controller.as_ref() {
+            let controller = controller.upgrade().unwrap();
+            let host = self.get_host_app().obj();
+
+            let msg = msg.allocate(&host);
+            if let Some(msg) = msg {
+                unsafe {
+                    let msg = std::mem::transmute::<VstPtr<dyn IMessage>, SharedVstPtr<dyn IMessage>>(
+                        msg.obj(),
+                    );
+                    controller.notify(msg);
+                }
+            } else {
+                println!("SoyBoyPlugin::send_message(): allocation failed");
+            }
+        }
+    }
 }
 
 impl IPluginBase for SoyBoyPlugin {
-    unsafe fn initialize(&self, _host_context: *mut c_void) -> tresult {
+    unsafe fn initialize(&self, host_context: *mut c_void) -> tresult {
+        if host_context.is_null() {
+            panic!("host context is null");
+        }
+
+        let context: VstPtr<dyn IUnknown> = VstPtr::shared(host_context as *mut _).unwrap();
+        let _ = self.context.replace(Some(context));
+
         let mut sb = self.soyboy.borrow_mut();
         for param in SoyBoyParameter::iter() {
             if let Some(sp) = self.param_defs.get(&param) {
@@ -348,10 +401,13 @@ impl IAudioProcessor for SoyBoyPlugin {
                 if input_events.get_event(c, &mut e) == kResultOk {
                     let mut soyboy = self.soyboy.borrow_mut();
                     match utils::as_event_type(e.type_) {
-                        Some(EventTypes::kNoteOnEvent) => soyboy.trigger(&Event::NoteOn {
-                            note: e.event.note_on.pitch as u16,
-                            velocity: e.event.note_on.velocity as f64,
-                        }),
+                        Some(EventTypes::kNoteOnEvent) => {
+                            self.send_message(Vst3Message::NoteOn);
+                            soyboy.trigger(&Event::NoteOn {
+                                note: e.event.note_on.pitch as u16,
+                                velocity: e.event.note_on.velocity as f64,
+                            });
+                        }
                         Some(EventTypes::kNoteOffEvent) => soyboy.trigger(&Event::NoteOff {
                             note: e.event.note_off.pitch as u16,
                         }),
@@ -400,5 +456,32 @@ impl IAudioProcessor for SoyBoyPlugin {
             }
             _ => unreachable!(),
         }
+    }
+}
+
+impl IConnectionPoint for SoyBoyPlugin {
+    unsafe fn connect(&self, other: SharedVstPtr<dyn IConnectionPoint>) -> tresult {
+        #[cfg(debug_assertions)]
+        println!("IConnectionPoint::connect() on SoyBoyPlugin");
+
+        let _ = self.controller.replace(Some(other));
+        #[cfg(debug_assertions)]
+        println!("IConnectionPoint::connect() on SoyBoyPlugin: connected");
+
+        kResultOk
+    }
+
+    unsafe fn disconnect(&self, _other: SharedVstPtr<dyn IConnectionPoint>) -> tresult {
+        #[cfg(debug_assertions)]
+        println!("IConnectionPoint::disconnect() on SoyBoyPlugin");
+
+        let _ = self.controller.replace(None);
+        kResultOk
+    }
+
+    unsafe fn notify(&self, _message: SharedVstPtr<dyn IMessage>) -> tresult {
+        #[cfg(debug_assertions)]
+        println!("IConnectionPoint::notify() on SoyBoyPlugin");
+        kResultOk
     }
 }

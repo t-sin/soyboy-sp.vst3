@@ -407,6 +407,7 @@ pub struct GUIThread {
     needs_redraw: bool,
     // threading stuff
     receiver: Arc<Mutex<Receiver<GUIMessage>>>,
+    plugin_event_recv: Receiver<GUIEvent>,
     // egui stuff
     egui_glow: EguiGlow,
     window: WindowedContext<PossiblyCurrent>,
@@ -460,6 +461,7 @@ impl GUIThread {
         param_values: Arc<Mutex<HashMap<u32, f64>>>,
         event_handler: Arc<dyn EventHandler>,
         receiver: Arc<Mutex<Receiver<GUIMessage>>>,
+        plugin_event_recv: Receiver<GUIEvent>,
     ) -> (Self, EventLoop<GUIEvent>) {
         let (event_loop, window_builder) = Self::setup_event_loop(parent);
         let window = unsafe {
@@ -494,6 +496,7 @@ impl GUIThread {
             quit: false,
             needs_redraw: false,
             receiver: receiver,
+            plugin_event_recv,
             egui_glow: egui_glow,
             window: window,
             // glow_context: glow_context,
@@ -516,6 +519,17 @@ impl GUIThread {
 
         if self.needs_redraw {
             let _ = proxy.send_event(GUIEvent::Redraw);
+        }
+
+        match self.plugin_event_recv.try_recv() {
+            Ok(gui_event) => match gui_event {
+                GUIEvent::NoteOn => {
+                    self.ui.edamame.jump();
+                    self.needs_redraw = true;
+                }
+                _ => (),
+            },
+            Err(_) => (),
         }
     }
 
@@ -659,6 +673,7 @@ impl GUIThread {
             }
             Event::UserEvent(gui_event) => match gui_event {
                 GUIEvent::Redraw => redraw(),
+                _ => (),
             },
             _ => (),
         }
@@ -679,9 +694,16 @@ impl GUIThread {
         param_values: Arc<Mutex<HashMap<u32, f64>>>,
         event_handler: Arc<dyn EventHandler>,
         receiver: Arc<Mutex<Receiver<GUIMessage>>>,
+        plugin_event_recv: Receiver<GUIEvent>,
     ) {
-        let (mut thread, mut event_loop) =
-            GUIThread::setup(parent, param_defs, param_values, event_handler, receiver);
+        let (mut thread, mut event_loop) = GUIThread::setup(
+            parent,
+            param_defs,
+            param_values,
+            event_handler,
+            receiver,
+            plugin_event_recv,
+        );
         let proxy = event_loop.create_proxy();
 
         event_loop.run_return(move |event, _, control_flow| {

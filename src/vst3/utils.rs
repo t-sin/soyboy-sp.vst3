@@ -5,13 +5,38 @@ use std::{
 };
 use widestring::U16CString;
 
+use vst3_com::{interfaces::IUnknown, ComInterface};
 use vst3_sys::{
     base::FIDString,
     vst::{
         BusDirections, BusFlags, BusInfo, BusTypes, DataEvent, Event, EventData, EventTypes,
         MediaTypes, ParameterInfo, String128, TChar,
     },
+    VstPtr,
 };
+
+pub struct ComPtr<I: ComInterface + ?Sized> {
+    _ptr: *mut c_void,
+    obj: VstPtr<I>,
+}
+
+impl<I: ComInterface + ?Sized> ComPtr<I> {
+    pub fn new(_ptr: *mut c_void, obj: VstPtr<I>) -> Self {
+        Self { _ptr, obj }
+    }
+
+    pub fn obj(&self) -> VstPtr<I> {
+        self.obj.clone()
+    }
+}
+
+impl<I: ComInterface + ?Sized> Drop for ComPtr<I> {
+    fn drop(&mut self) {
+        unsafe {
+            self.obj.release();
+        }
+    }
+}
 
 pub unsafe fn strcpy(src: &str, dst: *mut c_char) {
     copy_nonoverlapping(src.as_ptr() as *const c_void as *const _, dst, src.len());
