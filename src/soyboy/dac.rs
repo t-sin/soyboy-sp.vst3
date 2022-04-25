@@ -18,8 +18,8 @@ pub struct DAConverter {
 impl DAConverter {
     pub fn new(freq: f64, q: f64) -> Self {
         DAConverter {
-            freq: freq,
-            q: q,
+            freq,
+            q,
 
             input_buf: [0.0; 2],
             output_buf: [0.0; 2],

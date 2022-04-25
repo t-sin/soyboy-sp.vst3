@@ -39,33 +39,33 @@ pub struct SoyBoyController {
     gui_sender: RefCell<Option<Sender<GUIEvent>>>,
 }
 
+struct Paraminfo<'a> {
+    title: &'a str,
+    short_title: &'a str,
+    unit_name: &'a str,
+    step_count: i32,
+    default_value: f64,
+    flags: i32,
+}
+
 impl SoyBoyController {
     pub const CID: GUID = GUID {
         data: plugin_data::VST3_CONTROLLER_CID,
     };
 
-    unsafe fn add_parameter(
-        &self,
-        id: u32,
-        title: &str,
-        short_title: &str,
-        units: &str,
-        step_count: i32,
-        default_value: f64,
-        flags: i32,
-    ) {
+    unsafe fn add_parameter(&self, id: u32, paraminfo: Paraminfo) {
         let mut vst3_params = self.vst3_params.borrow_mut();
         let mut param_vals = self.param_values.lock().unwrap();
 
         let mut param = utils::make_empty_param_info();
         param.id = id;
-        utils::wstrcpy(title, param.title.as_mut_ptr());
-        utils::wstrcpy(short_title, param.short_title.as_mut_ptr());
-        utils::wstrcpy(units, param.units.as_mut_ptr());
-        param.step_count = step_count;
-        param.default_normalized_value = default_value;
+        utils::wstrcpy(paraminfo.title, param.title.as_mut_ptr());
+        utils::wstrcpy(paraminfo.short_title, param.short_title.as_mut_ptr());
+        utils::wstrcpy(paraminfo.unit_name, param.units.as_mut_ptr());
+        param.step_count = paraminfo.step_count;
+        param.default_normalized_value = paraminfo.default_value;
         param.unit_id = kRootUnitId;
-        param.flags = flags;
+        param.flags = paraminfo.flags;
 
         (*vst3_params).insert(id, param);
         (*param_vals).insert(id, param.default_normalized_value);
@@ -95,12 +95,14 @@ impl IPluginBase for SoyBoyController {
         for (param, soyboy_param) in param_defs.iter() {
             self.add_parameter(
                 *param as u32,
-                &soyboy_param.title,
-                &soyboy_param.short_title,
-                &soyboy_param.unit_name,
-                soyboy_param.step_count,
-                soyboy_param.default_value,
-                ParameterFlags::kCanAutomate as i32,
+                Paraminfo {
+                    title: &soyboy_param.title,
+                    short_title: &soyboy_param.short_title,
+                    unit_name: &soyboy_param.unit_name,
+                    step_count: soyboy_param.step_count,
+                    default_value: soyboy_param.default_value,
+                    flags: ParameterFlags::kCanAutomate as i32,
+                },
             );
         }
 
@@ -194,15 +196,12 @@ impl IEditController for SoyBoyController {
         value_normalized: f64,
         string: *mut TChar,
     ) -> tresult {
-        match SoyBoyParameter::try_from(id) {
-            Ok(param) => {
-                if let Some(p) = self.param_defs.get(&param) {
-                    utils::tcharcpy(&p.format(value_normalized), string)
-                } else {
-                    return kResultFalse;
-                }
+        if let Ok(param) = SoyBoyParameter::try_from(id) {
+            if let Some(p) = self.param_defs.get(&param) {
+                utils::tcharcpy(&p.format(value_normalized), string)
+            } else {
+                return kResultFalse;
             }
-            _ => (),
         }
 
         kResultOk
@@ -214,20 +213,18 @@ impl IEditController for SoyBoyController {
         string: *const TChar,
         value_normalized: *mut f64,
     ) -> tresult {
-        match SoyBoyParameter::try_from(id) {
-            Ok(param) => {
-                if let Some(p) = self.param_defs.get(&param) {
-                    if let Some(v) = p.parse(&utils::tchar_to_string(string)) {
-                        *value_normalized = v;
-                    } else {
-                        return kResultFalse;
-                    }
+        if let Ok(param) = SoyBoyParameter::try_from(id) {
+            if let Some(p) = self.param_defs.get(&param) {
+                if let Some(v) = p.parse(&utils::tchar_to_string(string)) {
+                    *value_normalized = v;
                 } else {
                     return kResultFalse;
                 }
+            } else {
+                return kResultFalse;
             }
-            _ => (),
         }
+
         kResultOk
     }
 
@@ -403,11 +400,8 @@ impl IConnectionPoint for SoyBoyController {
         let sender = self.gui_sender.borrow();
         let sender = sender.as_ref().unwrap();
 
-        match Vst3Message::from_str(&id) {
-            Some(Vst3Message::NoteOn) => {
-                let _ = sender.send(GUIEvent::NoteOn);
-            }
-            _ => (),
+        if let Some(Vst3Message::NoteOn) = Vst3Message::from_str(&id) {
+            let _ = sender.send(GUIEvent::NoteOn);
         }
         kResultOk
     }

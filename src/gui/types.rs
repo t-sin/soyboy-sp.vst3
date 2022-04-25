@@ -9,7 +9,7 @@ pub struct ParentWindow(pub *mut c_void);
 unsafe impl Send for ParentWindow {}
 unsafe impl Sync for ParentWindow {}
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct Image {
     pub texture_id: egui::TextureId,
     pub size: egui::Vec2,
@@ -32,6 +32,7 @@ pub enum GUIMessage {
     Terminate,
 }
 
+#[derive(PartialEq, Eq)]
 pub enum GUIEvent {
     Redraw,
     NoteOn,

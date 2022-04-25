@@ -369,22 +369,19 @@ impl IAudioProcessor for SoyBoyPlugin {
                     let mut value = 0.0;
                     let mut sample_offset = 0;
                     let num_points = param_queue.get_point_count();
-                    match SoyBoyParameter::try_from(param_queue.get_parameter_id()) {
-                        Ok(param) => {
-                            if param_queue.get_point(
-                                num_points - 1,
-                                &mut sample_offset as *mut _,
-                                &mut value as *mut _,
-                            ) == kResultTrue
-                            {
-                                if let Some(p) = self.param_defs.get(&param) {
-                                    self.soyboy
-                                        .borrow_mut()
-                                        .set_param(&param, p.denormalize(value));
-                                }
+                    if let Ok(param) = SoyBoyParameter::try_from(param_queue.get_parameter_id()) {
+                        if param_queue.get_point(
+                            num_points - 1,
+                            &mut sample_offset as *mut _,
+                            &mut value as *mut _,
+                        ) == kResultTrue
+                        {
+                            if let Some(p) = self.param_defs.get(&param) {
+                                self.soyboy
+                                    .borrow_mut()
+                                    .set_param(&param, p.denormalize(value));
                             }
                         }
-                        Err(_) => (),
                     }
                 }
             }

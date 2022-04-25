@@ -8,20 +8,6 @@ pub enum Event {
     ResetWaveTableAtRandom,
 }
 
-impl Into<u32> for Event {
-    fn into(self) -> u32 {
-        match self {
-            Event::NoteOn { .. } => 0,
-            Event::NoteOff { .. } => 1,
-            Event::PitchBend { .. } => 2,
-            Event::SweepReset { .. } => 3,
-            Event::SetWaveTable { .. } => 4,
-            Event::ResetWaveTableAsSine => 5,
-            Event::ResetWaveTableAtRandom => 6,
-        }
-    }
-}
-
 impl TryFrom<u32> for Event {
     type Error = ();
 

@@ -169,7 +169,7 @@ impl Normalizable<f64> for NonLinearParameter {
     }
 
     fn parse(&self, string: &str) -> Option<f64> {
-        if let Some(vs) = string.split(' ').nth(0) {
+        if let Some(vs) = string.split(' ').next() {
             if let Ok(v) = vs.parse() {
                 Some(self.normalize(v))
             } else {
@@ -201,7 +201,7 @@ impl Normalizable<f64> for LinearParameter {
     }
 
     fn parse(&self, string: &str) -> Option<f64> {
-        if let Some(vs) = string.split(' ').nth(0) {
+        if let Some(vs) = string.split(' ').next() {
             if let Ok(v) = vs.parse() {
                 Some(self.normalize(v))
             } else {
@@ -233,7 +233,7 @@ impl Normalizable<f64> for IntegerParameter {
     }
 
     fn parse(&self, string: &str) -> Option<f64> {
-        if let Some(vs) = string.split(' ').nth(0) {
+        if let Some(vs) = string.split(' ').next() {
             if let Ok(v) = vs.parse() {
                 Some(self.normalize(v))
             } else {
@@ -261,7 +261,7 @@ impl Normalizable<f64> for ListParameter {
 
     fn format(&self, normalized: f64) -> String {
         if let Some(s) = self.elements.get(self.denormalize(normalized) as usize) {
-            format!("{}", s)
+            s.to_string()
         } else {
             "".to_string()
         }

@@ -1,4 +1,5 @@
 use std::ffi::CString;
+use std::fmt;
 use std::os::raw::c_void;
 use std::ptr::null_mut;
 
@@ -15,17 +16,21 @@ pub enum Vst3Message {
     NoteOn,
 }
 
+impl fmt::Display for Vst3Message {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s = match self {
+            Vst3Message::NoteOn => "vst3:note-on",
+        };
+
+        write!(f, "{}", s)
+    }
+}
+
 impl Vst3Message {
     pub fn from_str(s: &str) -> Option<Self> {
         match s {
             "vst3:note-on" => Some(Vst3Message::NoteOn),
             _ => None,
-        }
-    }
-
-    fn to_string(&self) -> String {
-        match self {
-            Vst3Message::NoteOn => "vst3:note-on".to_string(),
         }
     }
 

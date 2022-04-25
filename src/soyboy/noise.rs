@@ -25,7 +25,7 @@ impl NoiseOscillator {
         NoiseOscillator {
             interval_msec: 0.1,
             sec_counter: 0.0,
-            table: table,
+            table,
             table_index: 0,
         }
     }
@@ -39,7 +39,7 @@ impl AudioProcessor<i4> for NoiseOscillator {
         }
         self.sec_counter += 1.0 / sample_rate;
 
-        i4::from(self.table[self.table_index])
+        self.table[self.table_index]
     }
 
     fn set_freq(&mut self, _freq: f64) {}
@@ -47,22 +47,18 @@ impl AudioProcessor<i4> for NoiseOscillator {
 
 impl Triggered for NoiseOscillator {
     fn trigger(&mut self, event: &Event) {
-        match event {
-            Event::NoteOn {
-                note: _,
-                velocity: _,
-            } => {}
-
-            _ => (),
-        }
+        if let Event::NoteOn {
+            note: _,
+            velocity: _,
+        } = event
+        {}
     }
 }
 
 impl Parametric<SoyBoyParameter> for NoiseOscillator {
     fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
-        match param {
-            SoyBoyParameter::OscNsInterval => self.interval_msec = value,
-            _ => (),
+        if param == &SoyBoyParameter::OscNsInterval {
+            self.interval_msec = value;
         }
     }
 

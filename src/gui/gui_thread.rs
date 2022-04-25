@@ -142,6 +142,12 @@ impl UI {
             param_atlas: RetainedImage::from_image_bytes("name_atlas", IMG_PARAM_ATLAS).unwrap(),
         };
 
+        let slider_images = SliderImages {
+            border_img: Image::new(egui_ctx, &images.slider_border),
+            param_atlas: Image::new(egui_ctx, &images.param_atlas),
+            value_atlas: Image::new(egui_ctx, &images.value_atlas),
+        };
+
         let param_values = param_values.lock().unwrap();
         Self {
             edamame: AnimatedEdamame::new(Image::new(egui_ctx, &images.edamame), 18.0, 14.0),
@@ -176,195 +182,197 @@ impl UI {
                 526.0,
             ),
             param_volume: ParameterSlider::new(
-                SoyBoyParameter::MasterVolume,
-                param_defs
-                    .get(&SoyBoyParameter::MasterVolume)
-                    .unwrap()
-                    .clone(),
-                *param_values
-                    .get(&(SoyBoyParameter::MasterVolume as u32))
-                    .unwrap(),
-                false,
-                ParameterUnit::Decibel,
-                Image::new(egui_ctx, &images.slider_border),
-                Image::new(egui_ctx, &images.param_atlas),
-                Image::new(egui_ctx, &images.value_atlas),
+                SliderValue {
+                    param: SoyBoyParameter::MasterVolume,
+                    param_def: param_defs
+                        .get(&SoyBoyParameter::MasterVolume)
+                        .unwrap()
+                        .clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::MasterVolume as u32))
+                        .unwrap(),
+                    bipolar: false,
+                    unit: ParameterUnit::Decibel,
+                },
+                slider_images,
                 60.0,
                 86.0 + 2.0,
                 event_handler.clone(),
             ),
             param_detune: ParameterSlider::new(
-                SoyBoyParameter::Detune,
-                param_defs.get(&SoyBoyParameter::Detune).unwrap().clone(),
-                *param_values.get(&(SoyBoyParameter::Detune as u32)).unwrap(),
-                true,
-                ParameterUnit::Cent,
-                Image::new(egui_ctx, &images.slider_border),
-                Image::new(egui_ctx, &images.param_atlas),
-                Image::new(egui_ctx, &images.value_atlas),
+                SliderValue {
+                    param: SoyBoyParameter::Detune,
+                    param_def: param_defs.get(&SoyBoyParameter::Detune).unwrap().clone(),
+                    value: *param_values.get(&(SoyBoyParameter::Detune as u32)).unwrap(),
+                    bipolar: true,
+                    unit: ParameterUnit::Cent,
+                },
+                slider_images,
                 60.0,
                 122.0 + 2.0,
                 event_handler.clone(),
             ),
             param_interval: ParameterSlider::new(
-                SoyBoyParameter::OscNsInterval,
-                param_defs
-                    .get(&SoyBoyParameter::OscNsInterval)
-                    .unwrap()
-                    .clone(),
-                *param_values
-                    .get(&(SoyBoyParameter::OscNsInterval as u32))
-                    .unwrap(),
-                false,
-                ParameterUnit::MilliSec,
-                Image::new(egui_ctx, &images.slider_border),
-                Image::new(egui_ctx, &images.param_atlas),
-                Image::new(egui_ctx, &images.value_atlas),
+                SliderValue {
+                    param: SoyBoyParameter::OscNsInterval,
+                    param_def: param_defs
+                        .get(&SoyBoyParameter::OscNsInterval)
+                        .unwrap()
+                        .clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::OscNsInterval as u32))
+                        .unwrap(),
+                    bipolar: false,
+                    unit: ParameterUnit::MilliSec,
+                },
+                slider_images,
                 60.0,
                 292.0 + 2.0,
                 event_handler.clone(),
             ),
             param_attack: ParameterSlider::new(
-                SoyBoyParameter::EgAttack,
-                param_defs.get(&SoyBoyParameter::EgAttack).unwrap().clone(),
-                *param_values
-                    .get(&(SoyBoyParameter::EgAttack as u32))
-                    .unwrap(),
-                false,
-                ParameterUnit::Sec,
-                Image::new(egui_ctx, &images.slider_border),
-                Image::new(egui_ctx, &images.param_atlas),
-                Image::new(egui_ctx, &images.value_atlas),
+                SliderValue {
+                    param: SoyBoyParameter::EgAttack,
+                    param_def: param_defs.get(&SoyBoyParameter::EgAttack).unwrap().clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::EgAttack as u32))
+                        .unwrap(),
+                    bipolar: false,
+                    unit: ParameterUnit::Sec,
+                },
+                slider_images,
                 388.0,
                 24.0 + 2.0,
                 event_handler.clone(),
             ),
             param_decay: ParameterSlider::new(
-                SoyBoyParameter::EgDecay,
-                param_defs.get(&SoyBoyParameter::EgDecay).unwrap().clone(),
-                *param_values
-                    .get(&(SoyBoyParameter::EgDecay as u32))
-                    .unwrap(),
-                false,
-                ParameterUnit::Sec,
-                Image::new(egui_ctx, &images.slider_border),
-                Image::new(egui_ctx, &images.param_atlas),
-                Image::new(egui_ctx, &images.value_atlas),
+                SliderValue {
+                    param: SoyBoyParameter::EgDecay,
+                    param_def: param_defs.get(&SoyBoyParameter::EgDecay).unwrap().clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::EgDecay as u32))
+                        .unwrap(),
+                    bipolar: false,
+                    unit: ParameterUnit::Sec,
+                },
+                slider_images,
                 388.0,
                 58.0 + 2.0,
                 event_handler.clone(),
             ),
             param_sustain: ParameterSlider::new(
-                SoyBoyParameter::EgSustain,
-                param_defs.get(&SoyBoyParameter::EgSustain).unwrap().clone(),
-                *param_values
-                    .get(&(SoyBoyParameter::EgSustain as u32))
-                    .unwrap(),
-                false,
-                ParameterUnit::None,
-                Image::new(egui_ctx, &images.slider_border),
-                Image::new(egui_ctx, &images.param_atlas),
-                Image::new(egui_ctx, &images.value_atlas),
+                SliderValue {
+                    param: SoyBoyParameter::EgSustain,
+                    param_def: param_defs.get(&SoyBoyParameter::EgSustain).unwrap().clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::EgSustain as u32))
+                        .unwrap(),
+                    bipolar: false,
+                    unit: ParameterUnit::None,
+                },
+                slider_images,
                 388.0,
                 92.0 + 2.0,
                 event_handler.clone(),
             ),
             param_release: ParameterSlider::new(
-                SoyBoyParameter::EgRelease,
-                param_defs.get(&SoyBoyParameter::EgRelease).unwrap().clone(),
-                *param_values
-                    .get(&(SoyBoyParameter::EgRelease as u32))
-                    .unwrap(),
-                false,
-                ParameterUnit::Sec,
-                Image::new(egui_ctx, &images.slider_border),
-                Image::new(egui_ctx, &images.param_atlas),
-                Image::new(egui_ctx, &images.value_atlas),
+                SliderValue {
+                    param: SoyBoyParameter::EgRelease,
+                    param_def: param_defs.get(&SoyBoyParameter::EgRelease).unwrap().clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::EgRelease as u32))
+                        .unwrap(),
+                    bipolar: false,
+                    unit: ParameterUnit::Sec,
+                },
+                slider_images,
                 388.0,
                 126.0 + 2.0,
                 event_handler.clone(),
             ),
             param_amount: ParameterSlider::new(
-                SoyBoyParameter::SweepAmount,
-                param_defs
-                    .get(&SoyBoyParameter::SweepAmount)
-                    .unwrap()
-                    .clone(),
-                *param_values
-                    .get(&(SoyBoyParameter::SweepAmount as u32))
-                    .unwrap(),
-                false,
-                ParameterUnit::None,
-                Image::new(egui_ctx, &images.slider_border),
-                Image::new(egui_ctx, &images.param_atlas),
-                Image::new(egui_ctx, &images.value_atlas),
+                SliderValue {
+                    param: SoyBoyParameter::SweepAmount,
+                    param_def: param_defs
+                        .get(&SoyBoyParameter::SweepAmount)
+                        .unwrap()
+                        .clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::SweepAmount as u32))
+                        .unwrap(),
+                    bipolar: false,
+                    unit: ParameterUnit::None,
+                },
+                slider_images,
                 388.0,
                 232.0,
                 event_handler.clone(),
             ),
             param_period: ParameterSlider::new(
-                SoyBoyParameter::SweepPeriod,
-                param_defs
-                    .get(&SoyBoyParameter::SweepPeriod)
-                    .unwrap()
-                    .clone(),
-                *param_values
-                    .get(&(SoyBoyParameter::SweepPeriod as u32))
-                    .unwrap(),
-                false,
-                ParameterUnit::None,
-                Image::new(egui_ctx, &images.slider_border),
-                Image::new(egui_ctx, &images.param_atlas),
-                Image::new(egui_ctx, &images.value_atlas),
+                SliderValue {
+                    param: SoyBoyParameter::SweepPeriod,
+                    param_def: param_defs
+                        .get(&SoyBoyParameter::SweepPeriod)
+                        .unwrap()
+                        .clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::SweepPeriod as u32))
+                        .unwrap(),
+                    bipolar: false,
+                    unit: ParameterUnit::None,
+                },
+                slider_images,
                 388.0,
                 268.0,
                 event_handler.clone(),
             ),
             param_time: ParameterSlider::new(
-                SoyBoyParameter::StutterTime,
-                param_defs
-                    .get(&SoyBoyParameter::StutterTime)
-                    .unwrap()
-                    .clone(),
-                *param_values
-                    .get(&(SoyBoyParameter::StutterTime as u32))
-                    .unwrap(),
-                false,
-                ParameterUnit::Sec,
-                Image::new(egui_ctx, &images.slider_border),
-                Image::new(egui_ctx, &images.param_atlas),
-                Image::new(egui_ctx, &images.value_atlas),
+                SliderValue {
+                    param: SoyBoyParameter::StutterTime,
+                    param_def: param_defs
+                        .get(&SoyBoyParameter::StutterTime)
+                        .unwrap()
+                        .clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::StutterTime as u32))
+                        .unwrap(),
+                    bipolar: false,
+                    unit: ParameterUnit::Sec,
+                },
+                slider_images,
                 388.0,
                 342.0,
                 event_handler.clone(),
             ),
             param_depth: ParameterSlider::new(
-                SoyBoyParameter::StutterDepth,
-                param_defs
-                    .get(&SoyBoyParameter::StutterDepth)
-                    .unwrap()
-                    .clone(),
-                *param_values
-                    .get(&(SoyBoyParameter::StutterDepth as u32))
-                    .unwrap(),
-                false,
-                ParameterUnit::Percent,
-                Image::new(egui_ctx, &images.slider_border),
-                Image::new(egui_ctx, &images.param_atlas),
-                Image::new(egui_ctx, &images.value_atlas),
+                SliderValue {
+                    param: SoyBoyParameter::StutterDepth,
+                    param_def: param_defs
+                        .get(&SoyBoyParameter::StutterDepth)
+                        .unwrap()
+                        .clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::StutterDepth as u32))
+                        .unwrap(),
+                    bipolar: false,
+                    unit: ParameterUnit::Percent,
+                },
+                slider_images,
                 388.0,
                 378.0,
                 event_handler.clone(),
             ),
             param_osc_type: ParameterSelector::new(
-                SoyBoyParameter::OscillatorType,
-                param_defs
-                    .get(&SoyBoyParameter::OscillatorType)
-                    .unwrap()
-                    .clone(),
-                *param_values
-                    .get(&(SoyBoyParameter::OscillatorType as u32))
-                    .unwrap(),
+                SelectorValue {
+                    param: SoyBoyParameter::OscillatorType,
+                    param_def: param_defs
+                        .get(&SoyBoyParameter::OscillatorType)
+                        .unwrap()
+                        .clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::OscillatorType as u32))
+                        .unwrap(),
+                },
                 Image::new(egui_ctx, &images.select_osc_type),
                 Image::new(egui_ctx, &images.param_atlas),
                 60.0,
@@ -372,11 +380,13 @@ impl UI {
                 event_handler.clone(),
             ),
             param_osc_sq_duty: ParameterSelector::new(
-                SoyBoyParameter::OscSqDuty,
-                param_defs.get(&SoyBoyParameter::OscSqDuty).unwrap().clone(),
-                *param_values
-                    .get(&(SoyBoyParameter::OscSqDuty as u32))
-                    .unwrap(),
+                SelectorValue {
+                    param: SoyBoyParameter::OscSqDuty,
+                    param_def: param_defs.get(&SoyBoyParameter::OscSqDuty).unwrap().clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::OscSqDuty as u32))
+                        .unwrap(),
+                },
                 Image::new(egui_ctx, &images.select_osc_sq_duty),
                 Image::new(egui_ctx, &images.param_atlas),
                 60.0,
@@ -384,11 +394,13 @@ impl UI {
                 event_handler.clone(),
             ),
             param_sweep_type: ParameterSelector::new(
-                SoyBoyParameter::SweepType,
-                param_defs.get(&SoyBoyParameter::SweepType).unwrap().clone(),
-                *param_values
-                    .get(&(SoyBoyParameter::SweepType as u32))
-                    .unwrap(),
+                SelectorValue {
+                    param: SoyBoyParameter::SweepType,
+                    param_def: param_defs.get(&SoyBoyParameter::SweepType).unwrap().clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::SweepType as u32))
+                        .unwrap(),
+                },
                 Image::new(egui_ctx, &images.select_sweep_type),
                 Image::new(egui_ctx, &images.param_atlas),
                 388.0,
@@ -429,8 +441,7 @@ impl GUIThread {
             let event_loop = EventLoopBuilder::<GUIEvent>::with_user_event()
                 .with_any_thread(true)
                 .build();
-            let window_builder =
-                WindowBuilder::new().with_x11_parent(parent_id.try_into().unwrap());
+            let window_builder = WindowBuilder::new().with_x11_parent(parent_id);
 
             (event_loop, window_builder)
         }
@@ -479,7 +490,7 @@ impl GUIThread {
         let glow_context =
             unsafe { glow::Context::from_loader_function(|s| window.get_proc_address(s)) };
         let glow_context = Rc::new(glow_context);
-        let egui_glow = EguiGlow::new(window.window(), glow_context.clone());
+        let egui_glow = EguiGlow::new(window.window(), glow_context);
 
         let scale_factor = window.window().scale_factor();
         #[cfg(debug_assertions)]
@@ -495,10 +506,10 @@ impl GUIThread {
             ),
             quit: false,
             needs_redraw: false,
-            receiver: receiver,
+            receiver,
             plugin_event_recv,
-            egui_glow: egui_glow,
-            window: window,
+            egui_glow,
+            window,
             // glow_context: glow_context,
         };
 
@@ -521,15 +532,11 @@ impl GUIThread {
             let _ = proxy.send_event(GUIEvent::Redraw);
         }
 
-        match self.plugin_event_recv.try_recv() {
-            Ok(gui_event) => match gui_event {
-                GUIEvent::NoteOn => {
-                    self.ui.edamame.jump();
-                    self.needs_redraw = true;
-                }
-                _ => (),
-            },
-            Err(_) => (),
+        if let Ok(ref gui_event) = self.plugin_event_recv.try_recv() {
+            if gui_event == &GUIEvent::NoteOn {
+                self.ui.edamame.jump();
+                self.needs_redraw = true;
+            }
         }
     }
 
@@ -671,10 +678,7 @@ impl GUIThread {
                 println!("LoopDestroyed is signaled.");
                 self.egui_glow.destroy();
             }
-            Event::UserEvent(gui_event) => match gui_event {
-                GUIEvent::Redraw => redraw(),
-                _ => (),
-            },
+            Event::UserEvent(GUIEvent::Redraw) => redraw(),
             _ => (),
         }
 

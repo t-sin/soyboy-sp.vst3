@@ -148,7 +148,7 @@ impl IPluginFactory2 for SoyBoyPluginFactory {
 
                 kResultOk
             }
-            _ => return kInvalidArgument,
+            _ => kInvalidArgument,
         }
     }
 }

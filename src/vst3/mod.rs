@@ -8,6 +8,9 @@ mod utils;
 
 use std::os::raw::c_void;
 
+/// # Safety
+///
+/// This function is called by VST3 host to get VST3 plugin classes.
 #[no_mangle]
 #[allow(non_snake_case)]
 pub unsafe extern "system" fn GetPluginFactory() -> *mut c_void {

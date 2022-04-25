@@ -79,23 +79,15 @@ impl EnvelopeGenerator {
 
     fn calculate(&mut self, s: f64) -> f64 {
         match self.state {
-            EnvelopeState::Attack => {
-                let v = linear(s, 1.0 / self.attack);
-
-                v
-            }
+            EnvelopeState::Attack => linear(s, 1.0 / self.attack),
             EnvelopeState::Decay => {
                 let max = self.last_state_value - self.sustain;
-                let v = self.last_state_value - max * linear(s, 1.0 / self.decay);
-
-                v
+                self.last_state_value - max * linear(s, 1.0 / self.decay)
             }
             EnvelopeState::Sustain => self.sustain,
             EnvelopeState::Release => {
                 let max = self.last_state_value;
-                let v = max - max * linear(s, 1.0 / self.release);
-
-                v
+                max - max * linear(s, 1.0 / self.release)
             }
             EnvelopeState::Off => 0.0,
         }
