@@ -556,7 +556,7 @@ impl Behavior for ParameterSlider {
 
         ui.set_clip_rect(rect);
         ui.add(ParameterName::new(
-            self.param.clone(),
+            self.param,
             self.param_atlas.clone(),
             self.pos,
         ));
@@ -669,7 +669,7 @@ impl Behavior for ParameterSelector {
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
         ui.add(ParameterName::new(
-            self.param.clone(),
+            self.param,
             self.param_atlas.clone(),
             self.pos,
         ));

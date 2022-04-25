@@ -478,7 +478,7 @@ impl GUIThread {
         let glow_context =
             unsafe { glow::Context::from_loader_function(|s| window.get_proc_address(s)) };
         let glow_context = Rc::new(glow_context);
-        let egui_glow = EguiGlow::new(window.window(), glow_context.clone());
+        let egui_glow = EguiGlow::new(window.window(), glow_context);
 
         let scale_factor = window.window().scale_factor();
         #[cfg(debug_assertions)]
