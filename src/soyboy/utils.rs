@@ -7,8 +7,7 @@ pub fn linear(x: f64, slope: f64) -> f64 {
 /// This maps from continuous value `x` to discrete value.
 /// This is for getting rough 4bit envelope signals.
 pub fn discrete_loudness(x: f64) -> f64 {
-    let v = ((x * 16.0) as u32) as f64 / 16.0;
-    v
+    ((x * 16.0) as u32) as f64 / 16.0
 }
 
 pub fn pulse(phase: f64, duty: f64) -> i4 {
@@ -33,13 +32,11 @@ pub fn ratio_from_cents(cents: i16) -> f64 {
 }
 
 pub fn level(decibel: f64) -> f64 {
-    let level = 10.0f64.powf(decibel / 10.0);
-    level
+    10.0f64.powf(decibel / 10.0)
 }
 
 pub fn level_from_velocity(velocity: f64) -> f64 {
-    let level = 10.0f64.powf(velocity - 1.0);
-    level
+    10.0f64.powf(velocity - 1.0)
 }
 
 pub fn linear_denormalize(v: f64, min: f64, max: f64) -> f64 {
@@ -54,24 +51,20 @@ pub fn linear_normalize(x: f64, min: f64, max: f64) -> f64 {
 
 pub fn divergent_denormalize(v: f64, min: f64, max: f64, factor: f64) -> f64 {
     let range = max.abs() + min.abs();
-    let x = range * v.powf(factor) + min;
-    x
+    range * v.powf(factor) + min
 }
 
 pub fn divergent_normalize(x: f64, min: f64, max: f64, factor: f64) -> f64 {
     let range = max.abs() + min.abs();
-    let v = ((x - min) / range).powf(1.0 / factor);
-    v
+    ((x - min) / range).powf(1.0 / factor)
 }
 
 pub fn convergent_denormalize(v: f64, min: f64, max: f64, factor: f64) -> f64 {
     let range = max.abs() + min.abs();
-    let x = range * v.powf(1.0 / factor) + min;
-    x
+    range * v.powf(1.0 / factor) + min
 }
 
 pub fn convergent_normalize(x: f64, min: f64, max: f64, factor: f64) -> f64 {
     let range = max.abs() + min.abs();
-    let v = ((x - min) / range).powf(factor);
-    v
+    ((x - min) / range).powf(factor)
 }
