@@ -521,15 +521,11 @@ impl GUIThread {
             let _ = proxy.send_event(GUIEvent::Redraw);
         }
 
-        match self.plugin_event_recv.try_recv() {
-            Ok(gui_event) => match gui_event {
-                GUIEvent::NoteOn => {
-                    self.ui.edamame.jump();
-                    self.needs_redraw = true;
-                }
-                _ => (),
-            },
-            Err(_) => (),
+        if let Ok(ref gui_event) = self.plugin_event_recv.try_recv() {
+            if gui_event == &GUIEvent::NoteOn {
+                self.ui.edamame.jump();
+                self.needs_redraw = true;
+            }
         }
     }
 

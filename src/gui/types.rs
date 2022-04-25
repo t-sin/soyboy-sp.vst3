@@ -32,6 +32,7 @@ pub enum GUIMessage {
     Terminate,
 }
 
+#[derive(PartialEq, Eq)]
 pub enum GUIEvent {
     Redraw,
     NoteOn,
