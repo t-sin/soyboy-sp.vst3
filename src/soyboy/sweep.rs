@@ -56,10 +56,7 @@ impl SweepOscillator {
     }
 
     fn check_frequency_clip(&mut self) {
-        if self.shadow_freq > 10000.0 {
-            self.clipped = true;
-            self.shadow_freq = 0.0;
-        } else if self.shadow_freq < 10.0 {
+        if self.shadow_freq < 10.0 || self.shadow_freq > 10000.0 {
             self.clipped = true;
             self.shadow_freq = 0.0;
         }

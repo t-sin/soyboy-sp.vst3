@@ -142,9 +142,7 @@ impl IPlugView for SoyBoyVST3GUI {
 
         let type_ = utils::fidstring_to_string(type_);
 
-        if type_ == "X11EmbedWindowID" {
-            kResultOk
-        } else if type_ == "HWND" {
+        if type_ == "X11EmbedWindowID" || type_ == "HWND" {
             kResultOk
         } else {
             kResultFalse
@@ -157,11 +155,7 @@ impl IPlugView for SoyBoyVST3GUI {
 
         let type_ = utils::fidstring_to_string(type_);
 
-        if type_ == "X11EmbedWindowID" {
-            let parent = ParentWindow(parent);
-            self.start_gui(parent);
-            kResultOk
-        } else if type_ == "HWND" {
+        if type_ == "X11EmbedWindowID" || type_ == "HWND" {
             let parent = ParentWindow(parent);
             self.start_gui(parent);
             kResultOk
