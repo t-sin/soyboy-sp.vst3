@@ -666,10 +666,7 @@ impl GUIThread {
                 println!("LoopDestroyed is signaled.");
                 self.egui_glow.destroy();
             }
-            Event::UserEvent(gui_event) => match gui_event {
-                GUIEvent::Redraw => redraw(),
-                _ => (),
-            },
+            Event::UserEvent(GUIEvent::Redraw) => redraw(),
             _ => (),
         }
 

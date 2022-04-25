@@ -57,9 +57,8 @@ impl Triggered for NoiseOscillator {
 
 impl Parametric<SoyBoyParameter> for NoiseOscillator {
     fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
-        match param {
-            SoyBoyParameter::OscNsInterval => self.interval_msec = value,
-            _ => (),
+        if param == &SoyBoyParameter::OscNsInterval {
+            self.interval_msec = value;
         }
     }
 
