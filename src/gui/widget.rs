@@ -720,3 +720,88 @@ impl Behavior for ParameterSelector {
         responses[self.value].clone()
     }
 }
+
+pub struct WaveTableEditor {
+    values: [f64; Self::SAMPLE_NUM],
+    border_img: Image,
+    pos: egui::Pos2,
+}
+
+impl WaveTableEditor {
+    pub const SAMPLE_NUM: usize = 32;
+    const VALUE_MAX: u8 = 32;
+
+    pub fn new(border_img: Image, x: f32, y: f32) -> Self {
+        Self {
+            values: [1.0; Self::SAMPLE_NUM],
+            border_img,
+            pos: egui::pos2(x, y),
+        }
+    }
+
+    // pub fn set_wavetable(&mut self, samples: &[u8; Self::SAMPLE_NUM]) {}
+
+    fn show_sample_slider(ui: &mut egui::Ui, rect: egui::Rect, value: f64) {
+        let color = egui::Color32::from_rgb(0x4f, 0x5e, 0x4d);
+
+        if ui.is_rect_visible(rect) {
+            let value =
+                ((value * (Self::VALUE_MAX as f64)) as usize) as f64 / (Self::VALUE_MAX as f64);
+
+            let slider_height = 166.0;
+            let center_y = rect.min.y + rect.size().y / 2.0;
+            let center_pos = egui::pos2(rect.min.x, center_y);
+
+            if value > 0.5 {
+                let size = egui::vec2(6.0, -(value - 0.5) as f32 * slider_height);
+                ui.painter().rect_filled(
+                    egui::Rect::from_two_pos(center_pos, center_pos + size),
+                    egui::Rounding::none(),
+                    color,
+                );
+            } else {
+                let size = egui::vec2(6.0, (0.5 - value) as f32 * slider_height);
+                ui.painter().rect_filled(
+                    egui::Rect::from_two_pos(center_pos, center_pos + size),
+                    egui::Rounding::none(),
+                    color,
+                );
+            }
+        }
+    }
+}
+
+impl Behavior for WaveTableEditor {
+    fn update(&mut self) -> bool {
+        false
+    }
+
+    fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
+        let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.border_img.size);
+        ui.set_clip_rect(rect);
+        let response = ui.allocate_rect(rect, egui::Sense::drag());
+
+        for (i, value) in self.values.iter_mut().enumerate() {
+            let pos = self.pos + egui::vec2(6.0, 8.0) + egui::vec2(8.0 * i as f32, 0.0);
+            let size = egui::vec2(6.0, 166.0);
+            let slider_rect = egui::Rect::from_two_pos(pos, pos + size);
+
+            if response.dragged_by(egui::PointerButton::Primary) {
+                if let Some(pointer_pos) = response.hover_pos() {
+                    if slider_rect.contains(pointer_pos) {
+                        let pointer_pos = pointer_pos - pos.to_vec2();
+                        let new_value = (size.y - pointer_pos.y) / size.y;
+                        *value = num::clamp(new_value as f64, 0.0, 1.0);
+                    }
+                }
+            }
+
+            Self::show_sample_slider(ui, slider_rect, *value);
+        }
+
+        let img = egui::widgets::Image::new(self.border_img.texture_id, self.border_img.size);
+        img.paint_at(ui, rect);
+
+        response
+    }
+}

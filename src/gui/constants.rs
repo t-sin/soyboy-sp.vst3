@@ -18,6 +18,7 @@ pub const IMG_SELECT_OSC_TYPE: &[u8] = include_bytes!("../../resources/select-os
 pub const IMG_SELECT_OSC_SQ_DUTY: &[u8] =
     include_bytes!("../../resources/select-osc-square-duty.png");
 pub const IMG_SELECT_SWEEP_TYPE: &[u8] = include_bytes!("../../resources/select-sweep-type.png");
+pub const IMG_WAVETABLE_BORDER: &[u8] = include_bytes!("../../resources/wavetable-border.png");
 
 pub const SCREEN_WIDTH: u32 = 680;
 pub const SCREEN_HEIGHT: u32 = 560;

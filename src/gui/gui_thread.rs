@@ -42,6 +42,7 @@ pub struct Images {
     select_osc_type: RetainedImage,
     select_osc_sq_duty: RetainedImage,
     select_sweep_type: RetainedImage,
+    wavetable_border: RetainedImage,
     value_atlas: RetainedImage,
     param_atlas: RetainedImage,
 }
@@ -73,6 +74,7 @@ pub struct UI {
     param_osc_type: ParameterSelector,
     param_osc_sq_duty: ParameterSelector,
     param_sweep_type: ParameterSelector,
+    param_wavetable: WaveTableEditor,
 }
 
 impl UI {
@@ -136,6 +138,11 @@ impl UI {
             select_sweep_type: RetainedImage::from_image_bytes(
                 "soyboy:select:sweep-type",
                 IMG_SELECT_SWEEP_TYPE,
+            )
+            .unwrap(),
+            wavetable_border: RetainedImage::from_image_bytes(
+                "soyboy:wavetable:border",
+                IMG_WAVETABLE_BORDER,
             )
             .unwrap(),
             value_atlas: RetainedImage::from_image_bytes("value_atlas", IMG_VALUE_ATLAS).unwrap(),
@@ -407,6 +414,11 @@ impl UI {
                 186.0,
                 event_handler.clone(),
             ),
+            param_wavetable: WaveTableEditor::new(
+                Image::new(egui_ctx, &images.wavetable_border),
+                60.0,
+                340.0,
+            ),
             _images: images,
         }
     }
@@ -610,6 +622,8 @@ impl GUIThread {
                     let _ = self.ui.param_osc_type.show(ui);
                     let _ = self.ui.param_osc_sq_duty.show(ui);
                     let _ = self.ui.param_sweep_type.show(ui);
+
+                    let _ = self.ui.param_wavetable.show(ui);
                 });
         });
 
