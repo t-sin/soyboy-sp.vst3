@@ -614,7 +614,7 @@ impl Widget for SelectButton {
             img.paint_at(ui, rect);
 
             let regions = self.param.get_select_button_regions().unwrap();
-            let region = regions.iter().nth(self.value).unwrap();
+            let region = regions.get(self.value).unwrap();
             let topleft = self.pos + region.pos.to_vec2();
             let selected_rect = egui::Rect::from_two_pos(topleft, topleft + region.size);
             ui.painter().rect_filled(
