@@ -250,7 +250,7 @@ impl Behavior for AnimatedEdamame {
     }
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
-        let edamame = Edamame::new(self.image.clone(), self.jumping.val(), self.pos);
+        let edamame = Edamame::new(self.image, self.jumping.val(), self.pos);
         let response = ui.add(edamame);
 
         if response.clicked() {
@@ -339,7 +339,7 @@ impl Behavior for ButtonBehavior {
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
         let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.image.size);
-        let mut widget = Button::new(self.image.clone(), self.clicked.val(), rect);
+        let mut widget = Button::new(self.image, self.clicked.val(), rect);
         let response = widget.ui(ui);
 
         if response.clicked() {
@@ -474,7 +474,7 @@ impl Behavior for SliderBehavior {
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
         let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.border_img.size);
         let widget = Slider::new(
-            self.border_img.clone(),
+            self.border_img,
             self.param_def
                 .normalize(self.param_def.denormalize(self.value)),
             self.bipolar,
@@ -512,35 +512,44 @@ pub struct ParameterSlider {
     pos: egui::Pos2,
 }
 
+#[derive(Copy, Clone)]
+pub struct SliderImages {
+    pub border_img: Image,
+    pub param_atlas: Image,
+    pub value_atlas: Image,
+}
+
+pub struct SliderValue {
+    pub param: SoyBoyParameter,
+    pub param_def: ParameterDef,
+    pub value: f64,
+    pub bipolar: bool,
+    pub unit: ParameterUnit,
+}
+
 impl ParameterSlider {
     pub fn new(
-        param: SoyBoyParameter,
-        param_def: ParameterDef,
-        value: f64,
-        bipolar: bool,
-        unit: ParameterUnit,
-        border_img: Image,
-        param_atlas: Image,
-        value_atlas: Image,
+        value: SliderValue,
+        images: SliderImages,
         x: f32,
         y: f32,
         event_handler: Arc<dyn EventHandler>,
     ) -> Self {
         Self {
-            param,
-            param_def: param_def.clone(),
-            unit,
+            param: value.param,
+            param_def: value.param_def.clone(),
+            unit: value.unit,
             slider: SliderBehavior::new(
-                border_img,
-                value,
-                bipolar,
+                images.border_img,
+                value.value,
+                value.bipolar,
                 egui::pos2(x, y + 16.0),
-                param,
-                param_def,
+                value.param,
+                value.param_def,
                 event_handler,
             ),
-            param_atlas,
-            value_atlas,
+            param_atlas: images.param_atlas,
+            value_atlas: images.value_atlas,
             pos: egui::pos2(x, y),
         }
     }
@@ -555,17 +564,13 @@ impl Behavior for ParameterSlider {
         let rect = egui::Rect::from_two_pos(self.pos, self.pos + egui::vec2(266.0, 30.0));
 
         ui.set_clip_rect(rect);
-        ui.add(ParameterName::new(
-            self.param,
-            self.param_atlas.clone(),
-            self.pos,
-        ));
+        ui.add(ParameterName::new(self.param, self.param_atlas, self.pos));
         ui.set_clip_rect(rect);
 
         let mut value = ParameterValue::new(
             self.param_def.format(self.slider.value),
             self.unit.clone(),
-            self.value_atlas.clone(),
+            self.value_atlas,
             0.0,
             0.0,
         );
@@ -668,11 +673,7 @@ impl Behavior for ParameterSelector {
     }
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
-        ui.add(ParameterName::new(
-            self.param,
-            self.param_atlas.clone(),
-            self.pos,
-        ));
+        ui.add(ParameterName::new(self.param, self.param_atlas, self.pos));
 
         let topleft = self.pos + egui::vec2(0.0, 16.0);
         let button_rect = egui::Rect {
@@ -683,7 +684,7 @@ impl Behavior for ParameterSelector {
         let _ = SelectButton::new(
             self.param,
             self.value,
-            self.button_image.clone(),
+            self.button_image,
             topleft.x,
             topleft.y,
         )
