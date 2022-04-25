@@ -100,8 +100,6 @@ impl Parametric<SoyBoyParameter> for SquareWaveOscillator {
         if param == &SoyBoyParameter::OscSqDuty {
             if let Ok(ratio) = SquareWaveDuty::try_from(value as u32) {
                 self.set_duty(ratio);
-            } else {
-                ()
             }
         }
     }

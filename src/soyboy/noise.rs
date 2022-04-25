@@ -25,7 +25,7 @@ impl NoiseOscillator {
         NoiseOscillator {
             interval_msec: 0.1,
             sec_counter: 0.0,
-            table: table,
+            table,
             table_index: 0,
         }
     }

@@ -43,7 +43,7 @@ impl NoteStutter {
         }
     }
 
-    pub fn process(&mut self, sample_rate: f64, triggered: &mut dyn Triggered) -> () {
+    pub fn process(&mut self, sample_rate: f64, triggered: &mut dyn Triggered) {
         self.time_count += 1.0 / sample_rate;
 
         if self.depth != 0.0 && self.time_count > self.time {

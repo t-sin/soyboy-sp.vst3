@@ -495,10 +495,10 @@ impl GUIThread {
             ),
             quit: false,
             needs_redraw: false,
-            receiver: receiver,
+            receiver,
             plugin_event_recv,
-            egui_glow: egui_glow,
-            window: window,
+            egui_glow,
+            window,
             // glow_context: glow_context,
         };
 

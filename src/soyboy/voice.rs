@@ -104,12 +104,12 @@ impl Parametric<SoyBoyParameter> for VoiceUnit {
             SoyBoyParameter::PitchBend => {
                 self.pitch = value as i16;
                 let ratio = ratio_from_cents(self.pitch + self.detune);
-                self.trigger(&Event::PitchBend { ratio: ratio });
+                self.trigger(&Event::PitchBend { ratio });
             }
             SoyBoyParameter::Detune => {
                 self.detune = value as i16;
                 let ratio = ratio_from_cents(self.pitch + self.detune);
-                self.trigger(&Event::PitchBend { ratio: ratio });
+                self.trigger(&Event::PitchBend { ratio });
             }
             SoyBoyParameter::OscillatorType => {
                 if let Ok(r#type) = OscillatorType::try_from(value as u32) {

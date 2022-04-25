@@ -2,7 +2,6 @@ use std::sync::Arc;
 use std::time;
 
 use egui_glow::egui_winit::{egui, egui::Widget};
-use num;
 
 use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
 
@@ -273,10 +272,10 @@ pub struct Button {
 impl Button {
     pub fn new(image: Image, clicked: bool, rect: egui::Rect) -> Self {
         Self {
-            image: image,
+            image,
             sense: egui::Sense::click().union(egui::Sense::hover()),
-            clicked: clicked,
-            rect: rect,
+            clicked,
+            rect,
         }
     }
 }
@@ -319,7 +318,7 @@ pub struct ButtonBehavior {
 impl ButtonBehavior {
     pub fn new(image: Image, x: f32, y: f32) -> Self {
         Self {
-            image: image,
+            image,
             clicked_at: time::Instant::now(),
             clicked: Toggle::new(false, false),
             pos: egui::pos2(x, y),
@@ -362,11 +361,11 @@ pub struct Slider {
 impl Slider {
     pub fn new(border_img: Image, value: f64, bipolar: bool, rect: egui::Rect) -> Self {
         Self {
-            border_img: border_img,
+            border_img,
             sense: egui::Sense::drag(),
-            rect: rect,
-            bipolar: bipolar,
-            value: value,
+            rect,
+            bipolar,
+            value,
         }
     }
 }
@@ -456,9 +455,9 @@ impl SliderBehavior {
         event_handler: Arc<dyn EventHandler>,
     ) -> Self {
         Self {
-            border_img: border_img,
-            value: value,
-            bipolar: bipolar,
+            border_img,
+            value,
+            bipolar,
             pos,
             parameter,
             param_def,

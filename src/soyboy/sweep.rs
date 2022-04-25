@@ -157,8 +157,6 @@ impl Parametric<SoyBoyParameter> for SweepOscillator {
                 self.sweep_timer_sec = 0.0;
                 if let Ok(sweep_type) = SweepType::try_from(value as u32) {
                     self.sweep_type = sweep_type;
-                } else {
-                    ()
                 }
             }
             SoyBoyParameter::SweepAmount => {
