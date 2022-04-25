@@ -70,11 +70,8 @@ impl SquareWaveOscillator {
 
 impl Triggered for SquareWaveOscillator {
     fn trigger(&mut self, event: &Event) {
-        match event {
-            Event::PitchBend { ratio } => {
-                self.pitch = *ratio;
-            }
-            _ => (),
+        if let Event::PitchBend { ratio } = event {
+            self.pitch = *ratio;
         }
     }
 }
@@ -100,15 +97,12 @@ impl AudioProcessor<i4> for SquareWaveOscillator {
 
 impl Parametric<SoyBoyParameter> for SquareWaveOscillator {
     fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
-        match param {
-            SoyBoyParameter::OscSqDuty => {
-                if let Ok(ratio) = SquareWaveDuty::try_from(value as u32) {
-                    self.set_duty(ratio);
-                } else {
-                    ()
-                }
+        if param == &SoyBoyParameter::OscSqDuty {
+            if let Ok(ratio) = SquareWaveDuty::try_from(value as u32) {
+                self.set_duty(ratio);
+            } else {
+                ()
             }
-            _ => (),
         }
     }
 

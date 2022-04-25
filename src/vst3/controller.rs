@@ -194,15 +194,12 @@ impl IEditController for SoyBoyController {
         value_normalized: f64,
         string: *mut TChar,
     ) -> tresult {
-        match SoyBoyParameter::try_from(id) {
-            Ok(param) => {
-                if let Some(p) = self.param_defs.get(&param) {
-                    utils::tcharcpy(&p.format(value_normalized), string)
-                } else {
-                    return kResultFalse;
-                }
+        if let Ok(param) = SoyBoyParameter::try_from(id) {
+            if let Some(p) = self.param_defs.get(&param) {
+                utils::tcharcpy(&p.format(value_normalized), string)
+            } else {
+                return kResultFalse;
             }
-            _ => (),
         }
 
         kResultOk
@@ -214,20 +211,18 @@ impl IEditController for SoyBoyController {
         string: *const TChar,
         value_normalized: *mut f64,
     ) -> tresult {
-        match SoyBoyParameter::try_from(id) {
-            Ok(param) => {
-                if let Some(p) = self.param_defs.get(&param) {
-                    if let Some(v) = p.parse(&utils::tchar_to_string(string)) {
-                        *value_normalized = v;
-                    } else {
-                        return kResultFalse;
-                    }
+        if let Ok(param) = SoyBoyParameter::try_from(id) {
+            if let Some(p) = self.param_defs.get(&param) {
+                if let Some(v) = p.parse(&utils::tchar_to_string(string)) {
+                    *value_normalized = v;
                 } else {
                     return kResultFalse;
                 }
+            } else {
+                return kResultFalse;
             }
-            _ => (),
         }
+
         kResultOk
     }
 
@@ -403,11 +398,8 @@ impl IConnectionPoint for SoyBoyController {
         let sender = self.gui_sender.borrow();
         let sender = sender.as_ref().unwrap();
 
-        match Vst3Message::from_str(&id) {
-            Some(Vst3Message::NoteOn) => {
-                let _ = sender.send(GUIEvent::NoteOn);
-            }
-            _ => (),
+        if let Some(Vst3Message::NoteOn) = Vst3Message::from_str(&id) {
+            let _ = sender.send(GUIEvent::NoteOn);
         }
         kResultOk
     }

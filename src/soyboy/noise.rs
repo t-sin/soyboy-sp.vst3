@@ -47,14 +47,11 @@ impl AudioProcessor<i4> for NoiseOscillator {
 
 impl Triggered for NoiseOscillator {
     fn trigger(&mut self, event: &Event) {
-        match event {
-            Event::NoteOn {
-                note: _,
-                velocity: _,
-            } => {}
-
-            _ => (),
-        }
+        if let Event::NoteOn {
+            note: _,
+            velocity: _,
+        } = event
+        {}
     }
 }
 
