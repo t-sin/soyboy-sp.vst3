@@ -40,6 +40,7 @@ impl Vst3Message {
         println!("Vst3Message::allocate()");
 
         let iid = <dyn IMessage as ComInterface>::IID;
+        let iid = &iid as *const _;
         let mut msg_ptr: *mut c_void = null_mut();
 
         #[cfg(debug_assertions)]
