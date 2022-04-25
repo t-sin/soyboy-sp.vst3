@@ -429,8 +429,7 @@ impl GUIThread {
             let event_loop = EventLoopBuilder::<GUIEvent>::with_user_event()
                 .with_any_thread(true)
                 .build();
-            let window_builder =
-                WindowBuilder::new().with_x11_parent(parent_id.try_into().unwrap());
+            let window_builder = WindowBuilder::new().with_x11_parent(parent_id);
 
             (event_loop, window_builder)
         }

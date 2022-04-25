@@ -82,7 +82,7 @@ impl Widget for ParameterValue {
             let img = egui::widgets::Image::new(self.atlas.texture_id, self.atlas.size);
 
             for region in self.regions.iter() {
-                let clip_rect = egui::Rect::from_two_pos(self.pos, self.pos + region.size.into());
+                let clip_rect = egui::Rect::from_two_pos(self.pos, self.pos + region.size);
                 ui.set_clip_rect(clip_rect.translate(offset.to_vec2()));
 
                 let draw_rect = egui::Rect::from_two_pos(self.pos, self.pos + self.atlas.size);

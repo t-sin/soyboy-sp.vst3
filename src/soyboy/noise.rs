@@ -39,7 +39,7 @@ impl AudioProcessor<i4> for NoiseOscillator {
         }
         self.sec_counter += 1.0 / sample_rate;
 
-        i4::from(self.table[self.table_index])
+        self.table[self.table_index]
     }
 
     fn set_freq(&mut self, _freq: f64) {}

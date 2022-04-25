@@ -261,7 +261,7 @@ impl Normalizable<f64> for ListParameter {
 
     fn format(&self, normalized: f64) -> String {
         if let Some(s) = self.elements.get(self.denormalize(normalized) as usize) {
-            format!("{}", s)
+            s.to_string()
         } else {
             "".to_string()
         }
