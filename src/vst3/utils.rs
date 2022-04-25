@@ -50,9 +50,7 @@ pub unsafe fn wstrcpy(src: &str, dst: *mut c_short) {
 }
 
 pub fn str128cpy(src: &String128, dest: &mut String128) {
-    for idx in 0..src.len() {
-        dest[idx] = src[idx];
-    }
+    dest[..src.len()].copy_from_slice(&src[..]);
 }
 
 pub unsafe fn tcharcpy(src: &str, dst: *mut TChar) {
