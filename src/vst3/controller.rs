@@ -4,7 +4,10 @@ use std::convert::TryFrom;
 use std::mem;
 use std::os::raw::c_void;
 use std::ptr::null_mut;
-use std::sync::{Arc, Mutex};
+use std::sync::{
+    mpsc::{channel, Sender},
+    Arc, Mutex,
+};
 
 use vst3_com::sys::GUID;
 use vst3_sys::{
@@ -22,8 +25,9 @@ use vst3_sys::{
     VST3,
 };
 
+use crate::gui::GUIEvent;
 use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
-use crate::vst3::{gui::SoyBoyVST3GUI, plugin_data, utils};
+use crate::vst3::{gui::SoyBoyVST3GUI, message::Vst3Message, plugin_data, utils};
 
 #[VST3(implements(IEditController, IUnitInfo, IMidiMapping, IConnectionPoint))]
 pub struct SoyBoyController {
@@ -32,6 +36,7 @@ pub struct SoyBoyController {
     param_values: Arc<Mutex<HashMap<u32, f64>>>,
     processor: RefCell<Option<SharedVstPtr<dyn IConnectionPoint>>>,
     component_handler: RefCell<Option<Arc<dyn IComponentHandler>>>,
+    gui_sender: RefCell<Option<Sender<GUIEvent>>>,
 }
 
 impl SoyBoyController {
@@ -71,6 +76,7 @@ impl SoyBoyController {
         let param_vals = Arc::new(Mutex::new(HashMap::new()));
         let processor = RefCell::new(None);
         let component_handler = RefCell::new(None);
+        let gui_sender = RefCell::new(None);
 
         SoyBoyController::allocate(
             param_defs,
@@ -78,6 +84,7 @@ impl SoyBoyController {
             param_vals,
             processor,
             component_handler,
+            gui_sender,
         )
     }
 }
@@ -284,10 +291,14 @@ impl IEditController for SoyBoyController {
             #[cfg(debug_assertions)]
             println!("IEditController::create_view()");
 
+            let (send, recv) = channel::<GUIEvent>();
+            let _ = self.gui_sender.replace(Some(send));
+
             let gui = SoyBoyVST3GUI::new(
                 self.component_handler.borrow().clone(),
                 self.param_defs.clone(),
                 self.param_values.clone(),
+                recv,
             );
 
             let gui = Box::into_raw(gui) as *mut dyn IPlugView as *mut c_void;
@@ -389,7 +400,15 @@ impl IConnectionPoint for SoyBoyController {
     unsafe fn notify(&self, message: SharedVstPtr<dyn IMessage>) -> tresult {
         let msg = message.upgrade().unwrap();
         let id = utils::fidstring_to_string(msg.get_message_id());
-        println!("message received: {}", id);
+        let sender = self.gui_sender.borrow();
+        let sender = sender.as_ref().unwrap();
+
+        match Vst3Message::from_str(&id) {
+            Some(Vst3Message::NoteOn) => {
+                sender.send(GUIEvent::NoteOn);
+            }
+            _ => (),
+        }
         kResultOk
     }
 }

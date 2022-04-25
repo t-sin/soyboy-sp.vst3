@@ -34,6 +34,7 @@ pub enum GUIMessage {
 
 pub enum GUIEvent {
     Redraw,
+    NoteOn,
 }
 
 pub trait Behavior {

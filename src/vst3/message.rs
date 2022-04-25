@@ -17,6 +17,13 @@ pub enum Vst3Message {
 }
 
 impl Vst3Message {
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "vst3:note-on" => Some(Vst3Message::NoteOn),
+            _ => None,
+        }
+    }
+
     fn to_string(&self) -> String {
         match self {
             Vst3Message::NoteOn => "vst3:note-on".to_string(),

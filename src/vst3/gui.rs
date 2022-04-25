@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::os::raw::c_void;
 use std::sync::{
-    mpsc::{channel, Sender},
+    mpsc::{channel, Receiver, Sender},
     Arc, Mutex,
 };
 use std::thread;
@@ -14,7 +14,9 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::gui::{EventHandler, GUIMessage, GUIThread, ParentWindow, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::gui::{
+    EventHandler, GUIEvent, GUIMessage, GUIThread, ParentWindow, SCREEN_HEIGHT, SCREEN_WIDTH,
+};
 use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
 use crate::vst3::utils;
 
@@ -65,6 +67,7 @@ pub struct SoyBoyVST3GUI {
     sender: RefCell<Option<Sender<GUIMessage>>>,
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     param_values: Arc<Mutex<HashMap<u32, f64>>>,
+    plugin_event_recv: RefCell<Option<Receiver<GUIEvent>>>,
 }
 
 impl SoyBoyVST3GUI {
@@ -72,6 +75,7 @@ impl SoyBoyVST3GUI {
         component_handler: Option<Arc<dyn IComponentHandler>>,
         param_defs: HashMap<SoyBoyParameter, ParameterDef>,
         param_values: Arc<Mutex<HashMap<u32, f64>>>,
+        plugin_event_recv: Receiver<GUIEvent>,
     ) -> Box<Self> {
         let handler = Arc::new(VST3EventHandler::new(
             param_values.clone(),
@@ -80,6 +84,7 @@ impl SoyBoyVST3GUI {
         let scale_factor = RefCell::new(1.0);
         let handle = RefCell::new(None);
         let sender = RefCell::new(None);
+        let plugin_event_recv = RefCell::new(Some(plugin_event_recv));
 
         SoyBoyVST3GUI::allocate(
             handler,
@@ -88,6 +93,7 @@ impl SoyBoyVST3GUI {
             sender,
             param_defs,
             param_values,
+            plugin_event_recv,
         )
     }
 
@@ -100,8 +106,17 @@ impl SoyBoyVST3GUI {
         let recv = Arc::new(Mutex::new(resv));
         (*self.sender.borrow_mut()) = Some(send);
 
+        let plugin_event_recv = self.plugin_event_recv.replace(None);
+
         let handle = thread::spawn(move || {
-            GUIThread::run_loop(parent, param_defs, param_values, event_handler, recv);
+            GUIThread::run_loop(
+                parent,
+                param_defs,
+                param_values,
+                event_handler,
+                recv,
+                plugin_event_recv.unwrap(),
+            );
         });
         *self.handle.borrow_mut() = Some(handle);
     }

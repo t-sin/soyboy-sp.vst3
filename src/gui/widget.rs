@@ -233,11 +233,15 @@ impl AnimatedEdamame {
             pos: egui::pos2(x, y),
         }
     }
+
+    pub fn jump(&mut self) {
+        self.jumped_at = time::Instant::now();
+    }
 }
 
 impl Behavior for AnimatedEdamame {
     fn update(&mut self) -> bool {
-        if self.jumped_at.elapsed() <= time::Duration::from_millis(100) {
+        if self.jumped_at.elapsed() <= time::Duration::from_millis(80) {
             self.jumping.set(true);
         } else {
             self.jumping.set(false);
@@ -251,7 +255,7 @@ impl Behavior for AnimatedEdamame {
         let response = ui.add(edamame);
 
         if response.clicked() {
-            self.jumped_at = time::Instant::now();
+            self.jump();
         }
 
         response
