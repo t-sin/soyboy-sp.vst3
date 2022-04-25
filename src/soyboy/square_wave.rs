@@ -34,7 +34,7 @@ impl TryFrom<u32> for SquareWaveDuty {
 }
 
 impl SquareWaveDuty {
-    fn to_ratio(&self) -> f64 {
+    fn to_ratio(self) -> f64 {
         match self {
             SquareWaveDuty::Ratio12_5 => 0.125,
             SquareWaveDuty::Ratio25 => 0.25,
