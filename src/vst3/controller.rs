@@ -405,7 +405,7 @@ impl IConnectionPoint for SoyBoyController {
 
         match Vst3Message::from_str(&id) {
             Some(Vst3Message::NoteOn) => {
-                sender.send(GUIEvent::NoteOn);
+                let _ = sender.send(GUIEvent::NoteOn);
             }
             _ => (),
         }

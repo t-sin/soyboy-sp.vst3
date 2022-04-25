@@ -2,10 +2,9 @@ use std::ffi::CString;
 use std::os::raw::c_void;
 use std::ptr::null_mut;
 
-use vst3_com::{interfaces::IUnknown, ComInterface};
+use vst3_com::ComInterface;
 use vst3_sys::{
-    base::{kInvalidArgument, kNotImplemented, kResultOk},
-    utils::SharedVstPtr,
+    base::kResultOk,
     vst::{IHostApplication, IMessage},
     VstPtr,
 };
@@ -50,18 +49,6 @@ impl Vst3Message {
         let iid = &iid as *const _;
         let mut msg_ptr: *mut c_void = null_mut();
 
-        #[cfg(debug_assertions)]
-        {
-            let mut name: [u16; 1024] = [0; 1024];
-            let result = unsafe { host.get_name(&mut name as *mut u16) };
-            println!(
-                "Vst3Message::allocate(): Debug: host application name = {}",
-                String::from_utf16(&name).unwrap()
-            );
-        }
-
-        #[cfg(debug_assertions)]
-        println!("Vst3Message::allocate(): calling IHostApplication::create_instance()");
         let result = unsafe { host.create_instance(iid, iid, &mut msg_ptr as *mut _) };
         if result != kResultOk {
             #[cfg(debug_assertions)]
@@ -70,13 +57,9 @@ impl Vst3Message {
             return None;
         }
 
-        #[cfg(debug_assertions)]
-        println!("Vst3Message::allocate(): calling IHostApplication::create_instance() succeeded");
-
         let mut msg_obj = unsafe { VstPtr::shared(msg_ptr as *mut _).unwrap() };
         #[cfg(debug_assertions)]
         self.write_message(&mut msg_obj);
-        println!("Vst3Message::allocate(): message is written into IMessage");
 
         Some(ComPtr::new(msg_ptr, msg_obj))
     }

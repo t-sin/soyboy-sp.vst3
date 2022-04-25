@@ -16,13 +16,13 @@ use vst3_sys::{
 };
 
 pub struct ComPtr<I: ComInterface + ?Sized> {
-    ptr: *mut c_void,
+    _ptr: *mut c_void,
     obj: VstPtr<I>,
 }
 
 impl<I: ComInterface + ?Sized> ComPtr<I> {
-    pub fn new(ptr: *mut c_void, obj: VstPtr<I>) -> Self {
-        Self { ptr, obj }
+    pub fn new(_ptr: *mut c_void, obj: VstPtr<I>) -> Self {
+        Self { _ptr, obj }
     }
 
     pub fn obj(&self) -> VstPtr<I> {
