@@ -416,16 +416,27 @@ impl IAudioProcessor for SoyBoyPlugin {
 
 impl IConnectionPoint for SoyBoyPlugin {
     unsafe fn connect(&self, other: SharedVstPtr<dyn IConnectionPoint>) -> tresult {
+        #[cfg(debug_assertions)]
+        println!("IConnectionPoint::connect() on SoyBoyPlugin");
+
         let _ = self.controller.replace(Some(other));
+        #[cfg(debug_assertions)]
+        println!("IConnectionPoint::connect() on SoyBoyPlugin: connected");
+
         kResultOk
     }
 
     unsafe fn disconnect(&self, _other: SharedVstPtr<dyn IConnectionPoint>) -> tresult {
+        #[cfg(debug_assertions)]
+        println!("IConnectionPoint::disconnect() on SoyBoyPlugin");
+
         let _ = self.controller.replace(None);
         kResultOk
     }
 
     unsafe fn notify(&self, _message: SharedVstPtr<dyn IMessage>) -> tresult {
+        #[cfg(debug_assertions)]
+        println!("IConnectionPoint::notify() on SoyBoyPlugin");
         kResultOk
     }
 }
