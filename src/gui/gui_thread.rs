@@ -363,14 +363,16 @@ impl UI {
                 event_handler.clone(),
             ),
             param_osc_type: ParameterSelector::new(
-                SoyBoyParameter::OscillatorType,
-                param_defs
-                    .get(&SoyBoyParameter::OscillatorType)
-                    .unwrap()
-                    .clone(),
-                *param_values
-                    .get(&(SoyBoyParameter::OscillatorType as u32))
-                    .unwrap(),
+                SelectorValue {
+                    param: SoyBoyParameter::OscillatorType,
+                    param_def: param_defs
+                        .get(&SoyBoyParameter::OscillatorType)
+                        .unwrap()
+                        .clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::OscillatorType as u32))
+                        .unwrap(),
+                },
                 Image::new(egui_ctx, &images.select_osc_type),
                 Image::new(egui_ctx, &images.param_atlas),
                 60.0,
@@ -378,11 +380,13 @@ impl UI {
                 event_handler.clone(),
             ),
             param_osc_sq_duty: ParameterSelector::new(
-                SoyBoyParameter::OscSqDuty,
-                param_defs.get(&SoyBoyParameter::OscSqDuty).unwrap().clone(),
-                *param_values
-                    .get(&(SoyBoyParameter::OscSqDuty as u32))
-                    .unwrap(),
+                SelectorValue {
+                    param: SoyBoyParameter::OscSqDuty,
+                    param_def: param_defs.get(&SoyBoyParameter::OscSqDuty).unwrap().clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::OscSqDuty as u32))
+                        .unwrap(),
+                },
                 Image::new(egui_ctx, &images.select_osc_sq_duty),
                 Image::new(egui_ctx, &images.param_atlas),
                 60.0,
@@ -390,11 +394,13 @@ impl UI {
                 event_handler.clone(),
             ),
             param_sweep_type: ParameterSelector::new(
-                SoyBoyParameter::SweepType,
-                param_defs.get(&SoyBoyParameter::SweepType).unwrap().clone(),
-                *param_values
-                    .get(&(SoyBoyParameter::SweepType as u32))
-                    .unwrap(),
+                SelectorValue {
+                    param: SoyBoyParameter::SweepType,
+                    param_def: param_defs.get(&SoyBoyParameter::SweepType).unwrap().clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::SweepType as u32))
+                        .unwrap(),
+                },
                 Image::new(egui_ctx, &images.select_sweep_type),
                 Image::new(egui_ctx, &images.param_atlas),
                 388.0,

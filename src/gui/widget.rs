@@ -643,22 +643,26 @@ pub struct ParameterSelector {
     event_handler: Arc<dyn EventHandler>,
 }
 
+pub struct SelectorValue {
+    pub param: SoyBoyParameter,
+    pub param_def: ParameterDef,
+    pub value: f64,
+}
+
 impl ParameterSelector {
     pub fn new(
-        param: SoyBoyParameter,
-        param_def: ParameterDef,
-        value: f64,
+        value: SelectorValue,
         button_image: Image,
         param_atlas: Image,
         x: f32,
         y: f32,
         event_handler: Arc<dyn EventHandler>,
     ) -> Self {
-        let value = param_def.denormalize(value) as usize;
+        let v = value.param_def.denormalize(value.value) as usize;
         Self {
-            param,
-            param_def,
-            value,
+            param: value.param,
+            param_def: value.param_def,
+            value: v,
             button_image,
             param_atlas,
             pos: egui::pos2(x, y),
