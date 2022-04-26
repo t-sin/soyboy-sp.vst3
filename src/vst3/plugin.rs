@@ -3,9 +3,8 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
 use std::os::raw::c_void;
-use std::ptr::null_mut;
 
-use vst3_com::{interfaces::IUnknown, sys::GUID, ComInterface, IID};
+use vst3_com::{interfaces::IUnknown, sys::GUID, IID};
 use vst3_sys::{
     base::{
         kInvalidArgument, kResultFalse, kResultOk, kResultTrue, tresult, IBStream, IPluginBase,
@@ -14,9 +13,8 @@ use vst3_sys::{
     utils::SharedVstPtr,
     vst::{
         AudioBusBuffers, BusDirections, BusFlags, BusInfo, BusTypes, EventTypes, IAudioProcessor,
-        IComponent, IConnectionPoint, IEventList, IHostApplication, IMessage, IParamValueQueue,
-        IParameterChanges, MediaTypes, ProcessData, ProcessSetup, RoutingInfo, K_SAMPLE32,
-        K_SAMPLE64,
+        IComponent, IConnectionPoint, IEventList, IMessage, IParamValueQueue, IParameterChanges,
+        MediaTypes, ProcessData, ProcessSetup, RoutingInfo, K_SAMPLE32, K_SAMPLE64,
     },
     VstPtr, VST3,
 };
@@ -26,9 +24,7 @@ use crate::soyboy::{
     parameters::{Normalizable, ParameterDef, Parametric, SoyBoyParameter},
     AudioProcessor, SoyBoy,
 };
-use crate::vst3::{
-    controller::SoyBoyController, message::Vst3Message, plugin_data, utils, utils::ComPtr,
-};
+use crate::vst3::{controller::SoyBoyController, message::Vst3Message, plugin_data, utils};
 
 #[VST3(implements(IComponent, IAudioProcessor, IConnectionPoint))]
 pub struct SoyBoyPlugin {
@@ -91,30 +87,14 @@ impl SoyBoyPlugin {
         }
     }
 
-    fn get_host_app(&self) -> ComPtr<dyn IHostApplication> {
+    fn send_message(&self, msg: Vst3Message) {
         let context = self.context.borrow();
         let context = context.as_ref().unwrap();
 
-        let host_iid = <dyn IHostApplication as ComInterface>::IID;
-        let mut host_ptr: *mut c_void = null_mut();
-
-        let result =
-            unsafe { context.query_interface(&host_iid as *const _, &mut host_ptr as *mut _) };
-
-        if result != kResultOk {
-            panic!("host context is not implemented IHostApplication");
-        }
-
-        let host_obj = unsafe { VstPtr::shared(host_ptr as *mut _).unwrap() };
-
-        ComPtr::new(host_ptr, host_obj)
-    }
-
-    fn send_message(&self, msg: Vst3Message) {
         let controller = self.controller.borrow_mut();
         if let Some(controller) = controller.as_ref() {
             let controller = controller.upgrade().unwrap();
-            let host = self.get_host_app().obj();
+            let host = utils::get_host_app(context).obj();
 
             let msg = msg.allocate(&host);
             if let Some(msg) = msg {
