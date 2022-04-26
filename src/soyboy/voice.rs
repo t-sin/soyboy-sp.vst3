@@ -71,6 +71,10 @@ impl VoiceUnit {
             selected_osc: OscillatorType::Square,
         }
     }
+
+    pub fn get_wavetable(&mut self) -> [i8; 32] {
+        self.wavetable_osc.get_wavetable()
+    }
 }
 
 impl Triggered for VoiceUnit {

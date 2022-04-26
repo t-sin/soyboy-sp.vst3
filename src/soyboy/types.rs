@@ -45,6 +45,12 @@ impl From<i4> for f64 {
     }
 }
 
+impl From<i4> for i8 {
+    fn from(src: i4) -> i8 {
+        src.0 as i8
+    }
+}
+
 impl Add<i4> for i4 {
     type Output = Self;
     fn add(self, other: Self) -> Self::Output {

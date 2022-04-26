@@ -38,6 +38,10 @@ impl SoyBoy {
             master_volume: 1.0,
         }
     }
+
+    pub fn get_wavetable(&mut self) -> [i8; 32] {
+        self.voice.get_wavetable()
+    }
 }
 
 impl Triggered for SoyBoy {

@@ -46,6 +46,16 @@ impl WaveTableOscillator {
             phase += 1.0 / WAVETABLE_SIZE as f64;
         }
     }
+
+    pub fn get_wavetable(&mut self) -> [i8; 32] {
+        let mut table: [i8; WAVETABLE_SIZE] = [0; WAVETABLE_SIZE];
+
+        for (i, v) in table.iter_mut().enumerate() {
+            *v = self.table[i].into();
+        }
+
+        table
+    }
 }
 
 impl Triggered for WaveTableOscillator {
