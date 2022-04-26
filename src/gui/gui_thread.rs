@@ -549,9 +549,15 @@ impl GUIThread {
         }
 
         if let Ok(ref gui_event) = self.plugin_event_recv.try_recv() {
-            if gui_event == &GUIEvent::NoteOn {
-                self.ui.edamame.jump();
-                self.needs_redraw = true;
+            match gui_event {
+                GUIEvent::NoteOn => {
+                    self.ui.edamame.jump();
+                    self.needs_redraw = true;
+                }
+                GUIEvent::WaveTableData(table) => {
+                    self.ui.param_wavetable.set_wavetable(&table);
+                }
+                _ => (),
             }
         }
     }

@@ -337,6 +337,8 @@ impl IEditController for SoyBoyController {
             let conn =
                 ControllerConnection::new(self.processor.borrow().as_ref().unwrap().clone(), host);
 
+            conn.send_message(Vst3Message::WaveTableRequested);
+
             let gui = SoyBoyVST3GUI::new(
                 self.component_handler.borrow().clone(),
                 self.param_defs.clone(),
@@ -443,13 +445,17 @@ impl IConnectionPoint for SoyBoyController {
     }
 
     unsafe fn notify(&self, message: SharedVstPtr<dyn IMessage>) -> tresult {
-        let msg = message.upgrade().unwrap();
-        let id = utils::fidstring_to_string(msg.get_message_id());
         let sender = self.gui_sender.borrow();
         let sender = sender.as_ref().unwrap();
 
-        if let Some(Vst3Message::NoteOn) = Vst3Message::from_str(&id) {
-            let _ = sender.send(GUIEvent::NoteOn);
+        match Vst3Message::from_message(&message) {
+            Some(Vst3Message::NoteOn) => {
+                let _ = sender.send(GUIEvent::NoteOn);
+            }
+            Some(Vst3Message::WaveTableData(table)) => {
+                let _ = sender.send(GUIEvent::WaveTableData(table));
+            }
+            _ => (),
         }
 
         kResultOk

@@ -6,15 +6,18 @@ use std::ptr::null_mut;
 use vst3_com::ComInterface;
 use vst3_sys::{
     base::kResultOk,
-    vst::{IHostApplication, IMessage},
+    utils::SharedVstPtr,
+    vst::{IAttributeList, IHostApplication, IMessage},
     VstPtr,
 };
 
-use crate::vst3::utils::ComPtr;
+use crate::vst3::utils::{fidstring_to_string, ComPtr};
 
 pub enum Vst3Message {
     NoteOn,
     RandomizeWaveTable,
+    WaveTableRequested,
+    WaveTableData([i8; 32]),
 }
 
 impl fmt::Display for Vst3Message {
@@ -22,6 +25,8 @@ impl fmt::Display for Vst3Message {
         let s = match self {
             Vst3Message::NoteOn => "vst3:note-on",
             Vst3Message::RandomizeWaveTable => "vst3:randomize-wavetable",
+            Vst3Message::WaveTableData(_) => "vst3:wavetable-data",
+            Vst3Message::WaveTableRequested => "vst3:wavetable-requested",
         };
 
         write!(f, "{}", s)
@@ -29,10 +34,35 @@ impl fmt::Display for Vst3Message {
 }
 
 impl Vst3Message {
-    pub fn from_str(s: &str) -> Option<Self> {
-        match s {
+    pub fn from_message(msg: &SharedVstPtr<dyn IMessage>) -> Option<Self> {
+        let msg = msg.upgrade().unwrap();
+        let id = unsafe { fidstring_to_string(msg.get_message_id()) };
+
+        match id.as_str() {
             "vst3:note-on" => Some(Vst3Message::NoteOn),
             "vst3:randomize-wavetable" => Some(Vst3Message::RandomizeWaveTable),
+            "vst3:wavetable-data" => {
+                let attr = unsafe { msg.get_attributes() };
+                let attr_id = CString::new("table").unwrap();
+                let mut size: u32 = 0;
+                let table_ptr: *mut c_void = null_mut();
+
+                unsafe {
+                    attr.upgrade().unwrap().get_binary(
+                        attr_id.as_ptr(),
+                        &table_ptr as *const _,
+                        &mut size as *mut _,
+                    );
+                };
+
+                let table_ptr = table_ptr as *mut i8;
+                let table_src = unsafe { std::slice::from_raw_parts(table_ptr, size as usize) };
+                let mut table: [i8; 32] = [0; 32];
+                table.as_mut_slice().copy_from_slice(&table_src[..]);
+
+                Some(Vst3Message::WaveTableData(table))
+            }
+            "vst3:wavetable-requested" => Some(Vst3Message::WaveTableRequested),
             _ => None,
         }
     }
@@ -47,6 +77,24 @@ impl Vst3Message {
                 unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
             }
             Vst3Message::RandomizeWaveTable => {
+                unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
+            }
+            Vst3Message::WaveTableData(table) => {
+                unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
+
+                let attr = unsafe { msg.get_attributes() };
+                let attr_id = CString::new("table").unwrap();
+                let size = table.len() as u32;
+
+                unsafe {
+                    attr.upgrade().unwrap().set_binary(
+                        attr_id.as_ptr(),
+                        table.as_ptr() as *const c_void,
+                        size,
+                    );
+                };
+            }
+            Vst3Message::WaveTableRequested => {
                 unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
             }
         }

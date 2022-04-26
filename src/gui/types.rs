@@ -36,6 +36,7 @@ pub enum GUIMessage {
 pub enum GUIEvent {
     Redraw,
     NoteOn,
+    WaveTableData([i8; 32]),
 }
 
 pub trait Behavior {
