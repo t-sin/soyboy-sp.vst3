@@ -67,7 +67,7 @@ impl Triggered for WaveTableOscillator {
             Event::SetWaveTable { idx, value } => {
                 let idx = *idx;
                 if idx < WAVETABLE_SIZE {
-                    self.table[idx] = i4::from(*value);
+                    self.table[idx] = i4::from(*value as f64 * i4::max());
                 }
             }
             Event::ResetWaveTableAsSine => {

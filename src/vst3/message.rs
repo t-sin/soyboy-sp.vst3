@@ -18,6 +18,7 @@ pub enum Vst3Message {
     RandomizeWaveTable,
     WaveTableRequested,
     WaveTableData([i8; 32]),
+    SetWaveTable(usize, i8),
 }
 
 impl fmt::Display for Vst3Message {
@@ -27,6 +28,7 @@ impl fmt::Display for Vst3Message {
             Vst3Message::RandomizeWaveTable => "vst3:randomize-wavetable",
             Vst3Message::WaveTableData(_) => "vst3:wavetable-data",
             Vst3Message::WaveTableRequested => "vst3:wavetable-requested",
+            Vst3Message::SetWaveTable(_, _) => "vst3:set-wavetable-sample",
         };
 
         write!(f, "{}", s)
@@ -63,6 +65,25 @@ impl Vst3Message {
                 Some(Vst3Message::WaveTableData(table))
             }
             "vst3:wavetable-requested" => Some(Vst3Message::WaveTableRequested),
+            "vst3:set-wavetable-sample" => {
+                let attr = unsafe { msg.get_attributes() };
+                let id_idx = CString::new("index").unwrap();
+                let id_val = CString::new("value").unwrap();
+                let mut idx: i64 = 0;
+                let mut val: i64 = 0;
+
+                unsafe {
+                    attr.upgrade()
+                        .unwrap()
+                        .get_int(id_idx.as_ptr(), &mut idx as *mut _);
+                    attr.upgrade()
+                        .unwrap()
+                        .get_int(id_val.as_ptr(), &mut val as *mut _);
+                };
+
+                Some(Vst3Message::SetWaveTable(idx as usize, val as i8))
+            }
+
             _ => None,
         }
     }
@@ -96,6 +117,22 @@ impl Vst3Message {
             }
             Vst3Message::WaveTableRequested => {
                 unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
+            }
+            Vst3Message::SetWaveTable(idx, val) => {
+                unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
+
+                let attr = unsafe { msg.get_attributes() };
+                let id_idx = CString::new("index").unwrap();
+                let id_val = CString::new("value").unwrap();
+
+                unsafe {
+                    attr.upgrade()
+                        .unwrap()
+                        .set_int(id_idx.as_ptr(), *idx as i64);
+                    attr.upgrade()
+                        .unwrap()
+                        .set_int(id_val.as_ptr(), *val as i64);
+                };
             }
         }
     }

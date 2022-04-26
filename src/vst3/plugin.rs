@@ -472,6 +472,12 @@ impl IConnectionPoint for SoyBoyPlugin {
                 let table = self.soyboy.borrow_mut().get_wavetable();
                 self.send_message(Vst3Message::WaveTableData(table));
             }
+            Some(Vst3Message::SetWaveTable(idx, value)) => loop {
+                if let Ok(mut soyboy) = self.soyboy.try_borrow_mut() {
+                    soyboy.trigger(&Event::SetWaveTable { idx, value });
+                    break;
+                }
+            },
             _ => (),
         }
         kResultOk

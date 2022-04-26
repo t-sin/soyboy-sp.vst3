@@ -84,6 +84,7 @@ impl UI {
         param_defs: HashMap<SoyBoyParameter, ParameterDef>,
         param_values: Arc<Mutex<HashMap<u32, f64>>>,
         event_handler: Arc<dyn EventHandler>,
+        controller_connection: Arc<ControllerConnection>,
     ) -> Self {
         let images = Images {
             edamame: RetainedImage::from_image_bytes("soyboy:edamame", IMG_EDAMAME).unwrap(),
@@ -419,6 +420,9 @@ impl UI {
                 Image::new(egui_ctx, &images.wavetable_border),
                 60.0,
                 340.0,
+                Box::new(move |idx: usize, v: i8| {
+                    controller_connection.send_message(Vst3Message::SetWaveTable(idx, v))
+                }),
             ),
             _images: images,
         }
@@ -518,6 +522,7 @@ impl GUIThread {
                 param_defs,
                 param_values,
                 event_handler.clone(),
+                controller_connection.clone(),
             ),
             quit: false,
             needs_redraw: false,

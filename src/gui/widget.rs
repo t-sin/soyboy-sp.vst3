@@ -725,6 +725,7 @@ pub struct WaveTableEditor {
     values: [f64; Self::SAMPLE_NUM],
     border_img: Image,
     pos: egui::Pos2,
+    set_wavetable_fn: Box<dyn Fn(usize, i8)>,
 }
 
 impl WaveTableEditor {
@@ -732,11 +733,17 @@ impl WaveTableEditor {
     const VALUE_HALF_MAX: u8 = 16;
     const VALUE_MAX: u8 = 32;
 
-    pub fn new(border_img: Image, x: f32, y: f32) -> Self {
+    pub fn new(
+        border_img: Image,
+        x: f32,
+        y: f32,
+        set_wavetable_fn: Box<dyn Fn(usize, i8)>,
+    ) -> Self {
         Self {
             values: [1.0; Self::SAMPLE_NUM],
             border_img,
             pos: egui::pos2(x, y),
+            set_wavetable_fn,
         }
     }
 
@@ -799,6 +806,10 @@ impl Behavior for WaveTableEditor {
                         let pointer_pos = pointer_pos - pos.to_vec2();
                         let new_value = (size.y - pointer_pos.y) / size.y;
                         *value = num::clamp(new_value as f64, 0.0, 1.0);
+
+                        let v =
+                            (*value * Self::VALUE_MAX as f64 - Self::VALUE_HALF_MAX as f64) as i8;
+                        (self.set_wavetable_fn)(i, v);
                     }
                 }
             }
