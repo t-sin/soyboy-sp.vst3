@@ -33,7 +33,7 @@ impl WaveTableOscillator {
 
     fn randomize_table(&mut self) {
         for e in self.table.iter_mut() {
-            let v = random::<f64>() * i4::max();
+            let v = (random::<f64>() * 2.0 - 1.0) * i4::max();
             *e = i4::from(v);
         }
     }
