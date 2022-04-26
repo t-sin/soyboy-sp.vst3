@@ -461,6 +461,13 @@ impl IConnectionPoint for SoyBoyPlugin {
         println!("IConnectionPoint::notify() on SoyBoyPlugin");
 
         match Vst3Message::from_message(&message) {
+            Some(Vst3Message::InitializeWaveTable) => {
+                self.soyboy
+                    .borrow_mut()
+                    .trigger(&Event::ResetWaveTableAsSine);
+                let table = self.soyboy.borrow_mut().get_wavetable();
+                self.send_message(Vst3Message::WaveTableData(table));
+            }
             Some(Vst3Message::RandomizeWaveTable) => {
                 self.soyboy
                     .borrow_mut()

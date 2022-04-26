@@ -15,6 +15,7 @@ use crate::vst3::utils::{fidstring_to_string, ComPtr};
 
 pub enum Vst3Message {
     NoteOn,
+    InitializeWaveTable,
     RandomizeWaveTable,
     WaveTableRequested,
     WaveTableData([i8; 32]),
@@ -25,6 +26,7 @@ impl fmt::Display for Vst3Message {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s = match self {
             Vst3Message::NoteOn => "vst3:note-on",
+            Vst3Message::InitializeWaveTable => "vst3:initialize-wavetable",
             Vst3Message::RandomizeWaveTable => "vst3:randomize-wavetable",
             Vst3Message::WaveTableData(_) => "vst3:wavetable-data",
             Vst3Message::WaveTableRequested => "vst3:wavetable-requested",
@@ -42,6 +44,7 @@ impl Vst3Message {
 
         match id.as_str() {
             "vst3:note-on" => Some(Vst3Message::NoteOn),
+            "vst3:initialize-wavetable" => Some(Vst3Message::InitializeWaveTable),
             "vst3:randomize-wavetable" => Some(Vst3Message::RandomizeWaveTable),
             "vst3:wavetable-data" => {
                 let attr = unsafe { msg.get_attributes() };
@@ -97,6 +100,9 @@ impl Vst3Message {
             Vst3Message::NoteOn => {
                 unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
             }
+            Vst3Message::InitializeWaveTable => unsafe {
+                msg.set_message_id(self.to_cstring().as_ptr());
+            },
             Vst3Message::RandomizeWaveTable => {
                 unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
             }

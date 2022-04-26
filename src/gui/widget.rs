@@ -748,11 +748,9 @@ impl WaveTableEditor {
     }
 
     pub fn set_wavetable(&mut self, samples: &[i8; Self::SAMPLE_NUM]) {
-        println!("samples = {:?}", samples);
         for (i, v) in self.values.iter_mut().enumerate() {
             *v = (samples[i] + Self::VALUE_HALF_MAX as i8) as f64 / Self::VALUE_MAX as f64;
         }
-        println!("table after update = {:?}", self.values);
     }
 
     fn show_sample_slider(ui: &mut egui::Ui, rect: egui::Rect, value: f64) {

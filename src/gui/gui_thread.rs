@@ -616,8 +616,8 @@ impl GUIThread {
 
                     let resp = self.ui.button_reset_sine.show(ui);
                     if resp.clicked() {
-                        // TODO: write a code reset plugin's wavetable
-                        println!("reset sine!!!");
+                        self.controller_connection
+                            .send_message(Vst3Message::InitializeWaveTable);
                     }
 
                     let _ = self.ui.param_volume.show(ui);
