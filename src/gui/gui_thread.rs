@@ -599,8 +599,8 @@ impl GUIThread {
 
                     let resp = self.ui.button_reset_random.show(ui);
                     if resp.clicked() {
-                        // TODO: write a code reset plugin's wavetable
-                        println!("reset random!!!");
+                        self.controller_connection
+                            .send_message(Vst3Message::RandomizeWaveTable);
                     }
 
                     let resp = self.ui.button_reset_sine.show(ui);

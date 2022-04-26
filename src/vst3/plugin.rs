@@ -456,9 +456,19 @@ impl IConnectionPoint for SoyBoyPlugin {
         kResultOk
     }
 
-    unsafe fn notify(&self, _message: SharedVstPtr<dyn IMessage>) -> tresult {
+    unsafe fn notify(&self, message: SharedVstPtr<dyn IMessage>) -> tresult {
         #[cfg(debug_assertions)]
         println!("IConnectionPoint::notify() on SoyBoyPlugin");
+
+        let msg = message.upgrade().unwrap();
+        let id = utils::fidstring_to_string(msg.get_message_id());
+
+        if let Some(Vst3Message::RandomizeWaveTable) = Vst3Message::from_str(&id) {
+            self.soyboy
+                .borrow_mut()
+                .trigger(&Event::ResetWaveTableAtRandom);
+        }
+
         kResultOk
     }
 }

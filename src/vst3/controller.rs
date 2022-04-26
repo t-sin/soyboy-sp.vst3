@@ -451,6 +451,7 @@ impl IConnectionPoint for SoyBoyController {
         if let Some(Vst3Message::NoteOn) = Vst3Message::from_str(&id) {
             let _ = sender.send(GUIEvent::NoteOn);
         }
+
         kResultOk
     }
 }

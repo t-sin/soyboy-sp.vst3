@@ -14,12 +14,14 @@ use crate::vst3::utils::ComPtr;
 
 pub enum Vst3Message {
     NoteOn,
+    RandomizeWaveTable,
 }
 
 impl fmt::Display for Vst3Message {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s = match self {
             Vst3Message::NoteOn => "vst3:note-on",
+            Vst3Message::RandomizeWaveTable => "vst3:randomize-wavetable",
         };
 
         write!(f, "{}", s)
@@ -30,6 +32,7 @@ impl Vst3Message {
     pub fn from_str(s: &str) -> Option<Self> {
         match s {
             "vst3:note-on" => Some(Vst3Message::NoteOn),
+            "vst3:randomize-wavetable" => Some(Vst3Message::RandomizeWaveTable),
             _ => None,
         }
     }
@@ -41,6 +44,9 @@ impl Vst3Message {
     fn write_message(&self, msg: &mut VstPtr<dyn IMessage>) {
         match self {
             Vst3Message::NoteOn => {
+                unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
+            }
+            Vst3Message::RandomizeWaveTable => {
                 unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
             }
         }
