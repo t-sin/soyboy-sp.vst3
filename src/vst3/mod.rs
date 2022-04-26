@@ -8,6 +8,9 @@ mod utils;
 
 use std::os::raw::c_void;
 
+pub use controller::ControllerConnection;
+pub use message::Vst3Message;
+
 /// # Safety
 ///
 /// This function is called by VST3 host to get VST3 plugin classes.

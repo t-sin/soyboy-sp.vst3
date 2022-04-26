@@ -23,6 +23,7 @@ use glutin::{
 };
 
 use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
+use crate::vst3::{ControllerConnection, Vst3Message};
 
 use super::{constants::*, types::*, widget::*};
 
@@ -432,6 +433,7 @@ pub struct GUIThread {
     // threading stuff
     receiver: Arc<Mutex<Receiver<GUIMessage>>>,
     plugin_event_recv: Receiver<GUIEvent>,
+    controller_connection: Arc<ControllerConnection>,
     // egui stuff
     egui_glow: EguiGlow,
     window: WindowedContext<PossiblyCurrent>,
@@ -485,6 +487,7 @@ impl GUIThread {
         event_handler: Arc<dyn EventHandler>,
         receiver: Arc<Mutex<Receiver<GUIMessage>>>,
         plugin_event_recv: Receiver<GUIEvent>,
+        controller_connection: Arc<ControllerConnection>,
     ) -> (Self, EventLoop<GUIEvent>) {
         let (event_loop, window_builder) = Self::setup_event_loop(parent);
         let window = unsafe {
@@ -520,6 +523,7 @@ impl GUIThread {
             needs_redraw: false,
             receiver,
             plugin_event_recv,
+            controller_connection,
             egui_glow,
             window,
             // glow_context: glow_context,
@@ -713,6 +717,7 @@ impl GUIThread {
         event_handler: Arc<dyn EventHandler>,
         receiver: Arc<Mutex<Receiver<GUIMessage>>>,
         plugin_event_recv: Receiver<GUIEvent>,
+        controller_connection: Arc<ControllerConnection>,
     ) {
         let (mut thread, mut event_loop) = GUIThread::setup(
             parent,
@@ -721,6 +726,7 @@ impl GUIThread {
             event_handler,
             receiver,
             plugin_event_recv,
+            controller_connection,
         );
         let proxy = event_loop.create_proxy();
 

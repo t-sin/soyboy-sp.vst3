@@ -18,23 +18,52 @@ use vst3_sys::{
     gui::IPlugView,
     utils::SharedVstPtr,
     vst::{
-        kRootUnitId, CtrlNumber, IComponentHandler, IConnectionPoint, IEditController, IMessage,
-        IMidiMapping, IUnitInfo, ParamID, ParameterFlags, ParameterInfo, ProgramListInfo, TChar,
-        UnitInfo,
+        kRootUnitId, CtrlNumber, IComponentHandler, IConnectionPoint, IEditController,
+        IHostApplication, IMessage, IMidiMapping, IUnitInfo, ParamID, ParameterFlags,
+        ParameterInfo, ProgramListInfo, TChar, UnitInfo,
     },
     VstPtr, VST3,
 };
 
 use crate::gui::GUIEvent;
 use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
-use crate::vst3::{gui::SoyBoyVST3GUI, message::Vst3Message, plugin_data, utils};
+use crate::vst3::{gui::SoyBoyVST3GUI, message::Vst3Message, plugin_data, utils, utils::ComPtr};
+
+pub struct ControllerConnection {
+    conn: Arc<dyn IConnectionPoint>,
+    host: Arc<ComPtr<dyn IHostApplication>>,
+}
+
+unsafe impl Sync for ControllerConnection {}
+unsafe impl Send for ControllerConnection {}
+
+impl ControllerConnection {
+    pub fn new(conn: Arc<dyn IConnectionPoint>, host: Arc<ComPtr<dyn IHostApplication>>) -> Self {
+        Self { conn, host }
+    }
+
+    pub fn send_message(&self, msg: Vst3Message) {
+        let msg = msg.allocate(&self.host.obj());
+
+        if let Some(msg) = msg {
+            unsafe {
+                let msg = std::mem::transmute::<VstPtr<dyn IMessage>, SharedVstPtr<dyn IMessage>>(
+                    msg.obj(),
+                );
+                self.conn.notify(msg);
+            }
+        } else {
+            println!("SoyBoyPlugin::send_message(): allocation failed");
+        }
+    }
+}
 
 #[VST3(implements(IEditController, IUnitInfo, IMidiMapping, IConnectionPoint))]
 pub struct SoyBoyController {
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     vst3_params: RefCell<HashMap<u32, ParameterInfo>>,
     param_values: Arc<Mutex<HashMap<u32, f64>>>,
-    processor: RefCell<Option<SharedVstPtr<dyn IConnectionPoint>>>,
+    processor: RefCell<Option<Arc<dyn IConnectionPoint>>>,
     component_handler: RefCell<Option<Arc<dyn IComponentHandler>>>,
     context: RefCell<Option<VstPtr<dyn IUnknown>>>,
     gui_sender: RefCell<Option<Sender<GUIEvent>>>,
@@ -301,11 +330,19 @@ impl IEditController for SoyBoyController {
             let (send, recv) = channel::<GUIEvent>();
             let _ = self.gui_sender.replace(Some(send));
 
+            let context = self.context.borrow();
+            let context = context.as_ref().unwrap();
+            let host = Arc::new(utils::get_host_app(context));
+
+            let conn =
+                ControllerConnection::new(self.processor.borrow().as_ref().unwrap().clone(), host);
+
             let gui = SoyBoyVST3GUI::new(
                 self.component_handler.borrow().clone(),
                 self.param_defs.clone(),
                 self.param_values.clone(),
                 recv,
+                Arc::new(conn),
             );
 
             let gui = Box::into_raw(gui) as *mut dyn IPlugView as *mut c_void;
@@ -395,7 +432,8 @@ impl IUnitInfo for SoyBoyController {
 
 impl IConnectionPoint for SoyBoyController {
     unsafe fn connect(&self, other: SharedVstPtr<dyn IConnectionPoint>) -> tresult {
-        let _ = self.processor.replace(Some(other));
+        let processor = other.upgrade().unwrap();
+        let _ = self.processor.replace(Some(Arc::new(processor)));
         kResultOk
     }
 

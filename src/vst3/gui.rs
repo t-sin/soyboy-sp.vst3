@@ -18,7 +18,7 @@ use crate::gui::{
     EventHandler, GUIEvent, GUIMessage, GUIThread, ParentWindow, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
-use crate::vst3::utils;
+use crate::vst3::{controller::ControllerConnection, utils};
 
 pub struct VST3EventHandler {
     param_values: Arc<Mutex<HashMap<u32, f64>>>,
@@ -68,6 +68,7 @@ pub struct SoyBoyVST3GUI {
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     param_values: Arc<Mutex<HashMap<u32, f64>>>,
     plugin_event_recv: RefCell<Option<Receiver<GUIEvent>>>,
+    controller_connection: Arc<ControllerConnection>,
 }
 
 impl SoyBoyVST3GUI {
@@ -76,6 +77,7 @@ impl SoyBoyVST3GUI {
         param_defs: HashMap<SoyBoyParameter, ParameterDef>,
         param_values: Arc<Mutex<HashMap<u32, f64>>>,
         plugin_event_recv: Receiver<GUIEvent>,
+        controller_connection: Arc<ControllerConnection>,
     ) -> Box<Self> {
         let handler = Arc::new(VST3EventHandler::new(
             param_values.clone(),
@@ -94,6 +96,7 @@ impl SoyBoyVST3GUI {
             param_defs,
             param_values,
             plugin_event_recv,
+            controller_connection,
         )
     }
 
@@ -101,6 +104,7 @@ impl SoyBoyVST3GUI {
         let param_defs = self.param_defs.clone();
         let param_values = self.param_values.clone();
         let event_handler = self.event_handler.clone();
+        let controller_connection = self.controller_connection.clone();
 
         let (send, resv) = channel();
         let recv = Arc::new(Mutex::new(resv));
@@ -116,6 +120,7 @@ impl SoyBoyVST3GUI {
                 event_handler,
                 recv,
                 plugin_event_recv.unwrap(),
+                controller_connection,
             );
         });
         *self.handle.borrow_mut() = Some(handle);
