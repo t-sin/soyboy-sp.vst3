@@ -9,7 +9,7 @@ use std::sync::{
     Arc, Mutex,
 };
 
-use vst3_com::sys::GUID;
+use vst3_com::{interfaces::IUnknown, sys::GUID};
 use vst3_sys::{
     base::{
         kInvalidArgument, kResultFalse, kResultOk, kResultTrue, tresult, FIDString, IBStream,
@@ -22,7 +22,7 @@ use vst3_sys::{
         IMidiMapping, IUnitInfo, ParamID, ParameterFlags, ParameterInfo, ProgramListInfo, TChar,
         UnitInfo,
     },
-    VST3,
+    VstPtr, VST3,
 };
 
 use crate::gui::GUIEvent;
@@ -36,6 +36,7 @@ pub struct SoyBoyController {
     param_values: Arc<Mutex<HashMap<u32, f64>>>,
     processor: RefCell<Option<SharedVstPtr<dyn IConnectionPoint>>>,
     component_handler: RefCell<Option<Arc<dyn IComponentHandler>>>,
+    context: RefCell<Option<VstPtr<dyn IUnknown>>>,
     gui_sender: RefCell<Option<Sender<GUIEvent>>>,
 }
 
@@ -76,6 +77,7 @@ impl SoyBoyController {
         let param_vals = Arc::new(Mutex::new(HashMap::new()));
         let processor = RefCell::new(None);
         let component_handler = RefCell::new(None);
+        let context = RefCell::new(None);
         let gui_sender = RefCell::new(None);
 
         SoyBoyController::allocate(
@@ -84,13 +86,21 @@ impl SoyBoyController {
             param_vals,
             processor,
             component_handler,
+            context,
             gui_sender,
         )
     }
 }
 
 impl IPluginBase for SoyBoyController {
-    unsafe fn initialize(&self, _host_context: *mut c_void) -> tresult {
+    unsafe fn initialize(&self, host_context: *mut c_void) -> tresult {
+        if host_context.is_null() {
+            panic!("host context is null");
+        }
+
+        let context: VstPtr<dyn IUnknown> = VstPtr::shared(host_context as *mut _).unwrap();
+        let _ = self.context.replace(Some(context));
+
         let param_defs = self.param_defs.clone();
         for (param, soyboy_param) in param_defs.iter() {
             self.add_parameter(
