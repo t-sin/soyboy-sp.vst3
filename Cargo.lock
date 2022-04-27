@@ -1789,7 +1789,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vst3-com"
 version = "0.1.0"
-source = "git+https://github.com/t-sin/vst3-sys?branch=fix/signature-create-instance#96d30d0064c94fec6fe5518e6d9e4417f63e8b72"
+source = "git+https://github.com/RustAudio/vst3-sys#45972228baa5302e5ce04cee3d246002fac48ee6"
 dependencies = [
  "vst3-com-macros",
 ]
@@ -1797,7 +1797,7 @@ dependencies = [
 [[package]]
 name = "vst3-com-macros"
 version = "0.2.0"
-source = "git+https://github.com/t-sin/vst3-sys?branch=fix/signature-create-instance#96d30d0064c94fec6fe5518e6d9e4417f63e8b72"
+source = "git+https://github.com/RustAudio/vst3-sys#45972228baa5302e5ce04cee3d246002fac48ee6"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1808,7 +1808,7 @@ dependencies = [
 [[package]]
 name = "vst3-com-macros-support"
 version = "0.2.0"
-source = "git+https://github.com/t-sin/vst3-sys?branch=fix/signature-create-instance#96d30d0064c94fec6fe5518e6d9e4417f63e8b72"
+source = "git+https://github.com/RustAudio/vst3-sys#45972228baa5302e5ce04cee3d246002fac48ee6"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1818,7 +1818,7 @@ dependencies = [
 [[package]]
 name = "vst3-sys"
 version = "0.1.0"
-source = "git+https://github.com/t-sin/vst3-sys?branch=fix/signature-create-instance#96d30d0064c94fec6fe5518e6d9e4417f63e8b72"
+source = "git+https://github.com/RustAudio/vst3-sys#45972228baa5302e5ce04cee3d246002fac48ee6"
 dependencies = [
  "vst3-com",
 ]
