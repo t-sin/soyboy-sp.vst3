@@ -857,13 +857,15 @@ impl Behavior for Oscilloscope {
         let img = egui::widgets::Image::new(self.border_img.texture_id, self.border_img.size);
         img.paint_at(ui, rect);
 
+        static SCALE_X: f32 = 1.0;
         let w = self.border_img.size.x;
         let h = 90.0;
         let hh = h / 2.0;
-        let dx = w / OSCILLOSCOPE_SAIMPLE_SIZE as f32;
+        let dx = w / OSCILLOSCOPE_SAIMPLE_SIZE as f32 * SCALE_X;
         let stroke = egui::Stroke::new(1.0, egui::Color32::from_rgb(0x1c, 0x23, 0x1b));
 
-        for i in 0..OSCILLOSCOPE_SAIMPLE_SIZE {
+        static SAMPLES_TO_DISPLAY: usize = OSCILLOSCOPE_SAIMPLE_SIZE / SCALE_X as usize;
+        for i in 0..SAMPLES_TO_DISPLAY {
             let idx = i;
             let idx2 = (i + 1) % OSCILLOSCOPE_SAIMPLE_SIZE;
 

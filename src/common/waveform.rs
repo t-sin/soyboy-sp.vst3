@@ -4,7 +4,6 @@ use super::constants::OSCILLOSCOPE_SAIMPLE_SIZE;
 pub struct Waveform {
     signals: [f64; OSCILLOSCOPE_SAIMPLE_SIZE],
     idx: usize,
-    skips: usize,
 }
 
 impl Waveform {
@@ -12,18 +11,12 @@ impl Waveform {
         Self {
             signals: [0.0; OSCILLOSCOPE_SAIMPLE_SIZE],
             idx: 0,
-            skips: 0,
         }
     }
 
     pub fn set_signal(&mut self, v: f64) {
-        if self.skips == 32 {
-            self.signals[self.idx] = v;
-            self.idx = (self.idx + 1) % self.signals.len();
-            self.skips = 0;
-        } else {
-            self.skips += 1;
-        }
+        self.signals[self.idx] = v;
+        self.idx = (self.idx + 1) % self.signals.len();
     }
 
     pub fn set_signals(&mut self, signals: &[f64]) {
