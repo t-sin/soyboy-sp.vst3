@@ -13,7 +13,6 @@ pub struct WaveTableOscillator {
     pub freq: f64,
 
     table: [i4; WAVETABLE_SIZE],
-    index: usize,
 }
 
 impl WaveTableOscillator {
@@ -24,7 +23,6 @@ impl WaveTableOscillator {
             pitch: 0.0,
 
             table: [i4::from(0.0); WAVETABLE_SIZE],
-            index: 0,
         };
 
         osc.initialize_table();
@@ -82,20 +80,10 @@ impl Triggered for WaveTableOscillator {
 }
 
 impl Parametric<SoyBoyParameter> for WaveTableOscillator {
-    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
-        match param {
-            SoyBoyParameter::OscWtTableIndex => self.index = value as usize % self.table.len(),
-            SoyBoyParameter::OscWtTableValue => self.table[self.index] = i4::from(value),
-            _ => (),
-        }
-    }
+    fn set_param(&mut self, _param: &SoyBoyParameter, _value: f64) {}
 
-    fn get_param(&self, param: &SoyBoyParameter) -> f64 {
-        match param {
-            SoyBoyParameter::OscWtTableIndex => self.index as f64,
-            SoyBoyParameter::OscWtTableValue => f64::from(self.table[self.index]),
-            _ => 0.0,
-        }
+    fn get_param(&self, _param: &SoyBoyParameter) -> f64 {
+        0.0
     }
 }
 

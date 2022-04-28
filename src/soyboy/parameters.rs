@@ -27,9 +27,6 @@ pub enum SoyBoyParameter {
     OscSqDuty,
     // noise oscillator
     OscNsInterval,
-    // wavetable oscillator
-    OscWtTableIndex,
-    OscWtTableValue,
 }
 
 impl TryFrom<u32> for SoyBoyParameter {
@@ -66,10 +63,6 @@ impl TryFrom<u32> for SoyBoyParameter {
             Ok(SoyBoyParameter::OscSqDuty)
         } else if id == SoyBoyParameter::OscNsInterval as u32 {
             Ok(SoyBoyParameter::OscNsInterval)
-        } else if id == SoyBoyParameter::OscWtTableIndex as u32 {
-            Ok(SoyBoyParameter::OscWtTableIndex)
-        } else if id == SoyBoyParameter::OscWtTableValue as u32 {
-            Ok(SoyBoyParameter::OscWtTableValue)
         } else {
             Err(())
         }
@@ -539,39 +532,7 @@ pub fn make_noise_oscillator_parameters(params: &mut HashMap<SoyBoyParameter, Pa
     );
 }
 
-pub fn make_wavetable_oscillator_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
-    static OSC_WT_TABLE_INDEX: IntegerParameter = IntegerParameter { min: 0, max: 31 };
-    params.insert(
-        SoyBoyParameter::OscWtTableIndex,
-        ParameterDef {
-            r#type: ParameterType::Integer,
-            parameter: ParameterInfo {
-                int: OSC_WT_TABLE_INDEX,
-            },
-            title: "OscWt: Table index".to_string(),
-            short_title: "Table index".to_string(),
-            unit_name: "".to_string(),
-            step_count: OSC_WT_TABLE_INDEX.max - OSC_WT_TABLE_INDEX.min - 1,
-            default_value: 0.0,
-        },
-    );
-
-    static OSC_WT_TABLE_VALUE: IntegerParameter = IntegerParameter { min: -15, max: 16 };
-    params.insert(
-        SoyBoyParameter::OscWtTableValue,
-        ParameterDef {
-            r#type: ParameterType::Integer,
-            parameter: ParameterInfo {
-                int: OSC_WT_TABLE_VALUE,
-            },
-            title: "OscWt: Table value".to_string(),
-            short_title: "Table value".to_string(),
-            unit_name: "".to_string(),
-            step_count: OSC_WT_TABLE_VALUE.max - OSC_WT_TABLE_VALUE.min - 1,
-            default_value: 0.0,
-        },
-    );
-}
+pub fn make_wavetable_oscillator_parameters(_params: &mut HashMap<SoyBoyParameter, ParameterDef>) {}
 
 pub fn make_envelope_generator_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
     static EG_TIME: NonLinearParameter = NonLinearParameter {
