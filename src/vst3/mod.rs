@@ -1,3 +1,4 @@
+mod common;
 mod controller;
 mod factory;
 mod gui;
@@ -8,7 +9,7 @@ mod utils;
 
 use std::os::raw::c_void;
 
-pub use controller::ControllerConnection;
+pub use common::*;
 pub use message::Vst3Message;
 
 /// # Safety

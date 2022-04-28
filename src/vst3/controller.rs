@@ -18,45 +18,18 @@ use vst3_sys::{
     gui::IPlugView,
     utils::SharedVstPtr,
     vst::{
-        kRootUnitId, CtrlNumber, IComponentHandler, IConnectionPoint, IEditController,
-        IHostApplication, IMessage, IMidiMapping, IUnitInfo, ParamID, ParameterFlags,
-        ParameterInfo, ProgramListInfo, TChar, UnitInfo,
+        kRootUnitId, CtrlNumber, IComponentHandler, IConnectionPoint, IEditController, IMessage,
+        IMidiMapping, IUnitInfo, ParamID, ParameterFlags, ParameterInfo, ProgramListInfo, TChar,
+        UnitInfo,
     },
     VstPtr, VST3,
 };
 
 use crate::gui::GUIEvent;
 use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
-use crate::vst3::{gui::SoyBoyVST3GUI, message::Vst3Message, plugin_data, utils, utils::ComPtr};
-
-pub struct ControllerConnection {
-    conn: Arc<dyn IConnectionPoint>,
-    host: Arc<ComPtr<dyn IHostApplication>>,
-}
-
-unsafe impl Sync for ControllerConnection {}
-unsafe impl Send for ControllerConnection {}
-
-impl ControllerConnection {
-    pub fn new(conn: Arc<dyn IConnectionPoint>, host: Arc<ComPtr<dyn IHostApplication>>) -> Self {
-        Self { conn, host }
-    }
-
-    pub fn send_message(&self, msg: Vst3Message) {
-        let msg = msg.allocate(&self.host.obj());
-
-        if let Some(msg) = msg {
-            unsafe {
-                let msg = std::mem::transmute::<VstPtr<dyn IMessage>, SharedVstPtr<dyn IMessage>>(
-                    msg.obj(),
-                );
-                self.conn.notify(msg);
-            }
-        } else {
-            println!("SoyBoyPlugin::send_message(): allocation failed");
-        }
-    }
-}
+use crate::vst3::{
+    common::ControllerConnection, gui::SoyBoyVST3GUI, message::Vst3Message, plugin_data, utils,
+};
 
 #[VST3(implements(IEditController, IUnitInfo, IMidiMapping, IConnectionPoint))]
 pub struct SoyBoyController {

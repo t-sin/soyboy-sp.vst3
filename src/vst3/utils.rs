@@ -15,28 +15,7 @@ use vst3_sys::{
     VstPtr,
 };
 
-pub struct ComPtr<I: ComInterface + ?Sized> {
-    _ptr: *mut c_void,
-    obj: VstPtr<I>,
-}
-
-impl<I: ComInterface + ?Sized> ComPtr<I> {
-    pub fn new(_ptr: *mut c_void, obj: VstPtr<I>) -> Self {
-        Self { _ptr, obj }
-    }
-
-    pub fn obj(&self) -> VstPtr<I> {
-        self.obj.clone()
-    }
-}
-
-impl<I: ComInterface + ?Sized> Drop for ComPtr<I> {
-    fn drop(&mut self) {
-        unsafe {
-            self.obj.release();
-        }
-    }
-}
+use super::common::ComPtr;
 
 pub fn get_host_app(context: &VstPtr<dyn IUnknown>) -> ComPtr<dyn IHostApplication> {
     let host_iid = <dyn IHostApplication as ComInterface>::IID;

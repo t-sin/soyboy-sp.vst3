@@ -12,7 +12,7 @@ use vst3_sys::{
 };
 
 use crate::common::*;
-use crate::vst3::utils::{fidstring_to_string, ComPtr};
+use crate::vst3::{common::ComPtr, utils::fidstring_to_string};
 
 pub enum Vst3Message {
     NoteOn,
