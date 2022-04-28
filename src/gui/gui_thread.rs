@@ -569,7 +569,7 @@ impl GUIThread {
             self.needs_redraw |= widget.update();
         }
 
-        if let Ok(ref gui_event) = self.plugin_event_recv.try_recv() {
+        for gui_event in self.plugin_event_recv.try_iter() {
             match gui_event {
                 GUIEvent::NoteOn => {
                     self.ui.edamame.jump();
@@ -681,25 +681,21 @@ impl GUIThread {
     }
 
     pub fn proc_events(&mut self, event: Event<GUIEvent>, control_flow: &mut ControlFlow) {
-        match self.receiver.lock().unwrap().try_recv() {
-            Ok(message) => match message {
-                GUIMessage::Terminate => {
-                    #[cfg(debug_assertions)]
-                    println!("try_recv() receive Message::Terminate");
-                    self.quit = true;
+        {
+            let recv = self.receiver.lock().unwrap();
+            for message in recv.try_iter() {
+                match message {
+                    GUIMessage::Terminate => {
+                        self.quit = true;
+                    }
                 }
-            },
-            Err(err) => match err {
-                TryRecvError::Empty => {
-                    // #[cfg(debug_assertions)]
-                    // println!("try_recv() fails because empty");
-                }
-                TryRecvError::Disconnected => {
-                    #[cfg(debug_assertions)]
-                    println!("try_recv() fails because disconnected");
-                    self.quit = true;
-                }
-            },
+            }
+
+            if let Err(TryRecvError::Disconnected) = recv.try_recv() {
+                #[cfg(debug_assertions)]
+                println!("try_recv() fails because disconnected");
+                self.quit = true;
+            }
         }
 
         let mut redraw = || {
