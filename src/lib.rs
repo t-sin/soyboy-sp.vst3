@@ -6,6 +6,7 @@ extern crate rand;
 extern crate vst3_com;
 extern crate vst3_sys;
 
+mod common;
 mod gui;
 mod soyboy;
 mod vst3;

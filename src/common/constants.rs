@@ -1,0 +1,1 @@
+pub const OSCILLOSCOPE_SAIMPLE_SIZE: usize = 256;
