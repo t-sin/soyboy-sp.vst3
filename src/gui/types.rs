@@ -3,6 +3,7 @@ use std::os::raw::c_void;
 use egui_extras::image::RetainedImage;
 use egui_glow::egui_winit::egui;
 
+use crate::common::*;
 use crate::soyboy::parameters::SoyBoyParameter;
 
 pub struct ParentWindow(pub *mut c_void);
@@ -37,6 +38,7 @@ pub enum GUIEvent {
     Redraw,
     NoteOn,
     WaveTableData([i8; 32]),
+    WaveformData(Waveform),
 }
 
 pub trait Behavior {

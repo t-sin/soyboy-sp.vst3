@@ -44,6 +44,7 @@ pub struct Images {
     select_osc_sq_duty: RetainedImage,
     select_sweep_type: RetainedImage,
     wavetable_border: RetainedImage,
+    oscilloscope_border: RetainedImage,
     value_atlas: RetainedImage,
     param_atlas: RetainedImage,
 }
@@ -59,6 +60,7 @@ pub struct UI {
     label_envelope: ImageLabel,
     label_sweep: ImageLabel,
     label_stutter: ImageLabel,
+    oscilloscope: Oscilloscope,
     button_reset_random: ButtonBehavior,
     button_reset_sine: ButtonBehavior,
     param_volume: ParameterSlider,
@@ -147,6 +149,11 @@ impl UI {
                 IMG_WAVETABLE_BORDER,
             )
             .unwrap(),
+            oscilloscope_border: RetainedImage::from_image_bytes(
+                "soyboy:oscilloscope:border",
+                IMG_OSCILLOSCOPE_BORDER,
+            )
+            .unwrap(),
             value_atlas: RetainedImage::from_image_bytes("value_atlas", IMG_VALUE_ATLAS).unwrap(),
             param_atlas: RetainedImage::from_image_bytes("name_atlas", IMG_PARAM_ATLAS).unwrap(),
         };
@@ -179,6 +186,11 @@ impl UI {
                 Image::new(egui_ctx, &images.label_stutter),
                 352.0,
                 316.0,
+            ),
+            oscilloscope: Oscilloscope::new(
+                Image::new(egui_ctx, &images.oscilloscope_border),
+                352.0,
+                460.0,
             ),
             button_reset_random: ButtonBehavior::new(
                 Image::new(egui_ctx, &images.button_reset_random),
@@ -562,6 +574,11 @@ impl GUIThread {
                 GUIEvent::WaveTableData(table) => {
                     self.ui.param_wavetable.set_wavetable(&table);
                 }
+                GUIEvent::WaveformData(wf) => {
+                    println!("waveform updated");
+                    self.ui.oscilloscope.set_signals(wf.get_signals());
+                    let _ = proxy.send_event(GUIEvent::Redraw);
+                }
                 _ => (),
             }
         }
@@ -599,6 +616,8 @@ impl GUIThread {
                     let _ = ui.add(self.ui.label_envelope.clone());
                     let _ = ui.add(self.ui.label_sweep.clone());
                     let _ = ui.add(self.ui.label_stutter.clone());
+
+                    let _ = self.ui.oscilloscope.show(ui);
                 });
 
             // params

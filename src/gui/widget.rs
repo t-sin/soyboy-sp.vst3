@@ -3,6 +3,7 @@ use std::time;
 
 use egui_glow::egui_winit::{egui, egui::Widget};
 
+use crate::common::*;
 use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
 
 use super::{constants::*, types::*};
@@ -817,6 +818,67 @@ impl Behavior for WaveTableEditor {
 
         let img = egui::widgets::Image::new(self.border_img.texture_id, self.border_img.size);
         img.paint_at(ui, rect);
+
+        response
+    }
+}
+
+pub struct Oscilloscope {
+    signals: [f64; OSCILLOSCOPE_SAIMPLE_SIZE],
+    pos: egui::Pos2,
+    border_img: Image,
+}
+
+impl Oscilloscope {
+    pub fn new(border_img: Image, x: f32, y: f32) -> Self {
+        Self {
+            signals: [0.0; OSCILLOSCOPE_SAIMPLE_SIZE],
+            pos: egui::pos2(x, y),
+            border_img,
+        }
+    }
+
+    pub fn set_signals(&mut self, signals: &[f64]) {
+        (&mut self.signals).copy_from_slice(&signals[..]);
+    }
+}
+
+impl Behavior for Oscilloscope {
+    fn update(&mut self) -> bool {
+        false
+    }
+
+    fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
+        let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.border_img.size);
+        //        ui.set_clip_rect(rect);
+        ui.set_clip_rect(screen_rect());
+        let response = ui.allocate_rect(rect, egui::Sense::focusable_noninteractive());
+
+        let img = egui::widgets::Image::new(self.border_img.texture_id, self.border_img.size);
+        img.paint_at(ui, rect);
+
+        let w = self.border_img.size.x;
+        let h = 90.0;
+        let hh = h / 2.0;
+        let dx = w / OSCILLOSCOPE_SAIMPLE_SIZE as f32;
+        let stroke = egui::Stroke::new(1.0, egui::Color32::from_rgb(0x1c, 0x23, 0x1b));
+
+        for i in 0..OSCILLOSCOPE_SAIMPLE_SIZE {
+            let idx = i;
+            let idx2 = (i + 1) % OSCILLOSCOPE_SAIMPLE_SIZE;
+
+            if idx2 == 0 {
+                break;
+            }
+
+            let i = i as f32;
+            let s1 = self.signals[idx] as f32;
+            let s2 = self.signals[idx2] as f32;
+            let p1 = egui::pos2(self.pos.x + i * dx, s1 * h + self.pos.y + hh);
+            let p2 = egui::pos2(self.pos.x + (i + 1.0) * dx, s2 * h + self.pos.y + hh);
+
+            ui.painter().line_segment([p1, p2], stroke);
+        }
 
         response
     }
