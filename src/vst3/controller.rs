@@ -446,19 +446,20 @@ impl IConnectionPoint for SoyBoyController {
 
     unsafe fn notify(&self, message: SharedVstPtr<dyn IMessage>) -> tresult {
         let sender = self.gui_sender.borrow();
-        let sender = sender.as_ref().unwrap();
 
-        match Vst3Message::from_message(&message) {
-            Some(Vst3Message::NoteOn) => {
-                let _ = sender.send(GUIEvent::NoteOn);
+        if let Some(sender) = sender.as_ref() {
+            match Vst3Message::from_message(&message) {
+                Some(Vst3Message::NoteOn) => {
+                    let _ = sender.send(GUIEvent::NoteOn);
+                }
+                Some(Vst3Message::WaveTableData(table)) => {
+                    let _ = sender.send(GUIEvent::WaveTableData(table));
+                }
+                Some(Vst3Message::WaveformData(wf)) => {
+                    let _ = sender.send(GUIEvent::WaveformData(wf));
+                }
+                _ => (),
             }
-            Some(Vst3Message::WaveTableData(table)) => {
-                let _ = sender.send(GUIEvent::WaveTableData(table));
-            }
-            Some(Vst3Message::WaveformData(wf)) => {
-                let _ = sender.send(GUIEvent::WaveformData(wf));
-            }
-            _ => (),
         }
 
         kResultOk
