@@ -47,7 +47,7 @@ impl WaveTableOscillator {
         }
     }
 
-    pub fn get_wavetable(&mut self) -> [i8; 32] {
+    pub fn get_wavetable(&self) -> [i8; 32] {
         let mut table: [i8; WAVETABLE_SIZE] = [0; WAVETABLE_SIZE];
 
         for (i, v) in table.iter_mut().enumerate() {

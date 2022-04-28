@@ -465,18 +465,18 @@ impl IConnectionPoint for SoyBoyPlugin {
                 self.soyboy
                     .borrow_mut()
                     .trigger(&Event::ResetWaveTableAsSine);
-                let table = self.soyboy.borrow_mut().get_wavetable();
+                let table = self.soyboy.borrow().get_wavetable();
                 self.send_message(Vst3Message::WaveTableData(table));
             }
             Some(Vst3Message::RandomizeWaveTable) => {
                 self.soyboy
                     .borrow_mut()
                     .trigger(&Event::ResetWaveTableAtRandom);
-                let table = self.soyboy.borrow_mut().get_wavetable();
+                let table = self.soyboy.borrow().get_wavetable();
                 self.send_message(Vst3Message::WaveTableData(table));
             }
             Some(Vst3Message::WaveTableRequested) => {
-                let table = self.soyboy.borrow_mut().get_wavetable();
+                let table = self.soyboy.borrow().get_wavetable();
                 self.send_message(Vst3Message::WaveTableData(table));
             }
             Some(Vst3Message::SetWaveTable(idx, value)) => loop {

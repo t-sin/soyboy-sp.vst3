@@ -39,7 +39,7 @@ impl SoyBoy {
         }
     }
 
-    pub fn get_wavetable(&mut self) -> [i8; 32] {
+    pub fn get_wavetable(&self) -> [i8; 32] {
         self.voice.get_wavetable()
     }
 }
