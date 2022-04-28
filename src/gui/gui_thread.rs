@@ -460,6 +460,13 @@ pub struct GUIThread {
     // glow_context: Rc<glow::Context>,
 }
 
+impl Drop for GUIThread {
+    fn drop(&mut self) {
+        // TODO: send to the cotroller that I'm dead.
+        println!("GUIThread is panicking!!!!!!");
+    }
+}
+
 // originally from here:
 //   https://github.com/emilk/egui/blob/7cd285ecbc2d319f1feac7b9fd9464d06a5ccf77/egui_glow/examples/pure_glow.rs
 impl GUIThread {
