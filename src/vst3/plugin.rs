@@ -512,11 +512,10 @@ impl IConnectionPoint for SoyBoyPlugin {
                 self.send_message(Vst3Message::WaveTableData(table));
             }
             Some(Vst3Message::SetWaveTable(idx, value)) => loop {
-                self.soyboy
-                    .lock()
-                    .unwrap()
-                    .trigger(&Event::SetWaveTable { idx, value });
-                let table = self.soyboy.lock().unwrap().get_wavetable();
+                let mut soyboy = self.soyboy.lock().unwrap();
+
+                soyboy.trigger(&Event::SetWaveTable { idx, value });
+                let table = soyboy.get_wavetable();
                 self.send_message(Vst3Message::WaveTableData(table));
             },
             _ => (),
