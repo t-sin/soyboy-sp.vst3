@@ -74,13 +74,7 @@ impl SoyBoyPlugin {
         let waveform = RefCell::new(Waveform::new());
 
         SoyBoyPlugin::allocate(
-            soyboy,
-            param_defs,
-            audio_out,
-            event_in,
-            controller,
-            context,
-            waveform,
+            soyboy, param_defs, audio_out, event_in, controller, context, waveform,
         )
     }
 
@@ -427,30 +421,32 @@ impl IAudioProcessor for SoyBoyPlugin {
         let sample_rate = (*(data.context)).sample_rate;
         let out = (*(*data).outputs).buffers;
 
-        self.do_with_mut_soyboy(&|mut soyboy| match data.symbolic_sample_size {
-            K_SAMPLE32 => {
-                for n in 0..num_samples as isize {
-                    let s = soyboy.process(sample_rate);
-                    self.waveform.borrow_mut().set_signal(s.0);
+        self.do_with_mut_soyboy(&|mut soyboy| {
+            match data.symbolic_sample_size {
+                K_SAMPLE32 => {
+                    for n in 0..num_samples as isize {
+                        let s = soyboy.process(sample_rate);
+                        self.waveform.borrow_mut().set_signal(s.0);
 
-                    for i in 0..num_output_channels as isize {
-                        let ch_out = *out.offset(i) as *mut f32;
-                        *ch_out.offset(n) = s.0 as f32;
+                        for i in 0..num_output_channels as isize {
+                            let ch_out = *out.offset(i) as *mut f32;
+                            *ch_out.offset(n) = s.0 as f32;
+                        }
                     }
                 }
-            }
-            K_SAMPLE64 => {
-                for n in 0..num_samples as isize {
-                    let s = soyboy.process(sample_rate);
-                    self.waveform.borrow_mut().set_signal(s.0);
+                K_SAMPLE64 => {
+                    for n in 0..num_samples as isize {
+                        let s = soyboy.process(sample_rate);
+                        self.waveform.borrow_mut().set_signal(s.0);
 
-                    for i in 0..num_output_channels as isize {
-                        let ch_out = *out.offset(i) as *mut f64;
-                        *ch_out.offset(n) = s.0;
+                        for i in 0..num_output_channels as isize {
+                            let ch_out = *out.offset(i) as *mut f64;
+                            *ch_out.offset(n) = s.0;
+                        }
                     }
                 }
-            }
-            _ => unreachable!(),
+                _ => unreachable!(),
+            };
         });
 
         kResultOk
