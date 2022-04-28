@@ -34,7 +34,7 @@ pub struct SoyBoyPlugin {
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     audio_out: RefCell<BusInfo>,
     event_in: RefCell<BusInfo>,
-    context: RefCell<Option<VstPtr<dyn IUnknown>>>,
+    context: Mutex<Option<VstPtr<dyn IUnknown>>>,
     controller: Mutex<Option<VstPtr<dyn IConnectionPoint>>>,
     waveform: RefCell<Waveform>,
     elapsed_samples: RefCell<u32>,
@@ -72,7 +72,7 @@ impl SoyBoyPlugin {
         let audio_out = RefCell::new(utils::make_empty_bus_info());
         let event_in = RefCell::new(utils::make_empty_bus_info());
         let controller = Mutex::new(None);
-        let context = RefCell::new(None);
+        let context = Mutex::new(None);
         let waveform = RefCell::new(Waveform::new());
         let elapsed_samples = RefCell::new(0);
 
@@ -103,22 +103,22 @@ impl SoyBoyPlugin {
     }
 
     fn send_message(&self, msg: Vst3Message) {
-        let context = self.context.borrow();
-        let context = context.as_ref().unwrap();
-
         if let Some(controller) = &*self.controller.lock().unwrap() {
-            let host = utils::get_host_app(context).obj();
+            if let Some(context) = &*self.context.lock().unwrap() {
+                let host = utils::get_host_app(context).obj();
 
-            let msg = msg.allocate(&host);
-            if let Some(msg) = msg {
-                unsafe {
-                    let msg = std::mem::transmute::<VstPtr<dyn IMessage>, SharedVstPtr<dyn IMessage>>(
-                        msg.obj(),
-                    );
-                    controller.notify(msg);
+                let msg = msg.allocate(&host);
+                if let Some(msg) = msg {
+                    unsafe {
+                        let msg = std::mem::transmute::<
+                            VstPtr<dyn IMessage>,
+                            SharedVstPtr<dyn IMessage>,
+                        >(msg.obj());
+                        controller.notify(msg);
+                    }
+                } else {
+                    println!("SoyBoyPlugin::send_message(): allocation failed");
                 }
-            } else {
-                println!("SoyBoyPlugin::send_message(): allocation failed");
             }
         }
     }
@@ -131,7 +131,7 @@ impl IPluginBase for SoyBoyPlugin {
         }
 
         let context: VstPtr<dyn IUnknown> = VstPtr::shared(host_context as *mut _).unwrap();
-        let _ = self.context.replace(Some(context));
+        *self.context.lock().unwrap() = Some(context);
 
         for param in SoyBoyParameter::iter() {
             if let Some(sp) = self.param_defs.get(&param) {
