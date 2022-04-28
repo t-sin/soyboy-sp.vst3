@@ -1,4 +1,4 @@
-use std::cell::{RefCell, RefMut};
+use std::cell::{Ref, RefCell, RefMut};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
@@ -104,6 +104,15 @@ impl SoyBoyPlugin {
     fn do_with_mut_soyboy(&self, r#fn: &dyn Fn(RefMut<SoyBoy>)) {
         loop {
             if let Ok(soyboy) = self.soyboy.try_borrow_mut() {
+                (r#fn)(soyboy);
+                break;
+            }
+        }
+    }
+
+    fn do_with_soyboy(&self, r#fn: &dyn Fn(Ref<SoyBoy>)) {
+        loop {
+            if let Ok(soyboy) = self.soyboy.try_borrow() {
                 (r#fn)(soyboy);
                 break;
             }
@@ -297,11 +306,17 @@ impl IComponent for SoyBoyPlugin {
         let mut num_bytes_written = 0;
         for param in SoyBoyParameter::iter() {
             if let Some(p) = self.param_defs.get(&param) {
-                let value = self.soyboy.borrow().get_param(&param);
+                loop {
+                    if let Ok(soyboy) = self.soyboy.try_borrow_mut() {
+                        let value = soyboy.get_param(&param);
 
-                let mut value = p.normalize(value);
-                let ptr = &mut value as *mut f64 as *mut c_void;
-                state.write(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_written);
+                        let mut value = p.normalize(value);
+                        let ptr = &mut value as *mut f64 as *mut c_void;
+                        state.write(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_written);
+
+                        break;
+                    }
+                }
             } else {
                 return kResultFalse;
             }
@@ -382,9 +397,9 @@ impl IAudioProcessor for SoyBoyPlugin {
                         ) == kResultTrue
                         {
                             if let Some(p) = self.param_defs.get(&param) {
-                                self.soyboy
-                                    .borrow_mut()
-                                    .set_param(&param, p.denormalize(value));
+                                self.do_with_mut_soyboy(&|mut soyboy| {
+                                    soyboy.set_param(&param, p.denormalize(value));
+                                });
                             }
                         }
                     }
@@ -496,28 +511,29 @@ impl IConnectionPoint for SoyBoyPlugin {
 
         match Vst3Message::from_message(&message) {
             Some(Vst3Message::InitializeWaveTable) => {
-                self.soyboy
-                    .borrow_mut()
-                    .trigger(&Event::ResetWaveTableAsSine);
-                let table = self.soyboy.borrow().get_wavetable();
-                self.send_message(Vst3Message::WaveTableData(table));
+                self.do_with_mut_soyboy(&|mut soyboy| {
+                    soyboy.trigger(&Event::ResetWaveTableAsSine);
+                    let table = soyboy.get_wavetable();
+                    self.send_message(Vst3Message::WaveTableData(table));
+                });
             }
             Some(Vst3Message::RandomizeWaveTable) => {
-                self.soyboy
-                    .borrow_mut()
-                    .trigger(&Event::ResetWaveTableAtRandom);
-                let table = self.soyboy.borrow().get_wavetable();
-                self.send_message(Vst3Message::WaveTableData(table));
+                self.do_with_mut_soyboy(&|mut soyboy| {
+                    soyboy.trigger(&Event::ResetWaveTableAtRandom);
+                    let table = soyboy.get_wavetable();
+                    self.send_message(Vst3Message::WaveTableData(table));
+                });
             }
             Some(Vst3Message::WaveTableRequested) => {
-                let table = self.soyboy.borrow().get_wavetable();
-                self.send_message(Vst3Message::WaveTableData(table));
+                self.do_with_soyboy(&|soyboy| {
+                    let table = soyboy.get_wavetable();
+                    self.send_message(Vst3Message::WaveTableData(table));
+                });
             }
             Some(Vst3Message::SetWaveTable(idx, value)) => loop {
-                if let Ok(mut soyboy) = self.soyboy.try_borrow_mut() {
+                self.do_with_mut_soyboy(&|mut soyboy| {
                     soyboy.trigger(&Event::SetWaveTable { idx, value });
-                    break;
-                }
+                });
             },
             _ => (),
         }
