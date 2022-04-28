@@ -66,7 +66,7 @@ pub struct SoyBoyController {
     processor: RefCell<Option<Arc<dyn IConnectionPoint>>>,
     component_handler: RefCell<Option<Arc<dyn IComponentHandler>>>,
     context: RefCell<Option<VstPtr<dyn IUnknown>>>,
-    gui_sender: RefCell<Option<Sender<GUIEvent>>>,
+    gui_sender: Mutex<Option<Sender<GUIEvent>>>,
 }
 
 struct Paraminfo<'a> {
@@ -107,7 +107,7 @@ impl SoyBoyController {
         let processor = RefCell::new(None);
         let component_handler = RefCell::new(None);
         let context = RefCell::new(None);
-        let gui_sender = RefCell::new(None);
+        let gui_sender = Mutex::new(None);
 
         SoyBoyController::allocate(
             param_defs,
@@ -328,7 +328,7 @@ impl IEditController for SoyBoyController {
             println!("IEditController::create_view()");
 
             let (send, recv) = channel::<GUIEvent>();
-            let _ = self.gui_sender.replace(Some(send));
+            *self.gui_sender.lock().unwrap() = Some(send);
 
             let context = self.context.borrow();
             let context = context.as_ref().unwrap();
@@ -445,9 +445,7 @@ impl IConnectionPoint for SoyBoyController {
     }
 
     unsafe fn notify(&self, message: SharedVstPtr<dyn IMessage>) -> tresult {
-        let sender = self.gui_sender.borrow();
-
-        if let Some(sender) = sender.as_ref() {
+        if let Some(sender) = &*self.gui_sender.lock().unwrap() {
             match Vst3Message::from_message(&message) {
                 Some(Vst3Message::NoteOn) => {
                     let _ = sender.send(GUIEvent::NoteOn);
