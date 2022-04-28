@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::sync::Arc;
 use std::time;
 
@@ -825,14 +827,16 @@ impl Behavior for WaveTableEditor {
 
 pub struct Oscilloscope {
     signals: [f64; OSCILLOSCOPE_SAIMPLE_SIZE],
+    enabled: Rc<RefCell<bool>>,
     pos: egui::Pos2,
     border_img: Image,
 }
 
 impl Oscilloscope {
-    pub fn new(border_img: Image, x: f32, y: f32) -> Self {
+    pub fn new(enabled: Rc<RefCell<bool>>, border_img: Image, x: f32, y: f32) -> Self {
         Self {
             signals: [0.0; OSCILLOSCOPE_SAIMPLE_SIZE],
+            enabled,
             pos: egui::pos2(x, y),
             border_img,
         }
@@ -850,36 +854,48 @@ impl Behavior for Oscilloscope {
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
         let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.border_img.size);
-        //        ui.set_clip_rect(rect);
-        ui.set_clip_rect(screen_rect());
-        let response = ui.allocate_rect(rect, egui::Sense::focusable_noninteractive());
+        ui.set_clip_rect(rect);
+        let response = ui.allocate_rect(rect, egui::Sense::click());
+
+        if response.clicked() {
+            let enabled = *self.enabled.borrow();
+            *self.enabled.borrow_mut() = !enabled;
+        }
 
         let img = egui::widgets::Image::new(self.border_img.texture_id, self.border_img.size);
         img.paint_at(ui, rect);
 
-        static SCALE_X: f32 = 1.0;
-        let w = self.border_img.size.x;
-        let h = 90.0;
-        let hh = h / 2.0;
-        let dx = w / OSCILLOSCOPE_SAIMPLE_SIZE as f32 * SCALE_X;
-        let stroke = egui::Stroke::new(1.0, egui::Color32::from_rgb(0x1c, 0x23, 0x1b));
+        if *self.enabled.borrow() {
+            static SCALE_X: f32 = 1.0;
+            let w = self.border_img.size.x;
+            let h = 90.0;
+            let hh = h / 2.0;
+            let dx = w / OSCILLOSCOPE_SAIMPLE_SIZE as f32 * SCALE_X;
+            let stroke = egui::Stroke::new(1.0, egui::Color32::from_rgb(0x1c, 0x23, 0x1b));
 
-        static SAMPLES_TO_DISPLAY: usize = OSCILLOSCOPE_SAIMPLE_SIZE / SCALE_X as usize;
-        for i in 0..SAMPLES_TO_DISPLAY {
-            let idx = i;
-            let idx2 = (i + 1) % OSCILLOSCOPE_SAIMPLE_SIZE;
+            static SAMPLES_TO_DISPLAY: usize = OSCILLOSCOPE_SAIMPLE_SIZE / SCALE_X as usize;
+            for i in 0..SAMPLES_TO_DISPLAY {
+                let idx = i;
+                let idx2 = (i + 1) % OSCILLOSCOPE_SAIMPLE_SIZE;
 
-            if idx2 == 0 {
-                break;
+                if idx2 == 0 {
+                    break;
+                }
+
+                let i = i as f32;
+                let s1 = self.signals[idx] as f32;
+                let s2 = self.signals[idx2] as f32;
+                let p1 = egui::pos2(self.pos.x + i * dx, s1 * h + self.pos.y + hh);
+                let p2 = egui::pos2(self.pos.x + (i + 1.0) * dx, s2 * h + self.pos.y + hh);
+
+                ui.painter().line_segment([p1, p2], stroke);
             }
-
-            let i = i as f32;
-            let s1 = self.signals[idx] as f32;
-            let s2 = self.signals[idx2] as f32;
-            let p1 = egui::pos2(self.pos.x + i * dx, s1 * h + self.pos.y + hh);
-            let p2 = egui::pos2(self.pos.x + (i + 1.0) * dx, s2 * h + self.pos.y + hh);
-
-            ui.painter().line_segment([p1, p2], stroke);
+        } else {
+            ui.painter().rect_filled(
+                rect,
+                egui::Rounding::none(),
+                egui::Color32::from_rgba_unmultiplied(0x33, 0x3f, 0x32, 130),
+            );
         }
 
         response

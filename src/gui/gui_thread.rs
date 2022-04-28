@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::collections::HashMap;
 #[cfg(target_os = "windows")]
 use std::ptr::null_mut;
@@ -87,6 +88,7 @@ impl UI {
         param_values: Arc<Mutex<HashMap<u32, f64>>>,
         event_handler: Arc<dyn EventHandler>,
         controller_connection: Arc<ControllerConnection>,
+        waveform_view_enabled: Rc<RefCell<bool>>,
     ) -> Self {
         let images = Images {
             edamame: RetainedImage::from_image_bytes("soyboy:edamame", IMG_EDAMAME).unwrap(),
@@ -188,6 +190,7 @@ impl UI {
                 316.0,
             ),
             oscilloscope: Oscilloscope::new(
+                waveform_view_enabled.clone(),
                 Image::new(egui_ctx, &images.oscilloscope_border),
                 352.0,
                 460.0,
@@ -446,6 +449,7 @@ pub struct GUIThread {
     // window stuff
     quit: bool,
     needs_redraw: bool,
+    waveform_view_enabled: Rc<RefCell<bool>>,
     // threading stuff
     receiver: Arc<Mutex<Receiver<GUIMessage>>>,
     plugin_event_recv: Receiver<GUIEvent>,
@@ -528,6 +532,8 @@ impl GUIThread {
         println!("scale factor = {}", scale_factor);
         egui_glow.egui_ctx.set_pixels_per_point(1.0);
 
+        let waveform_view_enabled = Rc::new(RefCell::new(false));
+
         let thread = GUIThread {
             ui: UI::new(
                 &egui_glow.egui_ctx,
@@ -535,9 +541,11 @@ impl GUIThread {
                 param_values,
                 event_handler.clone(),
                 controller_connection.clone(),
+                waveform_view_enabled.clone(),
             ),
             quit: false,
             needs_redraw: false,
+            waveform_view_enabled,
             receiver,
             plugin_event_recv,
             controller_connection,
@@ -571,8 +579,10 @@ impl GUIThread {
                     self.ui.param_wavetable.set_wavetable(&table);
                 }
                 GUIEvent::WaveformData(wf) => {
-                    self.ui.oscilloscope.set_signals(wf.get_signals());
-                    self.needs_redraw = true;
+                    if *self.waveform_view_enabled.borrow() {
+                        self.ui.oscilloscope.set_signals(wf.get_signals());
+                        self.needs_redraw = true;
+                    }
                 }
                 _ => (),
             }
@@ -615,8 +625,6 @@ impl GUIThread {
                     let _ = ui.add(self.ui.label_envelope.clone());
                     let _ = ui.add(self.ui.label_sweep.clone());
                     let _ = ui.add(self.ui.label_stutter.clone());
-
-                    let _ = self.ui.oscilloscope.show(ui);
                 });
 
             // params
@@ -657,6 +665,8 @@ impl GUIThread {
                     let _ = self.ui.param_sweep_type.show(ui);
 
                     let _ = self.ui.param_wavetable.show(ui);
+
+                    let _ = self.ui.oscilloscope.show(ui);
                 });
         });
 
@@ -732,9 +742,14 @@ impl GUIThread {
         if self.quit {
             *control_flow = ControlFlow::Exit;
         } else {
-            // near by 30FPS
-            *control_flow =
-                ControlFlow::WaitUntil(time::Instant::now() + time::Duration::from_millis(35));
+            let dur = if *self.waveform_view_enabled.borrow() {
+                // high frame rate for waveform view (fps ~= 30)
+                time::Duration::from_millis(33)
+            } else {
+                time::Duration::from_millis(100)
+            };
+
+            *control_flow = ControlFlow::WaitUntil(time::Instant::now() + dur);
         }
     }
 
