@@ -191,9 +191,6 @@ impl Vst3Message {
     }
 
     pub fn allocate(&self, host: &VstPtr<dyn IHostApplication>) -> Option<ComPtr<dyn IMessage>> {
-        #[cfg(debug_assertions)]
-        println!("Vst3Message::allocate()");
-
         let iid = <dyn IMessage as ComInterface>::IID;
         let iid = &iid as *const _;
         let mut msg_ptr: *mut c_void = null_mut();

@@ -575,7 +575,6 @@ impl GUIThread {
                     self.ui.param_wavetable.set_wavetable(&table);
                 }
                 GUIEvent::WaveformData(wf) => {
-                    println!("waveform updated");
                     self.ui.oscilloscope.set_signals(wf.get_signals());
                     let _ = proxy.send_event(GUIEvent::Redraw);
                 }
