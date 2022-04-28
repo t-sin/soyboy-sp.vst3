@@ -455,6 +455,9 @@ impl IConnectionPoint for SoyBoyController {
             Some(Vst3Message::WaveTableData(table)) => {
                 let _ = sender.send(GUIEvent::WaveTableData(table));
             }
+            Some(Vst3Message::WaveformData(wf)) => {
+                let _ = sender.send(GUIEvent::WaveformData(wf));
+            }
             _ => (),
         }
 

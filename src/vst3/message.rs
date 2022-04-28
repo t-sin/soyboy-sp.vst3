@@ -11,6 +11,7 @@ use vst3_sys::{
     VstPtr,
 };
 
+use crate::common::*;
 use crate::vst3::utils::{fidstring_to_string, ComPtr};
 
 pub enum Vst3Message {
@@ -20,6 +21,7 @@ pub enum Vst3Message {
     WaveTableRequested,
     WaveTableData([i8; 32]),
     SetWaveTable(usize, i8),
+    WaveformData(Waveform),
 }
 
 impl fmt::Display for Vst3Message {
@@ -31,6 +33,7 @@ impl fmt::Display for Vst3Message {
             Vst3Message::WaveTableData(_) => "vst3:wavetable-data",
             Vst3Message::WaveTableRequested => "vst3:wavetable-requested",
             Vst3Message::SetWaveTable(_, _) => "vst3:set-wavetable-sample",
+            Vst3Message::WaveformData(_) => "vst3:waveform-data",
         };
 
         write!(f, "{}", s)
@@ -86,7 +89,34 @@ impl Vst3Message {
 
                 Some(Vst3Message::SetWaveTable(idx as usize, val as i8))
             }
+            "vst3:waveform-data" => {
+                let attr = unsafe { msg.get_attributes() };
+                let attr_id = CString::new("signals").unwrap();
+                let mut size: u32 = 0;
+                let signals_ptr: *mut c_void = null_mut();
 
+                unsafe {
+                    attr.upgrade().unwrap().get_binary(
+                        attr_id.as_ptr(),
+                        &signals_ptr as *const _,
+                        &mut size as *mut _,
+                    );
+                };
+
+                let signals_ptr = signals_ptr as *mut f64;
+                let signals_src =
+                    unsafe { std::slice::from_raw_parts(signals_ptr, OSCILLOSCOPE_SAIMPLE_SIZE) };
+                let mut signals: [f64; OSCILLOSCOPE_SAIMPLE_SIZE] =
+                    [0.0; OSCILLOSCOPE_SAIMPLE_SIZE];
+                signals
+                    .as_mut_slice()
+                    .copy_from_slice(&signals_src[..OSCILLOSCOPE_SAIMPLE_SIZE]);
+
+                let mut wf = Waveform::new();
+                wf.set_signals(&signals);
+
+                Some(Vst3Message::WaveformData(wf))
+            }
             _ => None,
         }
     }
@@ -138,6 +168,23 @@ impl Vst3Message {
                     attr.upgrade()
                         .unwrap()
                         .set_int(id_val.as_ptr(), *val as i64);
+                };
+            }
+            Vst3Message::WaveformData(wf) => {
+                unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
+
+                let attr = unsafe { msg.get_attributes() };
+                let attr_id = CString::new("signals").unwrap();
+
+                let signals = wf.get_signals();
+                let size = signals.len() * std::mem::size_of::<f64>();
+
+                unsafe {
+                    attr.upgrade().unwrap().set_binary(
+                        attr_id.as_ptr(),
+                        signals.as_ptr() as *const c_void,
+                        size as u32,
+                    );
                 };
             }
         }

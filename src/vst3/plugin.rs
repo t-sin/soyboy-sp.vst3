@@ -19,6 +19,7 @@ use vst3_sys::{
     VstPtr, VST3,
 };
 
+use crate::common::Waveform;
 use crate::soyboy::{
     event::{Event, Triggered},
     parameters::{Normalizable, ParameterDef, Parametric, SoyBoyParameter},
@@ -34,6 +35,7 @@ pub struct SoyBoyPlugin {
     event_in: RefCell<BusInfo>,
     context: RefCell<Option<VstPtr<dyn IUnknown>>>,
     controller: RefCell<Option<SharedVstPtr<dyn IConnectionPoint>>>,
+    waveform: RefCell<Waveform>,
 }
 
 impl SoyBoyPlugin {
@@ -69,8 +71,17 @@ impl SoyBoyPlugin {
         let event_in = RefCell::new(utils::make_empty_bus_info());
         let controller = RefCell::new(None);
         let context = RefCell::new(None);
+        let waveform = RefCell::new(Waveform::new());
 
-        SoyBoyPlugin::allocate(soyboy, param_defs, audio_out, event_in, controller, context)
+        SoyBoyPlugin::allocate(
+            soyboy,
+            param_defs,
+            audio_out,
+            event_in,
+            controller,
+            context,
+            waveform,
+        )
     }
 
     pub fn bus_count(&self, media_type: MediaTypes, dir: BusDirections) -> i32 {
@@ -389,6 +400,9 @@ impl IAudioProcessor for SoyBoyPlugin {
                 if input_events.get_event(c, &mut e) == kResultOk {
                     self.do_with_mut_soyboy(&|mut soyboy| match utils::as_event_type(e.type_) {
                         Some(EventTypes::kNoteOnEvent) => {
+                            let wf = self.waveform.borrow_mut().clone();
+                            self.send_message(Vst3Message::WaveformData(wf));
+
                             self.send_message(Vst3Message::NoteOn);
                             soyboy.trigger(&Event::NoteOn {
                                 note: e.event.note_on.pitch as u16,
@@ -413,11 +427,11 @@ impl IAudioProcessor for SoyBoyPlugin {
         let sample_rate = (*(data.context)).sample_rate;
         let out = (*(*data).outputs).buffers;
 
-        // TODO: use try_borrow_mut() instead and must retry
         self.do_with_mut_soyboy(&|mut soyboy| match data.symbolic_sample_size {
             K_SAMPLE32 => {
                 for n in 0..num_samples as isize {
                     let s = soyboy.process(sample_rate);
+                    self.waveform.borrow_mut().set_signal(s.0);
 
                     for i in 0..num_output_channels as isize {
                         let ch_out = *out.offset(i) as *mut f32;
@@ -428,6 +442,7 @@ impl IAudioProcessor for SoyBoyPlugin {
             K_SAMPLE64 => {
                 for n in 0..num_samples as isize {
                     let s = soyboy.process(sample_rate);
+                    self.waveform.borrow_mut().set_signal(s.0);
 
                     for i in 0..num_output_channels as isize {
                         let ch_out = *out.offset(i) as *mut f64;
