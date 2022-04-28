@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
@@ -87,6 +87,15 @@ impl SoyBoyPlugin {
         }
     }
 
+    fn do_with_mut_soyboy(&self, r#fn: &dyn Fn(RefMut<SoyBoy>)) {
+        loop {
+            if let Ok(soyboy) = self.soyboy.try_borrow_mut() {
+                (r#fn)(soyboy);
+                break;
+            }
+        }
+    }
+
     fn send_message(&self, msg: Vst3Message) {
         let context = self.context.borrow();
         let context = context.as_ref().unwrap();
@@ -120,12 +129,13 @@ impl IPluginBase for SoyBoyPlugin {
         let context: VstPtr<dyn IUnknown> = VstPtr::shared(host_context as *mut _).unwrap();
         let _ = self.context.replace(Some(context));
 
-        let mut sb = self.soyboy.borrow_mut();
-        for param in SoyBoyParameter::iter() {
-            if let Some(sp) = self.param_defs.get(&param) {
-                sb.set_param(&param, sp.default_value);
+        self.do_with_mut_soyboy(&|mut soyboy| {
+            for param in SoyBoyParameter::iter() {
+                if let Some(sp) = self.param_defs.get(&param) {
+                    soyboy.set_param(&param, sp.default_value);
+                }
             }
-        }
+        });
 
         self.init_event_in();
         self.init_audio_out();
@@ -248,8 +258,9 @@ impl IComponent for SoyBoyPlugin {
 
                 state.read(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_read);
 
-                let mut soyboy = self.soyboy.borrow_mut();
-                soyboy.set_param(&param, p.denormalize(value));
+                self.do_with_mut_soyboy(&|mut soyboy| {
+                    soyboy.set_param(&param, p.denormalize(value));
+                });
             } else {
                 return kResultFalse;
             }
@@ -376,8 +387,7 @@ impl IAudioProcessor for SoyBoyPlugin {
                 let mut e = utils::make_empty_event();
 
                 if input_events.get_event(c, &mut e) == kResultOk {
-                    let mut soyboy = self.soyboy.borrow_mut();
-                    match utils::as_event_type(e.type_) {
+                    self.do_with_mut_soyboy(&|mut soyboy| match utils::as_event_type(e.type_) {
                         Some(EventTypes::kNoteOnEvent) => {
                             self.send_message(Vst3Message::NoteOn);
                             soyboy.trigger(&Event::NoteOn {
@@ -390,7 +400,7 @@ impl IAudioProcessor for SoyBoyPlugin {
                         }),
                         Some(_) => (),
                         _ => (),
-                    }
+                    });
                 }
             }
         }
@@ -404,9 +414,7 @@ impl IAudioProcessor for SoyBoyPlugin {
         let out = (*(*data).outputs).buffers;
 
         // TODO: use try_borrow_mut() instead and must retry
-        let mut soyboy = self.soyboy.borrow_mut();
-
-        match data.symbolic_sample_size {
+        self.do_with_mut_soyboy(&|mut soyboy| match data.symbolic_sample_size {
             K_SAMPLE32 => {
                 for n in 0..num_samples as isize {
                     let s = soyboy.process(sample_rate);
@@ -416,8 +424,6 @@ impl IAudioProcessor for SoyBoyPlugin {
                         *ch_out.offset(n) = s.0 as f32;
                     }
                 }
-
-                kResultOk
             }
             K_SAMPLE64 => {
                 for n in 0..num_samples as isize {
@@ -428,11 +434,11 @@ impl IAudioProcessor for SoyBoyPlugin {
                         *ch_out.offset(n) = s.0;
                     }
                 }
-
-                kResultOk
             }
             _ => unreachable!(),
-        }
+        });
+
+        kResultOk
     }
 }
 
