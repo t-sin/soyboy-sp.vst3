@@ -15,6 +15,7 @@ I want to do some chiptunes on GNU/Linux.
     - [x] Original GUI?
         - [x] design UI
         - [x] implement UI
+        - [ ] show version on UI
 - [ ] plugin features
     - [x] square wave osillator
         - [x] oscillate with fixed duty ratio
@@ -36,7 +37,9 @@ I want to do some chiptunes on GNU/Linux.
     - [x] frequency sweep for all oscillators
     - [x] make soyboy a single voice unit (preparation for be a polyphonic synth)
     - [ ] structured VST3 state
+- [ ] future work
     - [ ] can be polyphonic
+    - [ ] multiple switchable wavetables
 
 ## References
 
