@@ -8,13 +8,13 @@ I want to do some chiptunes on GNU/Linux.
 
 ## TODOs
 
-- [ ] VST3 related
+- [x] VST3 related
     - [x] plugin do nothing
     - [x] signal processing
     - [x] controllable parameters
-    - [ ] Original GUI?
+    - [x] Original GUI?
         - [x] design UI
-        - [ ] implement UI
+        - [x] implement UI
 - [ ] plugin features
     - [x] square wave osillator
         - [x] oscillate with fixed duty ratio
