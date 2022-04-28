@@ -1606,7 +1606,7 @@ dependencies = [
 
 [[package]]
 name = "soyboy-sp"
-version = "0.5.0"
+version = "0.8.0"
 dependencies = [
  "egui_extras",
  "egui_glow",
