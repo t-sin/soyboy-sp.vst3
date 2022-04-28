@@ -561,10 +561,6 @@ impl GUIThread {
             self.needs_redraw |= widget.update();
         }
 
-        if self.needs_redraw {
-            let _ = proxy.send_event(GUIEvent::Redraw);
-        }
-
         if let Ok(ref gui_event) = self.plugin_event_recv.try_recv() {
             match gui_event {
                 GUIEvent::NoteOn => {
@@ -576,10 +572,14 @@ impl GUIThread {
                 }
                 GUIEvent::WaveformData(wf) => {
                     self.ui.oscilloscope.set_signals(wf.get_signals());
-                    let _ = proxy.send_event(GUIEvent::Redraw);
+                    self.needs_redraw = true;
                 }
                 _ => (),
             }
+        }
+
+        if self.needs_redraw {
+            let _ = proxy.send_event(GUIEvent::Redraw);
         }
     }
 
@@ -731,11 +731,10 @@ impl GUIThread {
 
         if self.quit {
             *control_flow = ControlFlow::Exit;
-        } else if self.needs_redraw {
-            *control_flow = ControlFlow::Poll;
         } else {
+            // near by 30FPS
             *control_flow =
-                ControlFlow::WaitUntil(time::Instant::now() + time::Duration::from_millis(100));
+                ControlFlow::WaitUntil(time::Instant::now() + time::Duration::from_millis(35));
         }
     }
 

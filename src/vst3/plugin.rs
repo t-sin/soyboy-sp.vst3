@@ -36,6 +36,7 @@ pub struct SoyBoyPlugin {
     context: RefCell<Option<VstPtr<dyn IUnknown>>>,
     controller: RefCell<Option<SharedVstPtr<dyn IConnectionPoint>>>,
     waveform: RefCell<Waveform>,
+    elapsed_samples: RefCell<u32>,
 }
 
 impl SoyBoyPlugin {
@@ -72,9 +73,17 @@ impl SoyBoyPlugin {
         let controller = RefCell::new(None);
         let context = RefCell::new(None);
         let waveform = RefCell::new(Waveform::new());
+        let elapsed_samples = RefCell::new(0);
 
         SoyBoyPlugin::allocate(
-            soyboy, param_defs, audio_out, event_in, controller, context, waveform,
+            soyboy,
+            param_defs,
+            audio_out,
+            event_in,
+            controller,
+            context,
+            waveform,
+            elapsed_samples,
         )
     }
 
@@ -394,9 +403,6 @@ impl IAudioProcessor for SoyBoyPlugin {
                 if input_events.get_event(c, &mut e) == kResultOk {
                     self.do_with_mut_soyboy(&|mut soyboy| match utils::as_event_type(e.type_) {
                         Some(EventTypes::kNoteOnEvent) => {
-                            let wf = self.waveform.borrow_mut().clone();
-                            self.send_message(Vst3Message::WaveformData(wf));
-
                             self.send_message(Vst3Message::NoteOn);
                             soyboy.trigger(&Event::NoteOn {
                                 note: e.event.note_on.pitch as u16,
@@ -448,6 +454,17 @@ impl IAudioProcessor for SoyBoyPlugin {
                 _ => unreachable!(),
             };
         });
+
+        {
+            *self.elapsed_samples.borrow_mut() += num_samples as u32;
+        }
+        let elapsed = *self.elapsed_samples.borrow();
+        let samples_a_frame = (sample_rate / 30.0) as u32;
+        if elapsed > samples_a_frame {
+            *self.elapsed_samples.borrow_mut() = 0;
+            let wf = self.waveform.borrow_mut().clone();
+            self.send_message(Vst3Message::WaveformData(wf));
+        }
 
         kResultOk
     }
