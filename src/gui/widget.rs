@@ -1,12 +1,13 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time;
 
 use egui_glow::egui_winit::{egui, egui::Widget};
 
 use crate::common::*;
 use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
+use crate::{ControllerConnection, Vst3Message};
 
 use super::{constants::*, types::*};
 
@@ -728,7 +729,7 @@ pub struct WaveTableEditor {
     values: [f64; Self::SAMPLE_NUM],
     border_img: Image,
     pos: egui::Pos2,
-    set_wavetable_fn: Box<dyn Fn(usize, i8)>,
+    controller_connection: Arc<Mutex<ControllerConnection>>,
 }
 
 impl WaveTableEditor {
@@ -740,13 +741,13 @@ impl WaveTableEditor {
         border_img: Image,
         x: f32,
         y: f32,
-        set_wavetable_fn: Box<dyn Fn(usize, i8)>,
+        controller_connection: Arc<Mutex<ControllerConnection>>,
     ) -> Self {
         Self {
             values: [1.0; Self::SAMPLE_NUM],
             border_img,
             pos: egui::pos2(x, y),
-            set_wavetable_fn,
+            controller_connection,
         }
     }
 
@@ -810,7 +811,10 @@ impl Behavior for WaveTableEditor {
 
                         let v =
                             (*value * Self::VALUE_MAX as f64 - Self::VALUE_HALF_MAX as f64) as i8;
-                        (self.set_wavetable_fn)(i, v);
+                        self.controller_connection
+                            .lock()
+                            .unwrap()
+                            .send_message(Vst3Message::SetWaveTable(i, v));
                     }
                 }
             }

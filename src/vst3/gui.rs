@@ -68,7 +68,7 @@ pub struct SoyBoyVST3GUI {
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     param_values: Arc<Mutex<HashMap<u32, f64>>>,
     plugin_event_recv: RefCell<Option<Receiver<GUIEvent>>>,
-    controller_connection: Arc<ControllerConnection>,
+    controller_connection: Arc<Mutex<ControllerConnection>>,
 }
 
 impl SoyBoyVST3GUI {
@@ -77,7 +77,7 @@ impl SoyBoyVST3GUI {
         param_defs: HashMap<SoyBoyParameter, ParameterDef>,
         param_values: Arc<Mutex<HashMap<u32, f64>>>,
         plugin_event_recv: Receiver<GUIEvent>,
-        controller_connection: Arc<ControllerConnection>,
+        controller_connection: Arc<Mutex<ControllerConnection>>,
     ) -> Box<Self> {
         let handler = Arc::new(VST3EventHandler::new(
             param_values.clone(),

@@ -87,7 +87,7 @@ impl UI {
         param_defs: HashMap<SoyBoyParameter, ParameterDef>,
         param_values: Arc<Mutex<HashMap<u32, f64>>>,
         event_handler: Arc<dyn EventHandler>,
-        controller_connection: Arc<ControllerConnection>,
+        controller_connection: Arc<Mutex<ControllerConnection>>,
         waveform_view_enabled: Rc<RefCell<bool>>,
     ) -> Self {
         let images = Images {
@@ -435,9 +435,7 @@ impl UI {
                 Image::new(egui_ctx, &images.wavetable_border),
                 60.0,
                 340.0,
-                Box::new(move |idx: usize, v: i8| {
-                    controller_connection.send_message(Vst3Message::SetWaveTable(idx, v))
-                }),
+                controller_connection,
             ),
             _images: images,
         }
@@ -453,7 +451,7 @@ pub struct GUIThread {
     // threading stuff
     receiver: Arc<Mutex<Receiver<GUIMessage>>>,
     plugin_event_recv: Receiver<GUIEvent>,
-    controller_connection: Arc<ControllerConnection>,
+    controller_connection: Arc<Mutex<ControllerConnection>>,
     // egui stuff
     egui_glow: EguiGlow,
     window: WindowedContext<PossiblyCurrent>,
@@ -514,7 +512,7 @@ impl GUIThread {
         event_handler: Arc<dyn EventHandler>,
         receiver: Arc<Mutex<Receiver<GUIMessage>>>,
         plugin_event_recv: Receiver<GUIEvent>,
-        controller_connection: Arc<ControllerConnection>,
+        controller_connection: Arc<Mutex<ControllerConnection>>,
     ) -> (Self, EventLoop<GUIEvent>) {
         let (event_loop, window_builder) = Self::setup_event_loop(parent);
         let window = unsafe {
@@ -644,12 +642,16 @@ impl GUIThread {
                     let resp = self.ui.button_reset_random.show(ui);
                     if resp.clicked() {
                         self.controller_connection
+                            .lock()
+                            .unwrap()
                             .send_message(Vst3Message::RandomizeWaveTable);
                     }
 
                     let resp = self.ui.button_reset_sine.show(ui);
                     if resp.clicked() {
                         self.controller_connection
+                            .lock()
+                            .unwrap()
                             .send_message(Vst3Message::InitializeWaveTable);
                     }
 
@@ -763,7 +765,7 @@ impl GUIThread {
         event_handler: Arc<dyn EventHandler>,
         receiver: Arc<Mutex<Receiver<GUIMessage>>>,
         plugin_event_recv: Receiver<GUIEvent>,
-        controller_connection: Arc<ControllerConnection>,
+        controller_connection: Arc<Mutex<ControllerConnection>>,
     ) {
         let (mut thread, mut event_loop) = GUIThread::setup(
             parent,

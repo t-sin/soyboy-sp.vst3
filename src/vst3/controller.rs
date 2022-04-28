@@ -317,7 +317,7 @@ impl IEditController for SoyBoyController {
                 self.param_defs.clone(),
                 self.param_values.clone(),
                 recv,
-                Arc::new(conn),
+                Arc::new(Mutex::new(conn)),
             );
 
             let gui = Box::into_raw(gui) as *mut dyn IPlugView as *mut c_void;
