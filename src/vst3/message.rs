@@ -11,7 +11,7 @@ use vst3_sys::{
     VstPtr,
 };
 
-use crate::common::*;
+use crate::common::{constants, Waveform};
 use crate::vst3::{common::ComPtr, utils::fidstring_to_string};
 
 pub enum Vst3Message {
@@ -104,13 +104,14 @@ impl Vst3Message {
                 };
 
                 let signals_ptr = signals_ptr as *mut f64;
-                let signals_src =
-                    unsafe { std::slice::from_raw_parts(signals_ptr, OSCILLOSCOPE_SAIMPLE_SIZE) };
-                let mut signals: [f64; OSCILLOSCOPE_SAIMPLE_SIZE] =
-                    [0.0; OSCILLOSCOPE_SAIMPLE_SIZE];
+                let signals_src = unsafe {
+                    std::slice::from_raw_parts(signals_ptr, constants::OSCILLOSCOPE_SAIMPLE_SIZE)
+                };
+                let mut signals: [f64; constants::OSCILLOSCOPE_SAIMPLE_SIZE] =
+                    [0.0; constants::OSCILLOSCOPE_SAIMPLE_SIZE];
                 signals
                     .as_mut_slice()
-                    .copy_from_slice(&signals_src[..OSCILLOSCOPE_SAIMPLE_SIZE]);
+                    .copy_from_slice(&signals_src[..constants::OSCILLOSCOPE_SAIMPLE_SIZE]);
 
                 let mut wf = Waveform::new();
                 wf.set_signals(&signals);

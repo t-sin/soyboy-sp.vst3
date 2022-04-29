@@ -5,7 +5,7 @@ use std::time;
 
 use egui_glow::egui_winit::{egui, egui::Widget};
 
-use crate::common::*;
+use crate::common::constants;
 use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
 use crate::{ControllerConnection, Vst3Message};
 
@@ -830,7 +830,7 @@ impl Behavior for WaveTableEditor {
 }
 
 pub struct Oscilloscope {
-    signals: [f64; OSCILLOSCOPE_SAIMPLE_SIZE],
+    signals: [f64; constants::OSCILLOSCOPE_SAIMPLE_SIZE],
     enabled: Rc<RefCell<bool>>,
     pos: egui::Pos2,
     border_img: Image,
@@ -839,7 +839,7 @@ pub struct Oscilloscope {
 impl Oscilloscope {
     pub fn new(enabled: Rc<RefCell<bool>>, border_img: Image, x: f32, y: f32) -> Self {
         Self {
-            signals: [0.0; OSCILLOSCOPE_SAIMPLE_SIZE],
+            signals: [0.0; constants::OSCILLOSCOPE_SAIMPLE_SIZE],
             enabled,
             pos: egui::pos2(x, y),
             border_img,
@@ -874,13 +874,14 @@ impl Behavior for Oscilloscope {
             let w = self.border_img.size.x;
             let h = 90.0;
             let hh = h / 2.0;
-            let dx = w / OSCILLOSCOPE_SAIMPLE_SIZE as f32 * SCALE_X;
+            let dx = w / constants::OSCILLOSCOPE_SAIMPLE_SIZE as f32 * SCALE_X;
             let stroke = egui::Stroke::new(1.0, egui::Color32::from_rgb(0x1c, 0x23, 0x1b));
 
-            static SAMPLES_TO_DISPLAY: usize = OSCILLOSCOPE_SAIMPLE_SIZE / SCALE_X as usize;
+            static SAMPLES_TO_DISPLAY: usize =
+                constants::OSCILLOSCOPE_SAIMPLE_SIZE / SCALE_X as usize;
             for i in 0..SAMPLES_TO_DISPLAY {
                 let idx = i;
-                let idx2 = (i + 1) % OSCILLOSCOPE_SAIMPLE_SIZE;
+                let idx2 = (i + 1) % constants::OSCILLOSCOPE_SAIMPLE_SIZE;
 
                 if idx2 == 0 {
                     break;
