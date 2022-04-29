@@ -205,6 +205,7 @@ impl ImageLabel {
 impl Widget for ImageLabel {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
         let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.image.size);
+        ui.set_clip_rect(rect);
 
         let response = ui.allocate_rect(rect, self.sense);
 
