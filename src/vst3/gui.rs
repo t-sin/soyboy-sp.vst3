@@ -14,9 +14,8 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::gui::{
-    EventHandler, GUIEvent, GUIMessage, GUIThread, ParentWindow, SCREEN_HEIGHT, SCREEN_WIDTH,
-};
+use crate::common::{GUIEvent, GUIThreadMessage};
+use crate::gui::{EventHandler, GUIThread, ParentWindow, SCREEN_HEIGHT, SCREEN_WIDTH};
 use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
 use crate::vst3::{raw_utils, vst3_utils};
 
@@ -64,7 +63,7 @@ pub struct SoyBoyVST3GUI {
     event_handler: Arc<VST3EventHandler>,
     scale_factor: RefCell<f32>,
     handle: RefCell<Option<thread::JoinHandle<()>>>,
-    sender: RefCell<Option<Sender<GUIMessage>>>,
+    sender: RefCell<Option<Sender<GUIThreadMessage>>>,
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     param_values: Arc<Mutex<HashMap<u32, f64>>>,
     plugin_event_recv: RefCell<Option<Receiver<GUIEvent>>>,
@@ -177,7 +176,7 @@ impl IPlugView for SoyBoyVST3GUI {
         let _ = (*self.sender.borrow())
             .as_ref()
             .unwrap()
-            .send(GUIMessage::Terminate);
+            .send(GUIThreadMessage::Terminate);
 
         #[cfg(debug_assertions)]
         println!("sended terminate.");

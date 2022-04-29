@@ -23,7 +23,7 @@ use glutin::{
     PossiblyCurrent, WindowedContext,
 };
 
-use crate::common::Vst3Message;
+use crate::common::{GUIEvent, GUIThreadMessage, Vst3Message};
 use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
 use crate::vst3::ControllerConnection;
 
@@ -450,7 +450,7 @@ pub struct GUIThread {
     needs_redraw: bool,
     waveform_view_enabled: Rc<RefCell<bool>>,
     // threading stuff
-    receiver: Arc<Mutex<Receiver<GUIMessage>>>,
+    receiver: Arc<Mutex<Receiver<GUIThreadMessage>>>,
     plugin_event_recv: Receiver<GUIEvent>,
     controller_connection: Arc<Mutex<ControllerConnection>>,
     // egui stuff
@@ -511,7 +511,7 @@ impl GUIThread {
         param_defs: HashMap<SoyBoyParameter, ParameterDef>,
         param_values: Arc<Mutex<HashMap<u32, f64>>>,
         event_handler: Arc<dyn EventHandler>,
-        receiver: Arc<Mutex<Receiver<GUIMessage>>>,
+        receiver: Arc<Mutex<Receiver<GUIThreadMessage>>>,
         plugin_event_recv: Receiver<GUIEvent>,
         controller_connection: Arc<Mutex<ControllerConnection>>,
     ) -> (Self, EventLoop<GUIEvent>) {
@@ -695,7 +695,7 @@ impl GUIThread {
             let recv = self.receiver.lock().unwrap();
             for message in recv.try_iter() {
                 match message {
-                    GUIMessage::Terminate => {
+                    GUIThreadMessage::Terminate => {
                         self.quit = true;
                     }
                 }
@@ -758,7 +758,7 @@ impl GUIThread {
         param_defs: HashMap<SoyBoyParameter, ParameterDef>,
         param_values: Arc<Mutex<HashMap<u32, f64>>>,
         event_handler: Arc<dyn EventHandler>,
-        receiver: Arc<Mutex<Receiver<GUIMessage>>>,
+        receiver: Arc<Mutex<Receiver<GUIThreadMessage>>>,
         plugin_event_recv: Receiver<GUIEvent>,
         controller_connection: Arc<Mutex<ControllerConnection>>,
     ) {

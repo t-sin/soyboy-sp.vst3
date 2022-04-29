@@ -3,7 +3,6 @@ use std::os::raw::c_void;
 use egui_extras::image::RetainedImage;
 use egui_glow::egui_winit::egui;
 
-use crate::common::Waveform;
 use crate::soyboy::parameters::SoyBoyParameter;
 
 pub struct ParentWindow(pub *mut c_void);
@@ -27,18 +26,6 @@ impl Image {
 
 pub trait EventHandler {
     fn change_parameter(&self, p: SoyBoyParameter, value_normalized: f64);
-}
-
-pub enum GUIMessage {
-    Terminate,
-}
-
-#[derive(PartialEq, Eq)]
-pub enum GUIEvent {
-    Redraw,
-    NoteOn,
-    WaveTableData([i8; 32]),
-    WaveformData(Waveform),
 }
 
 pub trait Behavior {

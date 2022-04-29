@@ -2,6 +2,18 @@ use std::fmt;
 
 use super::waveform::Waveform;
 
+pub enum GUIThreadMessage {
+    Terminate,
+}
+
+#[derive(PartialEq, Eq)]
+pub enum GUIEvent {
+    Redraw,
+    NoteOn,
+    WaveTableData([i8; 32]),
+    WaveformData(Waveform),
+}
+
 pub enum Vst3Message {
     NoteOn,
     InitializeWaveTable,

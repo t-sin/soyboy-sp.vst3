@@ -25,8 +25,7 @@ use vst3_sys::{
     VstPtr, VST3,
 };
 
-use crate::common::Vst3Message;
-use crate::gui::GUIEvent;
+use crate::common::{GUIEvent, Vst3Message};
 use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
 use crate::vst3::{gui::SoyBoyVST3GUI, plugin_data, raw_utils, vst3_utils};
 
