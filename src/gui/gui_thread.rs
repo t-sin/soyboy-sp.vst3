@@ -656,10 +656,9 @@ impl GUIThread {
             *control_flow = ControlFlow::Exit;
         } else {
             let dur = if *self.waveform_view_enabled.borrow() {
-                // high frame rate for waveform view (fps ~= 30)
-                time::Duration::from_millis(33)
+                time::Duration::from_millis(constants::WAVEFORM_UPDATE_INTERVAL_IN_MILLIS)
             } else {
-                time::Duration::from_millis(100)
+                time::Duration::from_millis(constants::NORMAL_REDRAW_INTERVAL_IN_MILLIS)
             };
 
             *control_flow = ControlFlow::WaitUntil(time::Instant::now() + dur);

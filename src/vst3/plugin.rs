@@ -22,7 +22,7 @@ use vst3_sys::{
     VstPtr, VST3,
 };
 
-use crate::common::{Vst3Message, Waveform};
+use crate::common::{constants, Vst3Message, Waveform};
 use crate::soyboy::{
     event::{Event, Triggered},
     parameters::{Normalizable, ParameterDef, Parametric, SoyBoyParameter},
@@ -62,8 +62,9 @@ impl PluginTimerThread {
                 Vst3Message::WaveformData(wf),
             );
 
-            // TODO: use constant
-            thread::sleep(time::Duration::from_millis(100));
+            thread::sleep(time::Duration::from_millis(
+                constants::WAVEFORM_UPDATE_INTERVAL_IN_MILLIS,
+            ));
         });
 
         self.handle.replace(Some(handle));
