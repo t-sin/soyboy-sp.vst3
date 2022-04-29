@@ -28,8 +28,8 @@ use vst3_sys::{
 use crate::gui::GUIEvent;
 use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
 use crate::vst3::{
-    common, common::ControllerConnection, gui::SoyBoyVST3GUI, message::Vst3Message, plugin_data,
-    utils,
+    common, common::ControllerConnection, gui::SoyBoyVST3GUI, raw_utils, message::Vst3Message,
+    plugin_data,
 };
 
 #[VST3(implements(IEditController, IUnitInfo, IMidiMapping, IConnectionPoint))]
@@ -61,11 +61,11 @@ impl SoyBoyController {
         let mut vst3_params = self.vst3_params.borrow_mut();
         let mut param_vals = self.param_values.lock().unwrap();
 
-        let mut param = utils::make_empty_param_info();
+        let mut param = raw_utils::make_empty_param_info();
         param.id = id;
-        utils::wstrcpy(paraminfo.title, param.title.as_mut_ptr());
-        utils::wstrcpy(paraminfo.short_title, param.short_title.as_mut_ptr());
-        utils::wstrcpy(paraminfo.unit_name, param.units.as_mut_ptr());
+        raw_utils::wstrcpy(paraminfo.title, param.title.as_mut_ptr());
+        raw_utils::wstrcpy(paraminfo.short_title, param.short_title.as_mut_ptr());
+        raw_utils::wstrcpy(paraminfo.unit_name, param.units.as_mut_ptr());
         param.step_count = paraminfo.step_count;
         param.default_normalized_value = paraminfo.default_value;
         param.unit_id = kRootUnitId;
@@ -211,7 +211,7 @@ impl IEditController for SoyBoyController {
     ) -> tresult {
         if let Ok(param) = SoyBoyParameter::try_from(id) {
             if let Some(p) = self.param_defs.get(&param) {
-                utils::tcharcpy(&p.format(value_normalized), string)
+                raw_utils::tcharcpy(&p.format(value_normalized), string)
             } else {
                 return kResultFalse;
             }
@@ -228,7 +228,7 @@ impl IEditController for SoyBoyController {
     ) -> tresult {
         if let Ok(param) = SoyBoyParameter::try_from(id) {
             if let Some(p) = self.param_defs.get(&param) {
-                if let Some(v) = p.parse(&utils::tchar_to_string(string)) {
+                if let Some(v) = p.parse(&raw_utils::tchar_to_string(string)) {
                     *value_normalized = v;
                 } else {
                     return kResultFalse;
@@ -297,7 +297,7 @@ impl IEditController for SoyBoyController {
     }
 
     unsafe fn create_view(&self, name: FIDString) -> *mut c_void {
-        if utils::fidstring_to_string(name) == "editor" {
+        if raw_utils::fidstring_to_string(name) == "editor" {
             #[cfg(debug_assertions)]
             println!("IEditController::create_view()");
 

@@ -31,8 +31,9 @@ use crate::soyboy::{
 use crate::vst3::{
     common::{send_message, SyncPtr},
     controller::SoyBoyController,
+    raw_utils,
     message::Vst3Message,
-    plugin_data, utils,
+    plugin_data,
 };
 
 pub struct PluginTimerThread {
@@ -99,7 +100,7 @@ impl SoyBoyPlugin {
     unsafe fn init_event_in(&self) {
         let mut bus = self.event_in.borrow_mut();
 
-        utils::wstrcpy("Event In", bus.name.as_mut_ptr());
+        raw_utils::wstrcpy("Event In", bus.name.as_mut_ptr());
         bus.media_type = MediaTypes::kEvent as i32;
         bus.direction = BusDirections::kInput as i32;
         bus.channel_count = 1;
@@ -110,7 +111,7 @@ impl SoyBoyPlugin {
     unsafe fn init_audio_out(&self) {
         let mut bus = self.audio_out.borrow_mut();
 
-        utils::wstrcpy("Audio Out", bus.name.as_mut_ptr());
+        raw_utils::wstrcpy("Audio Out", bus.name.as_mut_ptr());
         bus.media_type = MediaTypes::kAudio as i32;
         bus.direction = BusDirections::kOutput as i32;
         bus.channel_count = 2;
@@ -120,8 +121,8 @@ impl SoyBoyPlugin {
 
     pub unsafe fn new(param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Box<Self> {
         let soyboy = Mutex::new(SoyBoy::new());
-        let audio_out = RefCell::new(utils::make_empty_bus_info());
-        let event_in = RefCell::new(utils::make_empty_bus_info());
+        let audio_out = RefCell::new(raw_utils::make_empty_bus_info());
+        let event_in = RefCell::new(raw_utils::make_empty_bus_info());
         let context = RefCell::new(None);
         let controller = RefCell::new(None);
         let waveform = Arc::new(Mutex::new(Waveform::new()));
@@ -209,8 +210,8 @@ impl IComponent for SoyBoyPlugin {
     }
 
     unsafe fn get_bus_count(&self, media_type: i32, dir: i32) -> i32 {
-        if let Some(media_type) = utils::as_media_type(media_type) {
-            if let Some(dir) = utils::as_bus_dir(dir) {
+        if let Some(media_type) = raw_utils::as_media_type(media_type) {
+            if let Some(dir) = raw_utils::as_bus_dir(dir) {
                 return self.bus_count(media_type, dir);
             }
         }
@@ -226,13 +227,13 @@ impl IComponent for SoyBoyPlugin {
     ) -> tresult {
         let info = &mut *info;
 
-        match utils::as_media_type(media_type) {
-            Some(MediaTypes::kAudio) => match utils::as_bus_dir(dir) {
+        match raw_utils::as_media_type(media_type) {
+            Some(MediaTypes::kAudio) => match raw_utils::as_bus_dir(dir) {
                 Some(BusDirections::kOutput) => {
                     if idx == 0 {
                         let bus = self.audio_out.borrow();
 
-                        utils::str128cpy(&bus.name, &mut info.name);
+                        raw_utils::str128cpy(&bus.name, &mut info.name);
                         info.media_type = bus.media_type as i32;
                         info.direction = bus.direction as i32;
                         info.bus_type = bus.bus_type as i32;
@@ -246,12 +247,12 @@ impl IComponent for SoyBoyPlugin {
                 }
                 _ => kInvalidArgument,
             },
-            Some(MediaTypes::kEvent) => match utils::as_bus_dir(dir) {
+            Some(MediaTypes::kEvent) => match raw_utils::as_bus_dir(dir) {
                 Some(BusDirections::kInput) => {
                     if idx == 0 {
                         let bus = self.event_in.borrow();
 
-                        utils::str128cpy(&bus.name, &mut info.name);
+                        raw_utils::str128cpy(&bus.name, &mut info.name);
                         info.media_type = bus.media_type as i32;
                         info.direction = bus.direction as i32;
                         info.bus_type = bus.bus_type as i32;
@@ -440,10 +441,10 @@ impl IAudioProcessor for SoyBoyPlugin {
             let count = input_events.get_event_count();
 
             for c in 0..count {
-                let mut e = utils::make_empty_event();
+                let mut e = raw_utils::make_empty_event();
 
                 if input_events.get_event(c, &mut e) == kResultOk {
-                    match utils::as_event_type(e.type_) {
+                    match raw_utils::as_event_type(e.type_) {
                         Some(EventTypes::kNoteOnEvent) => {
                             self.send_message(Vst3Message::NoteOn);
                             soyboy.trigger(&Event::NoteOn {

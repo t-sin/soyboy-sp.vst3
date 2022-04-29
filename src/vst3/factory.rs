@@ -12,9 +12,9 @@ use vst3_sys::{
 use crate::soyboy::parameters;
 use crate::vst3::{
     controller::SoyBoyController,
+    raw_utils::{strcpy, wstrcpy},
     plugin::SoyBoyPlugin,
     plugin_data,
-    utils::{strcpy, wstrcpy},
 };
 
 #[VST3(implements(IPluginFactory3))]

@@ -18,7 +18,7 @@ use crate::gui::{
     EventHandler, GUIEvent, GUIMessage, GUIThread, ParentWindow, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
-use crate::vst3::{common::ControllerConnection, utils};
+use crate::vst3::{common::ControllerConnection, raw_utils};
 
 pub struct VST3EventHandler {
     param_values: Arc<Mutex<HashMap<u32, f64>>>,
@@ -145,7 +145,7 @@ impl IPlugView for SoyBoyVST3GUI {
         #[cfg(debug_assertions)]
         println!("IPlugView::is_platform_type_supported()");
 
-        let type_ = utils::fidstring_to_string(type_);
+        let type_ = raw_utils::fidstring_to_string(type_);
 
         if type_ == "X11EmbedWindowID" || type_ == "HWND" {
             kResultOk
@@ -158,7 +158,7 @@ impl IPlugView for SoyBoyVST3GUI {
         #[cfg(debug_assertions)]
         println!("IPlugView::attached()");
 
-        let type_ = utils::fidstring_to_string(type_);
+        let type_ = raw_utils::fidstring_to_string(type_);
 
         if type_ == "X11EmbedWindowID" || type_ == "HWND" {
             let parent = ParentWindow(parent);

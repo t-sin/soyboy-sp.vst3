@@ -2,10 +2,10 @@ mod common;
 mod controller;
 mod factory;
 mod gui;
+mod raw_utils;
 mod message;
 mod plugin;
 mod plugin_data;
-mod utils;
 
 use std::os::raw::c_void;
 

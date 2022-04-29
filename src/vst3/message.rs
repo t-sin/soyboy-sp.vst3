@@ -12,7 +12,7 @@ use vst3_sys::{
 };
 
 use crate::common::{constants, Waveform};
-use crate::vst3::{common::ComPtr, utils::fidstring_to_string};
+use crate::vst3::{common::ComPtr, raw_utils::fidstring_to_string};
 
 pub enum Vst3Message {
     NoteOn,
