@@ -27,10 +27,7 @@ use vst3_sys::{
 
 use crate::gui::GUIEvent;
 use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
-use crate::vst3::{
-    common, common::ControllerConnection, gui::SoyBoyVST3GUI, raw_utils, message::Vst3Message,
-    plugin_data,
-};
+use crate::vst3::{gui::SoyBoyVST3GUI, message::Vst3Message, plugin_data, raw_utils, vst3_utils};
 
 #[VST3(implements(IEditController, IUnitInfo, IMidiMapping, IConnectionPoint))]
 pub struct SoyBoyController {
@@ -306,10 +303,12 @@ impl IEditController for SoyBoyController {
 
             let context = self.context.borrow();
             let context = context.as_ref().unwrap();
-            let host = Arc::new(common::get_host_app(context));
+            let host = Arc::new(vst3_utils::get_host_app(context));
 
-            let conn =
-                ControllerConnection::new(self.processor.borrow().as_ref().unwrap().clone(), host);
+            let conn = vst3_utils::ControllerConnection::new(
+                self.processor.borrow().as_ref().unwrap().clone(),
+                host,
+            );
 
             conn.send_message(Vst3Message::WaveTableRequested);
 

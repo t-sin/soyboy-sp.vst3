@@ -1,16 +1,16 @@
-mod common;
 mod controller;
 mod factory;
 mod gui;
-mod raw_utils;
 mod message;
 mod plugin;
 mod plugin_data;
+mod raw_utils;
+mod vst3_utils;
 
 use std::os::raw::c_void;
 
-pub use common::*;
 pub use message::Vst3Message;
+pub use vst3_utils::*;
 
 /// # Safety
 ///

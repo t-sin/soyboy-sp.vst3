@@ -29,11 +29,8 @@ use crate::soyboy::{
     AudioProcessor, SoyBoy,
 };
 use crate::vst3::{
-    common::{send_message, SyncPtr},
-    controller::SoyBoyController,
-    raw_utils,
-    message::Vst3Message,
-    plugin_data,
+    controller::SoyBoyController, message::Vst3Message, plugin_data, raw_utils, vst3_utils,
+    vst3_utils::SyncPtr,
 };
 
 pub struct PluginTimerThread {
@@ -60,7 +57,7 @@ impl PluginTimerThread {
         let handle = thread::spawn(move || loop {
             // TODO: don't send if GUI thread is down
             let wf = waveform.lock().unwrap().clone();
-            send_message(
+            vst3_utils::send_message(
                 context.clone(),
                 connection.clone(),
                 Vst3Message::WaveformData(wf),
@@ -157,7 +154,7 @@ impl SoyBoyPlugin {
     fn send_message(&self, msg: Vst3Message) {
         if let Some(context) = self.context.borrow_mut().clone() {
             if let Some(controller) = self.controller.borrow_mut().clone() {
-                send_message(context, controller, msg);
+                vst3_utils::send_message(context, controller, msg);
             }
         }
     }
