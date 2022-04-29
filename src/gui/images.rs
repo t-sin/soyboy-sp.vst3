@@ -2,6 +2,7 @@ use egui_extras::image::RetainedImage;
 use egui_glow::egui_winit::egui;
 
 const IMG_EDAMAME: &[u8] = include_bytes!("../../resources/edamame.png");
+const IMG_VERSION_FRAME: &[u8] = include_bytes!("../../resources/version-frame.png");
 const IMG_LOGO: &[u8] = include_bytes!("../../resources/logo.png");
 const IMG_LABEL_GLOBAL: &[u8] = include_bytes!("../../resources/label-global.png");
 const IMG_LABEL_SQUARE: &[u8] = include_bytes!("../../resources/label-osc-square.png");
@@ -38,6 +39,7 @@ impl Image {
 
 pub struct Images {
     pub edamame: RetainedImage,
+    pub version_frame: RetainedImage,
     pub label_logo: RetainedImage,
     pub label_global: RetainedImage,
     pub label_square: RetainedImage,
@@ -62,6 +64,8 @@ impl Images {
     pub fn new() -> Self {
         Self {
             edamame: RetainedImage::from_image_bytes("soyboy:edamame", IMG_EDAMAME).unwrap(),
+            version_frame: RetainedImage::from_image_bytes("soyboy:version", IMG_VERSION_FRAME)
+                .unwrap(),
             label_logo: RetainedImage::from_image_bytes("soyboy:logo", IMG_LOGO).unwrap(),
             label_global: RetainedImage::from_image_bytes("soyboy:label:global", IMG_LABEL_GLOBAL)
                 .unwrap(),

@@ -15,7 +15,7 @@ I want to do some chiptunes on GNU/Linux.
     - [x] Original GUI?
         - [x] design UI
         - [x] implement UI
-        - [ ] show version on UI
+        - [x] show version on UI
 - [ ] plugin features
     - [x] square wave osillator
         - [x] oscillate with fixed duty ratio

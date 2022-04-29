@@ -32,6 +32,7 @@ use super::{images, types::*, widget::*};
 pub struct UI {
     _images: Images,
     edamame: AnimatedEdamame,
+    version: VersionFrame,
     label_logo: ImageLabel,
     label_global: ImageLabel,
     label_square: ImageLabel,
@@ -80,6 +81,12 @@ impl UI {
         let param_values = param_values.lock().unwrap();
         Self {
             edamame: AnimatedEdamame::new(Image::new(egui_ctx, &images.edamame), 18.0, 14.0),
+            version: VersionFrame::new(
+                Image::new(egui_ctx, &images.version_frame),
+                Image::new(egui_ctx, &images.value_atlas),
+                148.0,
+                58.0,
+            ),
             label_logo: ImageLabel::new(Image::new(egui_ctx, &images.label_logo), 6.0, 6.0),
             label_global: ImageLabel::new(Image::new(egui_ctx, &images.label_global), 24.0, 86.0),
             label_square: ImageLabel::new(Image::new(egui_ctx, &images.label_square), 24.0, 216.0),
@@ -536,6 +543,7 @@ impl GUIThread {
                 .show(egui_ctx, |ui| {
                     // logo
                     let _ = ui.add(self.ui.label_logo.clone());
+                    let _ = ui.add(self.ui.version.clone());
 
                     // left side
                     let _ = ui.add(self.ui.label_global.clone());
