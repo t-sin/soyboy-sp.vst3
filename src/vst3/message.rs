@@ -1,5 +1,4 @@
 use std::ffi::CString;
-use std::fmt;
 use std::os::raw::c_void;
 use std::ptr::null_mut;
 
@@ -11,34 +10,8 @@ use vst3_sys::{
     VstPtr,
 };
 
-use crate::common::{constants, Waveform};
+use crate::common::{constants, Vst3Message, Waveform};
 use crate::vst3::{raw_utils::fidstring_to_string, vst3_utils::ComPtr};
-
-pub enum Vst3Message {
-    NoteOn,
-    InitializeWaveTable,
-    RandomizeWaveTable,
-    WaveTableRequested,
-    WaveTableData([i8; 32]),
-    SetWaveTable(usize, i8),
-    WaveformData(Waveform),
-}
-
-impl fmt::Display for Vst3Message {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s = match self {
-            Vst3Message::NoteOn => "vst3:note-on",
-            Vst3Message::InitializeWaveTable => "vst3:initialize-wavetable",
-            Vst3Message::RandomizeWaveTable => "vst3:randomize-wavetable",
-            Vst3Message::WaveTableData(_) => "vst3:wavetable-data",
-            Vst3Message::WaveTableRequested => "vst3:wavetable-requested",
-            Vst3Message::SetWaveTable(_, _) => "vst3:set-wavetable-sample",
-            Vst3Message::WaveformData(_) => "vst3:waveform-data",
-        };
-
-        write!(f, "{}", s)
-    }
-}
 
 impl Vst3Message {
     pub fn from_message(msg: &SharedVstPtr<dyn IMessage>) -> Option<Self> {

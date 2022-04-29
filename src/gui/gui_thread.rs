@@ -23,8 +23,9 @@ use glutin::{
     PossiblyCurrent, WindowedContext,
 };
 
+use crate::common::Vst3Message;
 use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
-use crate::vst3::{ControllerConnection, Vst3Message};
+use crate::vst3::ControllerConnection;
 
 use super::{constants::*, types::*, widget::*};
 

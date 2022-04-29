@@ -5,9 +5,9 @@ use std::time;
 
 use egui_glow::egui_winit::{egui, egui::Widget};
 
-use crate::common::constants;
+use crate::common::{constants, Vst3Message};
 use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
-use crate::{ControllerConnection, Vst3Message};
+use crate::ControllerConnection;
 
 use super::{constants::*, types::*};
 

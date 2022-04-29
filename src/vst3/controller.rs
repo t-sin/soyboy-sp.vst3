@@ -25,9 +25,10 @@ use vst3_sys::{
     VstPtr, VST3,
 };
 
+use crate::common::Vst3Message;
 use crate::gui::GUIEvent;
 use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
-use crate::vst3::{gui::SoyBoyVST3GUI, message::Vst3Message, plugin_data, raw_utils, vst3_utils};
+use crate::vst3::{gui::SoyBoyVST3GUI, plugin_data, raw_utils, vst3_utils};
 
 #[VST3(implements(IEditController, IUnitInfo, IMidiMapping, IConnectionPoint))]
 pub struct SoyBoyController {

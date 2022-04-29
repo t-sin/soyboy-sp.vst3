@@ -9,7 +9,6 @@ mod vst3_utils;
 
 use std::os::raw::c_void;
 
-pub use message::Vst3Message;
 pub use vst3_utils::*;
 
 /// # Safety

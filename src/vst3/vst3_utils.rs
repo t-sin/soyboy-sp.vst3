@@ -10,7 +10,7 @@ use vst3_sys::{
     VstPtr,
 };
 
-use super::message::Vst3Message;
+use crate::common::Vst3Message;
 
 pub struct SyncPtr<I: ComInterface + ?Sized> {
     ptr: VstPtr<I>,
