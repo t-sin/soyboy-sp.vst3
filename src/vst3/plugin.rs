@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
 use std::os::raw::c_void;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use vst3_com::{interfaces::IUnknown, sys::GUID, IID};
 use vst3_sys::{
@@ -36,7 +36,7 @@ pub struct SoyBoyPlugin {
     event_in: RefCell<BusInfo>,
     context: Mutex<Option<VstPtr<dyn IUnknown>>>,
     controller: Mutex<Option<VstPtr<dyn IConnectionPoint>>>,
-    waveform: RefCell<Waveform>,
+    waveform: Arc<Mutex<Waveform>>,
     elapsed_samples: RefCell<u32>,
 }
 
@@ -73,7 +73,7 @@ impl SoyBoyPlugin {
         let event_in = RefCell::new(utils::make_empty_bus_info());
         let controller = Mutex::new(None);
         let context = Mutex::new(None);
-        let waveform = RefCell::new(Waveform::new());
+        let waveform = Arc::new(Mutex::new(Waveform::new()));
         let elapsed_samples = RefCell::new(0);
 
         SoyBoyPlugin::allocate(
@@ -350,6 +350,7 @@ impl IAudioProcessor for SoyBoyPlugin {
 
     unsafe fn process(&self, data: *mut ProcessData) -> tresult {
         let data = &*data;
+        let mut soyboy = self.soyboy.lock().unwrap();
 
         if data.input_events.is_null() || data.outputs.is_null() {
             return kResultOk;
@@ -374,10 +375,7 @@ impl IAudioProcessor for SoyBoyPlugin {
                         ) == kResultTrue
                         {
                             if let Some(p) = self.param_defs.get(&param) {
-                                self.soyboy
-                                    .lock()
-                                    .unwrap()
-                                    .set_param(&param, p.denormalize(value));
+                                soyboy.set_param(&param, p.denormalize(value));
                             }
                         }
                     }
@@ -397,13 +395,13 @@ impl IAudioProcessor for SoyBoyPlugin {
                     match utils::as_event_type(e.type_) {
                         Some(EventTypes::kNoteOnEvent) => {
                             self.send_message(Vst3Message::NoteOn);
-                            self.soyboy.lock().unwrap().trigger(&Event::NoteOn {
+                            soyboy.trigger(&Event::NoteOn {
                                 note: e.event.note_on.pitch as u16,
                                 velocity: e.event.note_on.velocity as f64,
                             });
                         }
                         Some(EventTypes::kNoteOffEvent) => {
-                            self.soyboy.lock().unwrap().trigger(&Event::NoteOff {
+                            soyboy.trigger(&Event::NoteOff {
                                 note: e.event.note_off.pitch as u16,
                             });
                         }
@@ -422,35 +420,32 @@ impl IAudioProcessor for SoyBoyPlugin {
         let sample_rate = (*(data.context)).sample_rate;
         let out = (*(*data).outputs).buffers;
 
-        {
-            let mut soyboy = self.soyboy.lock().unwrap();
+        let mut waveform = self.waveform.lock().unwrap();
 
-            match data.symbolic_sample_size {
-                K_SAMPLE32 => {
-                    for n in 0..num_samples as isize {
-                        let s = soyboy.process(sample_rate);
+        match data.symbolic_sample_size {
+            K_SAMPLE32 => {
+                for n in 0..num_samples as isize {
+                    let s = soyboy.process(sample_rate);
+                    waveform.set_signal(s.0);
 
-                        self.waveform.borrow_mut().set_signal(s.0);
-
-                        for i in 0..num_output_channels as isize {
-                            let ch_out = *out.offset(i) as *mut f32;
-                            *ch_out.offset(n) = s.0 as f32;
-                        }
+                    for i in 0..num_output_channels as isize {
+                        let ch_out = *out.offset(i) as *mut f32;
+                        *ch_out.offset(n) = s.0 as f32;
                     }
                 }
-                K_SAMPLE64 => {
-                    for n in 0..num_samples as isize {
-                        let s = soyboy.process(sample_rate);
-                        self.waveform.borrow_mut().set_signal(s.0);
-
-                        for i in 0..num_output_channels as isize {
-                            let ch_out = *out.offset(i) as *mut f64;
-                            *ch_out.offset(n) = s.0;
-                        }
-                    }
-                }
-                _ => unreachable!(),
             }
+            K_SAMPLE64 => {
+                for n in 0..num_samples as isize {
+                    let s = soyboy.process(sample_rate);
+                    waveform.set_signal(s.0);
+
+                    for i in 0..num_output_channels as isize {
+                        let ch_out = *out.offset(i) as *mut f64;
+                        *ch_out.offset(n) = s.0;
+                    }
+                }
+            }
+            _ => unreachable!(),
         }
 
         {
