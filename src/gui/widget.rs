@@ -6,15 +6,17 @@ use std::time;
 use egui_glow::egui_winit::{egui, egui::Widget};
 
 use crate::common::{constants, Vst3Message};
+use crate::gui::{images::Image, types::*};
 use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
 use crate::ControllerConnection;
-
-use super::{constants::*, types::*};
 
 fn screen_rect() -> egui::Rect {
     egui::Rect {
         min: egui::pos2(0.0, 0.0),
-        max: egui::pos2(SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32),
+        max: egui::pos2(
+            constants::SCREEN_WIDTH as f32,
+            constants::SCREEN_HEIGHT as f32,
+        ),
     }
 }
 

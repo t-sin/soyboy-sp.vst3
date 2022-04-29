@@ -14,8 +14,8 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::common::{GUIEvent, GUIThreadMessage};
-use crate::gui::{EventHandler, GUIThread, ParentWindow, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::common::{constants, GUIEvent, GUIThreadMessage};
+use crate::gui::{EventHandler, GUIThread, ParentWindow};
 use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
 use crate::vst3::{raw_utils, vst3_utils};
 
@@ -219,8 +219,8 @@ impl IPlugView for SoyBoyVST3GUI {
 
         (*size).left = 0;
         (*size).top = 0;
-        (*size).right = SCREEN_WIDTH as i32;
-        (*size).bottom = SCREEN_HEIGHT as i32;
+        (*size).right = constants::SCREEN_WIDTH as i32;
+        (*size).bottom = constants::SCREEN_HEIGHT as i32;
         kResultOk
     }
 

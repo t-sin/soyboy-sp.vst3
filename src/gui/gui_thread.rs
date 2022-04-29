@@ -9,7 +9,6 @@ use std::sync::{
 };
 use std::time;
 
-use egui_extras::image::RetainedImage;
 use egui_glow::{egui_winit::egui, glow, EguiGlow};
 #[cfg(target_os = "linux")]
 use glutin::platform::unix::{EventLoopBuilderExtUnix, WindowBuilderExtUnix};
@@ -23,33 +22,12 @@ use glutin::{
     PossiblyCurrent, WindowedContext,
 };
 
-use crate::common::{GUIEvent, GUIThreadMessage, Vst3Message};
+use crate::common::{constants, GUIEvent, GUIThreadMessage, Vst3Message};
+use crate::gui::images::{Image, Images};
 use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
 use crate::vst3::ControllerConnection;
 
-use super::{constants::*, types::*, widget::*};
-
-pub struct Images {
-    edamame: RetainedImage,
-    label_logo: RetainedImage,
-    label_global: RetainedImage,
-    label_square: RetainedImage,
-    label_noise: RetainedImage,
-    label_wavetable: RetainedImage,
-    label_envelope: RetainedImage,
-    label_sweep: RetainedImage,
-    label_stutter: RetainedImage,
-    button_reset_random: RetainedImage,
-    button_reset_sine: RetainedImage,
-    slider_border: RetainedImage,
-    select_osc_type: RetainedImage,
-    select_osc_sq_duty: RetainedImage,
-    select_sweep_type: RetainedImage,
-    wavetable_border: RetainedImage,
-    oscilloscope_border: RetainedImage,
-    value_atlas: RetainedImage,
-    param_atlas: RetainedImage,
-}
+use super::{images, types::*, widget::*};
 
 pub struct UI {
     _images: Images,
@@ -91,75 +69,7 @@ impl UI {
         controller_connection: Arc<Mutex<ControllerConnection>>,
         waveform_view_enabled: Rc<RefCell<bool>>,
     ) -> Self {
-        let images = Images {
-            edamame: RetainedImage::from_image_bytes("soyboy:edamame", IMG_EDAMAME).unwrap(),
-            label_logo: RetainedImage::from_image_bytes("soyboy:logo", IMG_LOGO).unwrap(),
-            label_global: RetainedImage::from_image_bytes("soyboy:label:global", IMG_LABEL_GLOBAL)
-                .unwrap(),
-            label_square: RetainedImage::from_image_bytes("soyboy:label:square", IMG_LABEL_SQUARE)
-                .unwrap(),
-            label_noise: RetainedImage::from_image_bytes("soyboy:label:noise", IMG_LABEL_NOISE)
-                .unwrap(),
-            label_wavetable: RetainedImage::from_image_bytes(
-                "soyboy:label:wavetable",
-                IMG_LABEL_WAVETABLE,
-            )
-            .unwrap(),
-            label_envelope: RetainedImage::from_image_bytes(
-                "soyboy:label:envelope",
-                IMG_LABEL_ENVELOPE,
-            )
-            .unwrap(),
-            label_sweep: RetainedImage::from_image_bytes("soyboy:label:sweep", IMG_LABEL_SWEEP)
-                .unwrap(),
-            label_stutter: RetainedImage::from_image_bytes(
-                "soyboy:label:stutter",
-                IMG_LABEL_STUTTER,
-            )
-            .unwrap(),
-            button_reset_random: RetainedImage::from_image_bytes(
-                "soyboy:button:reset-random",
-                IMG_BUTTON_RESET_RANDOM,
-            )
-            .unwrap(),
-            button_reset_sine: RetainedImage::from_image_bytes(
-                "soyboy:button:reset-sine",
-                IMG_BUTTON_RESET_SINE,
-            )
-            .unwrap(),
-            slider_border: RetainedImage::from_image_bytes(
-                "soyboy:slider:border",
-                IMG_SLIDER_BORDER,
-            )
-            .unwrap(),
-            select_osc_type: RetainedImage::from_image_bytes(
-                "soyboy:select:osc-type",
-                IMG_SELECT_OSC_TYPE,
-            )
-            .unwrap(),
-            select_osc_sq_duty: RetainedImage::from_image_bytes(
-                "soyboy:select:osc-square-duty",
-                IMG_SELECT_OSC_SQ_DUTY,
-            )
-            .unwrap(),
-            select_sweep_type: RetainedImage::from_image_bytes(
-                "soyboy:select:sweep-type",
-                IMG_SELECT_SWEEP_TYPE,
-            )
-            .unwrap(),
-            wavetable_border: RetainedImage::from_image_bytes(
-                "soyboy:wavetable:border",
-                IMG_WAVETABLE_BORDER,
-            )
-            .unwrap(),
-            oscilloscope_border: RetainedImage::from_image_bytes(
-                "soyboy:oscilloscope:border",
-                IMG_OSCILLOSCOPE_BORDER,
-            )
-            .unwrap(),
-            value_atlas: RetainedImage::from_image_bytes("value_atlas", IMG_VALUE_ATLAS).unwrap(),
-            param_atlas: RetainedImage::from_image_bytes("name_atlas", IMG_PARAM_ATLAS).unwrap(),
-        };
+        let images = images::Images::new();
 
         let slider_images = SliderImages {
             border_img: Image::new(egui_ctx, &images.slider_border),
@@ -606,7 +516,10 @@ impl GUIThread {
                 ui.painter().rect_filled(
                     egui::Rect {
                         min: egui::pos2(0.0, 0.0),
-                        max: egui::pos2(SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32),
+                        max: egui::pos2(
+                            constants::SCREEN_WIDTH as f32,
+                            constants::SCREEN_HEIGHT as f32,
+                        ),
                     },
                     egui::Rounding::none(),
                     egui::Color32::from_rgb(0xab, 0xbb, 0xa8),
