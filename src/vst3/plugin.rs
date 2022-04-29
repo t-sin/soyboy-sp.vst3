@@ -22,7 +22,7 @@ use vst3_sys::{
     VstPtr, VST3,
 };
 
-use crate::common::{constants, Vst3Message, Waveform};
+use crate::common::{constants, PluginConfig, Vst3Message, Waveform};
 use crate::soyboy::{
     event::{Event, Triggered},
     parameters::{Normalizable, ParameterDef, Parametric, SoyBoyParameter},
@@ -45,26 +45,33 @@ impl PluginTimerThread {
 
     fn start_thread(
         &mut self,
+        config: Arc<Mutex<PluginConfig>>,
         host_context: Arc<Mutex<SyncPtr<dyn IUnknown>>>,
         controller: Arc<Mutex<SyncPtr<dyn IConnectionPoint>>>,
         waveform: Arc<Mutex<Waveform>>,
     ) {
+        let config = config.clone();
         let waveform = waveform.clone();
         let context = host_context.clone();
         let connection = controller.clone();
 
         let handle = thread::spawn(move || loop {
-            // TODO: don't send if GUI thread is down
-            let wf = waveform.lock().unwrap().clone();
-            vst3_utils::send_message(
-                context.clone(),
-                connection.clone(),
-                Vst3Message::WaveformData(wf),
-            );
+            if config.lock().unwrap().waveform_view_enabled {
+                let wf = waveform.lock().unwrap().clone();
+                vst3_utils::send_message(
+                    context.clone(),
+                    connection.clone(),
+                    Vst3Message::WaveformData(wf),
+                );
 
-            thread::sleep(time::Duration::from_millis(
-                constants::WAVEFORM_UPDATE_INTERVAL_IN_MILLIS,
-            ));
+                thread::sleep(time::Duration::from_millis(
+                    constants::WAVEFORM_UPDATE_INTERVAL_IN_MILLIS,
+                ));
+            } else {
+                thread::sleep(time::Duration::from_millis(
+                    constants::NORMAL_REDRAW_INTERVAL_IN_MILLIS,
+                ));
+            }
         });
 
         self.handle.replace(Some(handle));
@@ -80,6 +87,7 @@ impl PluginTimerThread {
 #[VST3(implements(IComponent, IAudioProcessor, IConnectionPoint))]
 pub struct SoyBoyPlugin {
     soyboy: Mutex<SoyBoy>,
+    config: Arc<Mutex<PluginConfig>>,
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     audio_out: RefCell<BusInfo>,
     event_in: RefCell<BusInfo>,
@@ -118,6 +126,7 @@ impl SoyBoyPlugin {
 
     pub unsafe fn new(param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Box<Self> {
         let soyboy = Mutex::new(SoyBoy::new());
+        let config = Arc::new(Mutex::new(PluginConfig::default()));
         let audio_out = RefCell::new(raw_utils::make_empty_bus_info());
         let event_in = RefCell::new(raw_utils::make_empty_bus_info());
         let context = RefCell::new(None);
@@ -127,6 +136,7 @@ impl SoyBoyPlugin {
 
         SoyBoyPlugin::allocate(
             soyboy,
+            config,
             param_defs,
             audio_out,
             event_in,
@@ -379,6 +389,7 @@ impl IAudioProcessor for SoyBoyPlugin {
         if let Some(context) = &*self.context.borrow_mut() {
             if let Some(controller) = &*self.controller.borrow_mut() {
                 self.timer_thread.borrow_mut().start_thread(
+                    self.config.clone(),
                     context.clone(),
                     controller.clone(),
                     self.waveform.clone(),
@@ -551,6 +562,12 @@ impl IConnectionPoint for SoyBoyPlugin {
                 soyboy.trigger(&Event::SetWaveTable { idx, value });
                 let table = soyboy.get_wavetable();
                 self.send_message(Vst3Message::WaveTableData(table));
+            }
+            Some(Vst3Message::EnableWaveform) => {
+                (*self.config.lock().unwrap()).waveform_view_enabled = true;
+            }
+            Some(Vst3Message::DisableWaveform) => {
+                (*self.config.lock().unwrap()).waveform_view_enabled = false;
             }
             _ => (),
         }

@@ -836,15 +836,23 @@ pub struct Oscilloscope {
     enabled: Rc<RefCell<bool>>,
     pos: egui::Pos2,
     border_img: Image,
+    controller_connection: Arc<Mutex<ControllerConnection>>,
 }
 
 impl Oscilloscope {
-    pub fn new(enabled: Rc<RefCell<bool>>, border_img: Image, x: f32, y: f32) -> Self {
+    pub fn new(
+        enabled: Rc<RefCell<bool>>,
+        border_img: Image,
+        x: f32,
+        y: f32,
+        controller_connection: Arc<Mutex<ControllerConnection>>,
+    ) -> Self {
         Self {
             signals: [0.0; constants::OSCILLOSCOPE_SAIMPLE_SIZE],
             enabled,
             pos: egui::pos2(x, y),
             border_img,
+            controller_connection,
         }
     }
 
@@ -866,6 +874,13 @@ impl Behavior for Oscilloscope {
         if response.clicked() {
             let enabled = *self.enabled.borrow();
             *self.enabled.borrow_mut() = !enabled;
+
+            let msg = if *self.enabled.borrow() {
+                Vst3Message::EnableWaveform
+            } else {
+                Vst3Message::DisableWaveform
+            };
+            self.controller_connection.lock().unwrap().send_message(msg);
         }
 
         let img = egui::widgets::Image::new(self.border_img.texture_id, self.border_img.size);

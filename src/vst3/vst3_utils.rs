@@ -161,6 +161,8 @@ impl Vst3Message {
 
                 Some(Vst3Message::WaveformData(wf))
             }
+            "vst3:enable-waveform" => Some(Vst3Message::EnableWaveform),
+            "vst3:disable-waveform" => Some(Vst3Message::DisableWaveform),
             _ => None,
         }
     }
@@ -230,6 +232,12 @@ impl Vst3Message {
                         size as u32,
                     );
                 };
+            }
+            Vst3Message::EnableWaveform => {
+                unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
+            }
+            Vst3Message::DisableWaveform => {
+                unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
             }
         }
     }

@@ -22,6 +22,8 @@ pub enum Vst3Message {
     WaveTableData([i8; 32]),
     SetWaveTable(usize, i8),
     WaveformData(Waveform),
+    EnableWaveform,
+    DisableWaveform,
 }
 
 impl fmt::Display for Vst3Message {
@@ -34,6 +36,8 @@ impl fmt::Display for Vst3Message {
             Vst3Message::WaveTableRequested => "vst3:wavetable-requested",
             Vst3Message::SetWaveTable(_, _) => "vst3:set-wavetable-sample",
             Vst3Message::WaveformData(_) => "vst3:waveform-data",
+            Vst3Message::EnableWaveform => "vst3:enable-waveform",
+            Vst3Message::DisableWaveform => "vst3:disable-waveform",
         };
 
         write!(f, "{}", s)

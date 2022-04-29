@@ -14,7 +14,7 @@ use vst3_sys::{
     VST3,
 };
 
-use crate::common::{constants, GUIEvent, GUIThreadMessage};
+use crate::common::{constants, GUIEvent, GUIThreadMessage, Vst3Message};
 use crate::gui::{EventHandler, GUIThread, ParentWindow};
 use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
 use crate::vst3::{raw_utils, vst3_utils};
@@ -171,6 +171,11 @@ impl IPlugView for SoyBoyVST3GUI {
     unsafe fn removed(&self) -> tresult {
         #[cfg(debug_assertions)]
         println!("IPlugView::removed()");
+
+        self.controller_connection
+            .lock()
+            .unwrap()
+            .send_message(Vst3Message::DisableWaveform);
 
         let old_handle = self.handle.replace(None);
         let _ = (*self.sender.borrow())

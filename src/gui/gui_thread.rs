@@ -105,6 +105,7 @@ impl UI {
                 Image::new(egui_ctx, &images.oscilloscope_border),
                 352.0,
                 460.0,
+                controller_connection.clone(),
             ),
             button_reset_random: ButtonBehavior::new(
                 Image::new(egui_ctx, &images.button_reset_random),
@@ -371,8 +372,10 @@ pub struct GUIThread {
 
 impl Drop for GUIThread {
     fn drop(&mut self) {
-        // TODO: send to the cotroller that I'm dead.
-        println!("GUIThread is panicking!!!!!!");
+        self.controller_connection
+            .lock()
+            .unwrap()
+            .send_message(Vst3Message::DisableWaveform);
     }
 }
 
