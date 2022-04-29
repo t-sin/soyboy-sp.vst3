@@ -727,14 +727,8 @@ impl GUIThread {
                     _ => (),
                 }
 
-                // if let WindowEvent::Resized(physical_size) = &event {
-                //     self.window.resize(*physical_size);
-                // } else if let WindowEvent::ScaleFactorChanged { new_inner_size, .. } = &event {
-                //     self.window.resize(**new_inner_size);
-                // }
-
                 self.egui_glow.on_event(&event);
-                self.window.window().request_redraw(); // TODO: ask egui if the events warrants a repaint instead
+                self.window.window().request_redraw();
             }
             Event::LoopDestroyed => {
                 println!("LoopDestroyed is signaled.");
