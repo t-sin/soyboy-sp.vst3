@@ -27,6 +27,9 @@ pub enum SoyBoyParameter {
     OscSqDuty,
     // noise oscillator
     OscNsInterval,
+    // hidden: DAC
+    DacFreq,
+    DacQ,
 }
 
 impl TryFrom<u32> for SoyBoyParameter {
@@ -63,6 +66,10 @@ impl TryFrom<u32> for SoyBoyParameter {
             Ok(SoyBoyParameter::OscSqDuty)
         } else if id == SoyBoyParameter::OscNsInterval as u32 {
             Ok(SoyBoyParameter::OscNsInterval)
+        } else if id == SoyBoyParameter::DacFreq as u32 {
+            Ok(SoyBoyParameter::DacFreq)
+        } else if id == SoyBoyParameter::DacQ as u32 {
+            Ok(SoyBoyParameter::DacQ)
         } else {
             Err(())
         }
@@ -600,6 +607,51 @@ pub fn make_envelope_generator_parameters(params: &mut HashMap<SoyBoyParameter, 
     );
 }
 
+fn make_dac_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
+    static DAC_FREQ: NonLinearParameter = NonLinearParameter {
+        plain_zero: 40.00,
+        plain_min: 40.0,
+        plain_max: 22_000.0,
+        plain_one: 22_000.0,
+        factor: 1.9,
+        diverge: true,
+    };
+    params.insert(
+        SoyBoyParameter::DacFreq,
+        ParameterDef {
+            r#type: ParameterType::NonLinear,
+            parameter: ParameterInfo {
+                non_linear: DAC_FREQ,
+            },
+            title: "Dac: freq".to_string(),
+            short_title: "freq".to_string(),
+            unit_name: "Hz".to_string(),
+            step_count: 0,
+            default_value: 22_000.0,
+        },
+    );
+    static DAC_Q: NonLinearParameter = NonLinearParameter {
+        plain_zero: 0.005,
+        plain_min: 1.0,
+        plain_max: 40.0,
+        plain_one: 40.0,
+        factor: 2.0,
+        diverge: true,
+    };
+    params.insert(
+        SoyBoyParameter::DacQ,
+        ParameterDef {
+            r#type: ParameterType::NonLinear,
+            parameter: ParameterInfo { non_linear: DAC_Q },
+            title: "Dac: Q".to_string(),
+            short_title: "Q".to_string(),
+            unit_name: "".to_string(),
+            step_count: 0,
+            default_value: 0.005,
+        },
+    );
+}
+
 pub fn make_parameter_info() -> HashMap<SoyBoyParameter, ParameterDef> {
     let mut params = HashMap::new();
 
@@ -610,6 +662,8 @@ pub fn make_parameter_info() -> HashMap<SoyBoyParameter, ParameterDef> {
     make_wavetable_oscillator_parameters(&mut params);
 
     make_envelope_generator_parameters(&mut params);
+
+    make_dac_parameters(&mut params);
 
     params
 }

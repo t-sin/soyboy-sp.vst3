@@ -1,4 +1,4 @@
-use crate::soyboy::types::i4;
+use crate::soyboy::{types::i4, Parametric, SoyBoyParameter};
 
 pub struct DAConverter {
     freq: f64,
@@ -12,7 +12,7 @@ pub struct DAConverter {
     b0: f64,
     b1: f64,
     b2: f64,
-    initialized: bool,
+    calculated_coefficient: bool,
 }
 
 impl DAConverter {
@@ -29,7 +29,7 @@ impl DAConverter {
             b0: 0.0,
             b1: 0.0,
             b2: 0.0,
-            initialized: false,
+            calculated_coefficient: false,
         }
     }
 
@@ -49,9 +49,9 @@ impl DAConverter {
     }
 
     pub fn process(&mut self, sample_rate: f64, input: i4) -> f64 {
-        if !self.initialized {
+        if !self.calculated_coefficient {
             self.calculate_coefficient(sample_rate);
-            self.initialized = true;
+            self.calculated_coefficient = true;
         }
 
         let input: f64 = input.into();
@@ -70,5 +70,29 @@ impl DAConverter {
         self.output_buf[0] = output;
 
         output
+    }
+}
+
+impl Parametric<SoyBoyParameter> for DAConverter {
+    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
+        match param {
+            SoyBoyParameter::DacFreq => {
+                self.calculated_coefficient = false;
+                self.freq = value;
+            }
+            SoyBoyParameter::DacQ => {
+                self.calculated_coefficient = false;
+                self.q = value;
+            }
+            _ => (),
+        }
+    }
+
+    fn get_param(&self, param: &SoyBoyParameter) -> f64 {
+        match param {
+            SoyBoyParameter::DacFreq => self.freq,
+            SoyBoyParameter::DacQ => self.q,
+            _ => 0.0,
+        }
     }
 }

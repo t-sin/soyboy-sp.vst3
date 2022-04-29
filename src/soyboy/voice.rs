@@ -131,6 +131,8 @@ impl Parametric<SoyBoyParameter> for VoiceUnit {
             SoyBoyParameter::EgRelease => self.envelope_gen.set_param(param, value),
             SoyBoyParameter::OscSqDuty => self.square_osc.set_param(param, value),
             SoyBoyParameter::OscNsInterval => self.noise_osc.set_param(param, value),
+            SoyBoyParameter::DacFreq => self.dac.set_param(param, value),
+            SoyBoyParameter::DacQ => self.dac.set_param(param, value),
             _ => (),
         }
     }
@@ -154,6 +156,8 @@ impl Parametric<SoyBoyParameter> for VoiceUnit {
             SoyBoyParameter::EgRelease => self.envelope_gen.get_param(param),
             SoyBoyParameter::OscSqDuty => self.square_osc.get_param(param),
             SoyBoyParameter::OscNsInterval => self.noise_osc.get_param(param),
+            SoyBoyParameter::DacFreq => self.dac.get_param(param),
+            SoyBoyParameter::DacQ => self.dac.get_param(param),
             _ => 0.0,
         }
     }
