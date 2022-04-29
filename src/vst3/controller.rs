@@ -28,7 +28,8 @@ use vst3_sys::{
 use crate::gui::GUIEvent;
 use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
 use crate::vst3::{
-    common::ControllerConnection, gui::SoyBoyVST3GUI, message::Vst3Message, plugin_data, utils,
+    common, common::ControllerConnection, gui::SoyBoyVST3GUI, message::Vst3Message, plugin_data,
+    utils,
 };
 
 #[VST3(implements(IEditController, IUnitInfo, IMidiMapping, IConnectionPoint))]
@@ -305,7 +306,7 @@ impl IEditController for SoyBoyController {
 
             let context = self.context.borrow();
             let context = context.as_ref().unwrap();
-            let host = Arc::new(utils::get_host_app(context));
+            let host = Arc::new(common::get_host_app(context));
 
             let conn =
                 ControllerConnection::new(self.processor.borrow().as_ref().unwrap().clone(), host);

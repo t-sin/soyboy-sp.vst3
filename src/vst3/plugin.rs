@@ -4,6 +4,8 @@ use std::convert::TryFrom;
 use std::mem;
 use std::os::raw::c_void;
 use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time;
 
 use vst3_com::{interfaces::IUnknown, sys::GUID, IID};
 use vst3_sys::{
@@ -26,7 +28,56 @@ use crate::soyboy::{
     parameters::{Normalizable, ParameterDef, Parametric, SoyBoyParameter},
     AudioProcessor, SoyBoy,
 };
-use crate::vst3::{controller::SoyBoyController, message::Vst3Message, plugin_data, utils};
+use crate::vst3::{
+    common::{send_message, SyncPtr},
+    controller::SoyBoyController,
+    message::Vst3Message,
+    plugin_data, utils,
+};
+
+pub struct PluginTimerThread {
+    handle: RefCell<Option<thread::JoinHandle<()>>>,
+}
+
+impl PluginTimerThread {
+    fn new() -> Self {
+        Self {
+            handle: RefCell::new(None),
+        }
+    }
+
+    fn start_thread(
+        &mut self,
+        host_context: Arc<Mutex<SyncPtr<dyn IUnknown>>>,
+        controller: Arc<Mutex<SyncPtr<dyn IConnectionPoint>>>,
+        waveform: Arc<Mutex<Waveform>>,
+    ) {
+        let waveform = waveform.clone();
+        let context = host_context.clone();
+        let connection = controller.clone();
+
+        let handle = thread::spawn(move || loop {
+            // TODO: don't send if GUI thread is down
+            let wf = waveform.lock().unwrap().clone();
+            send_message(
+                context.clone(),
+                connection.clone(),
+                Vst3Message::WaveformData(wf),
+            );
+
+            // TODO: use constant
+            thread::sleep(time::Duration::from_millis(100));
+        });
+
+        self.handle.replace(Some(handle));
+    }
+
+    fn stop_thread(&mut self) {
+        if let Some(handle) = self.handle.replace(None) {
+            let _ = handle.join();
+        }
+    }
+}
 
 #[VST3(implements(IComponent, IAudioProcessor, IConnectionPoint))]
 pub struct SoyBoyPlugin {
@@ -34,10 +85,10 @@ pub struct SoyBoyPlugin {
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     audio_out: RefCell<BusInfo>,
     event_in: RefCell<BusInfo>,
-    context: Mutex<Option<VstPtr<dyn IUnknown>>>,
-    controller: Mutex<Option<VstPtr<dyn IConnectionPoint>>>,
+    context: RefCell<Option<Arc<Mutex<SyncPtr<dyn IUnknown>>>>>,
+    controller: RefCell<Option<Arc<Mutex<SyncPtr<dyn IConnectionPoint>>>>>,
     waveform: Arc<Mutex<Waveform>>,
-    elapsed_samples: RefCell<u32>,
+    timer_thread: RefCell<PluginTimerThread>,
 }
 
 impl SoyBoyPlugin {
@@ -71,10 +122,10 @@ impl SoyBoyPlugin {
         let soyboy = Mutex::new(SoyBoy::new());
         let audio_out = RefCell::new(utils::make_empty_bus_info());
         let event_in = RefCell::new(utils::make_empty_bus_info());
-        let controller = Mutex::new(None);
-        let context = Mutex::new(None);
+        let context = RefCell::new(None);
+        let controller = RefCell::new(None);
         let waveform = Arc::new(Mutex::new(Waveform::new()));
-        let elapsed_samples = RefCell::new(0);
+        let timer_thread = RefCell::new(PluginTimerThread::new());
 
         SoyBoyPlugin::allocate(
             soyboy,
@@ -84,7 +135,7 @@ impl SoyBoyPlugin {
             context,
             controller,
             waveform,
-            elapsed_samples,
+            timer_thread,
         )
     }
 
@@ -103,22 +154,9 @@ impl SoyBoyPlugin {
     }
 
     fn send_message(&self, msg: Vst3Message) {
-        if let Some(controller) = &*self.controller.lock().unwrap() {
-            if let Some(context) = &*self.context.lock().unwrap() {
-                let host = utils::get_host_app(context).obj();
-
-                let msg = msg.allocate(&host);
-                if let Some(msg) = msg {
-                    unsafe {
-                        let msg = std::mem::transmute::<
-                            VstPtr<dyn IMessage>,
-                            SharedVstPtr<dyn IMessage>,
-                        >(msg.obj());
-                        controller.notify(msg);
-                    }
-                } else {
-                    println!("SoyBoyPlugin::send_message(): allocation failed");
-                }
+        if let Some(context) = self.context.borrow_mut().clone() {
+            if let Some(controller) = self.controller.borrow_mut().clone() {
+                send_message(context, controller, msg);
             }
         }
     }
@@ -131,7 +169,8 @@ impl IPluginBase for SoyBoyPlugin {
         }
 
         let context: VstPtr<dyn IUnknown> = VstPtr::shared(host_context as *mut _).unwrap();
-        *self.context.lock().unwrap() = Some(context);
+        let context = SyncPtr::new(context);
+        self.context.replace(Some(Arc::new(Mutex::new(context))));
 
         for param in SoyBoyParameter::iter() {
             if let Some(sp) = self.param_defs.get(&param) {
@@ -151,6 +190,8 @@ impl IPluginBase for SoyBoyPlugin {
     unsafe fn terminate(&self) -> tresult {
         #[cfg(debug_assertions)]
         println!("SoyBoyPlugin::terminate()");
+
+        self.timer_thread.borrow_mut().stop_thread();
 
         kResultOk
     }
@@ -337,6 +378,16 @@ impl IAudioProcessor for SoyBoyPlugin {
     }
 
     unsafe fn setup_processing(&self, _setup: *const ProcessSetup) -> tresult {
+        if let Some(context) = &*self.context.borrow_mut() {
+            if let Some(controller) = &*self.controller.borrow_mut() {
+                self.timer_thread.borrow_mut().start_thread(
+                    context.clone(),
+                    controller.clone(),
+                    self.waveform.clone(),
+                );
+            }
+        }
+
         kResultOk
     }
 
@@ -448,17 +499,6 @@ impl IAudioProcessor for SoyBoyPlugin {
             _ => unreachable!(),
         }
 
-        {
-            *self.elapsed_samples.borrow_mut() += num_samples as u32;
-        }
-        let elapsed = *self.elapsed_samples.borrow();
-        let samples_a_frame = (sample_rate / 30.0) as u32;
-        if elapsed > samples_a_frame {
-            *self.elapsed_samples.borrow_mut() = 0;
-            let wf = self.waveform.borrow_mut().clone();
-            self.send_message(Vst3Message::WaveformData(wf));
-        }
-
         kResultOk
     }
 }
@@ -469,7 +509,8 @@ impl IConnectionPoint for SoyBoyPlugin {
         println!("IConnectionPoint::connect() on SoyBoyPlugin");
 
         let other = other.upgrade().unwrap();
-        *self.controller.lock().unwrap() = Some(other);
+        let other = SyncPtr::new(other);
+        self.controller.replace(Some(Arc::new(Mutex::new(other))));
         #[cfg(debug_assertions)]
         println!("IConnectionPoint::connect() on SoyBoyPlugin: connected");
 
@@ -480,7 +521,7 @@ impl IConnectionPoint for SoyBoyPlugin {
         #[cfg(debug_assertions)]
         println!("IConnectionPoint::disconnect() on SoyBoyPlugin");
 
-        *self.controller.lock().unwrap() = None;
+        self.controller.replace(None);
         kResultOk
     }
 

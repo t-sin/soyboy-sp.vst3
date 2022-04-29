@@ -1,36 +1,17 @@
 use std::{
     ffi::CStr,
     os::raw::{c_char, c_short, c_void},
-    ptr::{copy_nonoverlapping, null_mut},
+    ptr::copy_nonoverlapping,
 };
 use widestring::U16CString;
 
-use vst3_com::{interfaces::IUnknown, ComInterface};
 use vst3_sys::{
-    base::{kResultOk, FIDString},
+    base::FIDString,
     vst::{
         BusDirections, BusFlags, BusInfo, BusTypes, DataEvent, Event, EventData, EventTypes,
-        IHostApplication, MediaTypes, ParameterInfo, String128, TChar,
+        MediaTypes, ParameterInfo, String128, TChar,
     },
-    VstPtr,
 };
-
-use super::common::ComPtr;
-
-pub fn get_host_app(context: &VstPtr<dyn IUnknown>) -> ComPtr<dyn IHostApplication> {
-    let host_iid = <dyn IHostApplication as ComInterface>::IID;
-    let mut host_ptr: *mut c_void = null_mut();
-
-    let result = unsafe { context.query_interface(&host_iid as *const _, &mut host_ptr as *mut _) };
-
-    if result != kResultOk {
-        panic!("host context is not implemented IHostApplication");
-    }
-
-    let host_obj = unsafe { VstPtr::shared(host_ptr as *mut _).unwrap() };
-
-    ComPtr::new(host_ptr, host_obj)
-}
 
 pub unsafe fn strcpy(src: &str, dst: *mut c_char) {
     copy_nonoverlapping(src.as_ptr() as *const c_void as *const _, dst, src.len());
