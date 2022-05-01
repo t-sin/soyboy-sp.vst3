@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::convert::TryFrom;
 use std::mem;
 use std::os::raw::c_void;
@@ -49,13 +49,27 @@ impl PluginTimerThread {
         host_context: Arc<Mutex<SyncPtr<dyn IUnknown>>>,
         controller: Arc<Mutex<SyncPtr<dyn IConnectionPoint>>>,
         waveform: Arc<Mutex<Waveform>>,
+        queue: Arc<Mutex<VecDeque<Vst3Message>>>,
     ) {
         let config = config.clone();
-        let waveform = waveform.clone();
         let context = host_context.clone();
         let connection = controller.clone();
+        let waveform = waveform.clone();
+        let queue = queue.clone();
 
         let handle = thread::spawn(move || loop {
+            {
+                let mut queue = queue.lock().unwrap();
+                loop {
+                    match queue.pop_front() {
+                        Some(msg) => {
+                            vst3_utils::send_message(context.clone(), connection.clone(), msg)
+                        }
+                        None => break,
+                    }
+                }
+            }
+
             if config.lock().unwrap().waveform_view_enabled {
                 let wf = waveform.lock().unwrap().clone();
                 vst3_utils::send_message(
@@ -94,6 +108,7 @@ pub struct SoyBoyPlugin {
     context: RefCell<Option<Arc<Mutex<SyncPtr<dyn IUnknown>>>>>,
     controller: RefCell<Option<Arc<Mutex<SyncPtr<dyn IConnectionPoint>>>>>,
     waveform: Arc<Mutex<Waveform>>,
+    event_queue: Arc<Mutex<VecDeque<Vst3Message>>>,
     timer_thread: RefCell<PluginTimerThread>,
 }
 
@@ -132,6 +147,7 @@ impl SoyBoyPlugin {
         let context = RefCell::new(None);
         let controller = RefCell::new(None);
         let waveform = Arc::new(Mutex::new(Waveform::new()));
+        let event_queue = Arc::new(Mutex::new(VecDeque::new()));
         let timer_thread = RefCell::new(PluginTimerThread::new());
 
         SoyBoyPlugin::allocate(
@@ -143,6 +159,7 @@ impl SoyBoyPlugin {
             context,
             controller,
             waveform,
+            event_queue,
             timer_thread,
         )
     }
@@ -393,6 +410,7 @@ impl IAudioProcessor for SoyBoyPlugin {
                     context.clone(),
                     controller.clone(),
                     self.waveform.clone(),
+                    self.event_queue.clone(),
                 );
             }
         }
@@ -454,7 +472,10 @@ impl IAudioProcessor for SoyBoyPlugin {
                 if input_events.get_event(c, &mut e) == kResultOk {
                     match raw_utils::as_event_type(e.type_) {
                         Some(EventTypes::kNoteOnEvent) => {
-                            self.send_message(Vst3Message::NoteOn);
+                            self.event_queue
+                                .lock()
+                                .unwrap()
+                                .push_back(Vst3Message::NoteOn);
                             soyboy.trigger(&Event::NoteOn {
                                 note: e.event.note_on.pitch as u16,
                                 velocity: e.event.note_on.velocity as f64,
