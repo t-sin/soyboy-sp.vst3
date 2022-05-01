@@ -6,9 +6,10 @@ pub struct i4(u8);
 
 impl i4 {
     pub const MIN: u8 = 0;
-    pub const MAX: u8 = 2u8.pow(4);
-    pub const SIGNED_MIN: i8 = i4::MAX as i8 / 2 * -1;
-    pub const SIGNED_MAX: i8 = i4::MAX as i8 / 2 - 1;
+    pub const MAX: u8 = 2u8.pow(4) - 1;
+    pub const LEVELS: u8 = 2u8.pow(4);
+    pub const SIGNED_MIN: i8 = i4::LEVELS as i8 / 2 * -1;
+    pub const SIGNED_MAX: i8 = i4::LEVELS as i8 / 2 - 1;
 }
 
 impl PartialEq for i4 {
