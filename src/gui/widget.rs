@@ -795,8 +795,8 @@ impl WaveTableEditor {
 
     pub fn set_wavetable(&mut self, samples: &[i4; constants::WAVETABLE_SIZE]) {
         for (i, v) in self.values.iter_mut().enumerate() {
-            let i8v: i8 = samples[i].into();
-            *v = (i8v - i4::SIGNED_MIN) as f64;
+            let s: i8 = samples[i].into();
+            *v = (s + i4::SIGNED_MIN.abs()) as f64 / i4::LEVELS as f64;
         }
     }
 
