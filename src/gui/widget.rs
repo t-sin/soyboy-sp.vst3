@@ -944,8 +944,8 @@ impl Behavior for Oscilloscope {
                 }
 
                 let i = i as f32;
-                let s1 = self.signals[idx] as f32;
-                let s2 = self.signals[idx2] as f32;
+                let s1 = -self.signals[idx] as f32;
+                let s2 = -self.signals[idx2] as f32;
                 let p1 = egui::pos2(self.pos.x + i * dx, s1 * h + self.pos.y + hh);
                 let p2 = egui::pos2(self.pos.x + (i + 1.0) * dx, s2 * h + self.pos.y + hh);
 
