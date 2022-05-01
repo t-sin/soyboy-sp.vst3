@@ -33,8 +33,8 @@ impl WaveTableOscillator {
 
     fn randomize_table(&mut self) {
         for e in self.table.iter_mut() {
-            let v = random::<f64>() * i4::MAX as f64;
-            *e = i4::from(v as u8);
+            let v = (random::<f64>() * i4::MAX as f64) as u8;
+            *e = i4::from(v);
         }
     }
 
@@ -42,8 +42,8 @@ impl WaveTableOscillator {
         let mut phase: f64 = 0.0;
         for e in self.table.iter_mut() {
             let v = (phase * 2.0 * std::f64::consts::PI).sin();
-            let v = (v + 1.0) * i4::SIGNED_MIN.abs() as f64;
-            *e = i4::from(v as u8);
+            let v = ((v + 1.0) * i4::SIGNED_MIN.abs() as f64) as u8;
+            *e = i4::from(v);
             phase += 1.0 / constants::WAVETABLE_SIZE as f64;
         }
     }
