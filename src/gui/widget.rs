@@ -804,7 +804,7 @@ impl WaveTableEditor {
         let color = egui::Color32::from_rgb(0x4f, 0x5e, 0x4d);
 
         if ui.is_rect_visible(rect) {
-            let value = ((value * (i4::MAX as f64)) as usize) as f64 / (i4::MAX as f64);
+            let value = ((value * (i4::LEVELS as f64)) as usize) as f64 / (i4::LEVELS as f64);
 
             let slider_height = 166.0;
             let center_y = rect.min.y + rect.size().y / 2.0;
@@ -839,23 +839,25 @@ impl Behavior for WaveTableEditor {
         ui.set_clip_rect(rect);
         let response = ui.allocate_rect(rect, egui::Sense::drag());
 
+        let size = egui::vec2(6.0, 6.0 + 6.0 + 166.0);
+        let size_y = size.y - 6.0 - 6.0;
         for (i, value) in self.values.iter_mut().enumerate() {
-            let pos = self.pos + egui::vec2(6.0, 8.0) + egui::vec2(8.0 * i as f32, 0.0);
-            let size = egui::vec2(6.0, 166.0);
+            let pos = self.pos + egui::vec2(6.0, 2.0) + egui::vec2(8.0 * i as f32, 0.0);
             let slider_rect = egui::Rect::from_two_pos(pos, pos + size);
 
             if response.dragged_by(egui::PointerButton::Primary) {
                 if let Some(pointer_pos) = response.hover_pos() {
                     if slider_rect.contains(pointer_pos) {
-                        let pointer_pos = pointer_pos - pos.to_vec2();
-                        let new_value = (size.y - pointer_pos.y) / size.y;
-                        *value = num::clamp(new_value as f64, 0.0, 1.0);
+                        let pointer_pos = pointer_pos - pos.to_vec2() - egui::vec2(0.0, 6.0);
+                        let new_value = (size_y - pointer_pos.y - 3.0) / size_y;
 
-                        let v = (*value * i4::MAX as f64) as i8 + i4::SIGNED_MIN;
+                        let v = i4::from((new_value * i4::LEVELS as f32) as u8);
                         self.controller_connection
                             .lock()
                             .unwrap()
-                            .send_message(Vst3Message::SetWaveTable(i, i4::from(v)));
+                            .send_message(Vst3Message::SetWaveTable(i, v));
+
+                        *value = num::clamp(new_value as f64, 0.0, 1.0);
                     }
                 }
             }
