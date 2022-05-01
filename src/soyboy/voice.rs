@@ -1,17 +1,20 @@
 use std::convert::TryFrom;
 
-use crate::soyboy::{
-    dac::DAConverter,
-    envelope_generator::EnvelopeGenerator,
-    event::{Event, Triggered},
-    noise::NoiseOscillator,
-    parameters::{Parametric, SoyBoyParameter},
-    square_wave::SquareWaveOscillator,
-    stutter::NoteStutter,
-    sweep::SweepOscillator,
-    types::AudioProcessor,
-    utils::{frequency_from_note_number, ratio_from_cents},
-    wave_table::WaveTableOscillator,
+use crate::{
+    common::{constants, i4},
+    soyboy::{
+        dac::DAConverter,
+        envelope_generator::EnvelopeGenerator,
+        event::{Event, Triggered},
+        noise::NoiseOscillator,
+        parameters::{Parametric, SoyBoyParameter},
+        square_wave::SquareWaveOscillator,
+        stutter::NoteStutter,
+        sweep::SweepOscillator,
+        types::AudioProcessor,
+        utils::{frequency_from_note_number, ratio_from_cents},
+        wave_table::WaveTableOscillator,
+    },
 };
 
 #[derive(Copy, Clone)]
@@ -72,7 +75,7 @@ impl VoiceUnit {
         }
     }
 
-    pub fn get_wavetable(&self) -> [i8; 32] {
+    pub fn get_wavetable(&self) -> [i4; constants::WAVETABLE_SIZE] {
         self.wavetable_osc.get_wavetable()
     }
 }
@@ -190,7 +193,8 @@ impl AudioProcessor<f64> for VoiceUnit {
         };
         let env = self.envelope_gen.process(sample_rate);
 
-        self.dac.process(sample_rate, osc * env)
+        let v = self.dac.process(sample_rate, osc * env);
+        v
     }
 
     fn set_freq(&mut self, _freq: f64) {}

@@ -1,10 +1,12 @@
 use rand::prelude::*;
 
-use crate::soyboy::{
-    constants::{WAVETABLE_SIZE, WAVETABLE_SIZE_F64},
-    event::{Event, Triggered},
-    parameters::{Parametric, SoyBoyParameter},
-    types::{i4, AudioProcessor},
+use crate::{
+    common::{constants, i4},
+    soyboy::{
+        event::{Event, Triggered},
+        parameters::{Parametric, SoyBoyParameter},
+        types::AudioProcessor,
+    },
 };
 
 pub struct WaveTableOscillator {
@@ -12,7 +14,7 @@ pub struct WaveTableOscillator {
     pitch: f64,
     pub freq: f64,
 
-    table: [i4; WAVETABLE_SIZE],
+    table: [i4; constants::WAVETABLE_SIZE],
 }
 
 impl WaveTableOscillator {
@@ -22,7 +24,7 @@ impl WaveTableOscillator {
             freq: 0.0,
             pitch: 0.0,
 
-            table: [i4::from(0.0); WAVETABLE_SIZE],
+            table: [i4::from(0.0); constants::WAVETABLE_SIZE],
         };
 
         osc.initialize_table();
@@ -31,25 +33,26 @@ impl WaveTableOscillator {
 
     fn randomize_table(&mut self) {
         for e in self.table.iter_mut() {
-            let v = (random::<f64>() * 2.0 - 1.0) * i4::max();
-            *e = i4::from(v);
+            let v = random::<f64>() * i4::MAX as f64;
+            *e = i4::from(v as u8);
         }
     }
 
     fn initialize_table(&mut self) {
         let mut phase: f64 = 0.0;
         for e in self.table.iter_mut() {
-            let v = (phase * 2.0 * std::f64::consts::PI).sin() * i4::max();
-            *e = i4::from(v);
-            phase += 1.0 / WAVETABLE_SIZE as f64;
+            let v = (phase * 2.0 * std::f64::consts::PI).sin();
+            let v = (v + 1.0) * i4::SIGNED_MIN.abs() as f64;
+            *e = i4::from(v as u8);
+            phase += 1.0 / constants::WAVETABLE_SIZE as f64;
         }
     }
 
-    pub fn get_wavetable(&self) -> [i8; 32] {
-        let mut table: [i8; WAVETABLE_SIZE] = [0; WAVETABLE_SIZE];
+    pub fn get_wavetable(&self) -> [i4; constants::WAVETABLE_SIZE] {
+        let mut table: [i4; constants::WAVETABLE_SIZE] = [i4::from(0i8); constants::WAVETABLE_SIZE];
 
         for (i, v) in table.iter_mut().enumerate() {
-            *v = self.table[i].into();
+            *v = self.table[i];
         }
 
         table
@@ -64,8 +67,9 @@ impl Triggered for WaveTableOscillator {
             }
             Event::SetWaveTable { idx, value } => {
                 let idx = *idx;
-                if idx < WAVETABLE_SIZE {
-                    self.table[idx] = i4::from(*value as f64 * i4::max());
+                if idx < constants::WAVETABLE_SIZE {
+                    println!("Wavetable::set_sample({}, {:?})", idx, value);
+                    self.table[idx] = *value;
                 }
             }
             Event::ResetWaveTableAsSine => {
@@ -91,8 +95,9 @@ impl AudioProcessor<i4> for WaveTableOscillator {
     fn process(&mut self, sample_rate: f64) -> i4 {
         let v = self.table[self.phase as usize];
 
-        let phase_diff = ((self.freq * self.pitch) / sample_rate) * WAVETABLE_SIZE_F64;
-        self.phase = (self.phase + phase_diff) % WAVETABLE_SIZE_F64;
+        let wt_size = constants::WAVETABLE_SIZE as f64;
+        let phase_diff = ((self.freq * self.pitch) / sample_rate) * wt_size;
+        self.phase = (self.phase + phase_diff) % wt_size;
 
         v
     }

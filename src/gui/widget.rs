@@ -5,7 +5,7 @@ use std::time;
 
 use egui_glow::egui_winit::{egui, egui::Widget};
 
-use crate::common::{constants, Vst3Message};
+use crate::common::{constants, i4, Vst3Message};
 use crate::gui::{images::Image, types::*};
 use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
 use crate::ControllerConnection;
@@ -772,17 +772,13 @@ impl Behavior for ParameterSelector {
 }
 
 pub struct WaveTableEditor {
-    values: [f64; Self::SAMPLE_NUM],
+    values: [f64; constants::WAVETABLE_SIZE],
     border_img: Image,
     pos: egui::Pos2,
     controller_connection: Arc<Mutex<ControllerConnection>>,
 }
 
 impl WaveTableEditor {
-    pub const SAMPLE_NUM: usize = 32;
-    const VALUE_HALF_MAX: u8 = 16;
-    const VALUE_MAX: u8 = 32;
-
     pub fn new(
         border_img: Image,
         x: f32,
@@ -790,16 +786,17 @@ impl WaveTableEditor {
         controller_connection: Arc<Mutex<ControllerConnection>>,
     ) -> Self {
         Self {
-            values: [1.0; Self::SAMPLE_NUM],
+            values: [1.0; constants::WAVETABLE_SIZE],
             border_img,
             pos: egui::pos2(x, y),
             controller_connection,
         }
     }
 
-    pub fn set_wavetable(&mut self, samples: &[i8; Self::SAMPLE_NUM]) {
+    pub fn set_wavetable(&mut self, samples: &[i4; constants::WAVETABLE_SIZE]) {
         for (i, v) in self.values.iter_mut().enumerate() {
-            *v = (samples[i] + Self::VALUE_HALF_MAX as i8) as f64 / Self::VALUE_MAX as f64;
+            let i8v: i8 = samples[i].into();
+            *v = (i8v - i4::SIGNED_MIN) as f64;
         }
     }
 
@@ -807,8 +804,7 @@ impl WaveTableEditor {
         let color = egui::Color32::from_rgb(0x4f, 0x5e, 0x4d);
 
         if ui.is_rect_visible(rect) {
-            let value =
-                ((value * (Self::VALUE_MAX as f64)) as usize) as f64 / (Self::VALUE_MAX as f64);
+            let value = ((value * (i4::MAX as f64)) as usize) as f64 / (i4::MAX as f64);
 
             let slider_height = 166.0;
             let center_y = rect.min.y + rect.size().y / 2.0;
@@ -855,12 +851,11 @@ impl Behavior for WaveTableEditor {
                         let new_value = (size.y - pointer_pos.y) / size.y;
                         *value = num::clamp(new_value as f64, 0.0, 1.0);
 
-                        let v =
-                            (*value * Self::VALUE_MAX as f64 - Self::VALUE_HALF_MAX as f64) as i8;
+                        let v = (*value * i4::MAX as f64) as i8 + i4::SIGNED_MIN;
                         self.controller_connection
                             .lock()
                             .unwrap()
-                            .send_message(Vst3Message::SetWaveTable(i, v));
+                            .send_message(Vst3Message::SetWaveTable(i, i4::from(v)));
                     }
                 }
             }

@@ -1,10 +1,13 @@
 use std::convert::TryFrom;
 
-use crate::soyboy::{
-    event::{Event, Triggered},
-    parameters::{Parametric, SoyBoyParameter},
-    types::{i4, AudioProcessor},
-    utils::pulse,
+use crate::{
+    common::i4,
+    soyboy::{
+        event::{Event, Triggered},
+        parameters::{Parametric, SoyBoyParameter},
+        types::AudioProcessor,
+        utils::pulse,
+    },
 };
 
 #[derive(Debug, Copy, Clone)]
@@ -79,7 +82,7 @@ impl Triggered for SquareWaveOscillator {
 impl AudioProcessor<i4> for SquareWaveOscillator {
     fn process(&mut self, sample_rate: f64) -> i4 {
         let signal = if self.freq == 0.0 {
-            i4::from(i4::zero())
+            i4::from(0i8)
         } else {
             pulse(self.phase, self.duty.to_ratio())
         };

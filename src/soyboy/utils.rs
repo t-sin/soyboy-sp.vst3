@@ -1,4 +1,4 @@
-use crate::soyboy::types::i4;
+use crate::common::i4;
 
 pub fn linear(x: f64, slope: f64) -> f64 {
     x * slope
@@ -14,9 +14,9 @@ pub fn pulse(phase: f64, duty: f64) -> i4 {
     let ph = phase % 1.0;
 
     if ph < duty {
-        i4::from(i4::min())
+        i4::from(i4::SIGNED_MIN)
     } else {
-        i4::from(i4::max())
+        i4::from(i4::SIGNED_MAX)
     }
 }
 

@@ -1,4 +1,3 @@
-mod constants;
 mod dac;
 mod envelope_generator;
 mod noise;
@@ -16,10 +15,13 @@ pub mod parameters;
 pub use parameters::*;
 pub use types::*;
 
-use crate::soyboy::{
-    event::{Event, Triggered},
-    utils::level,
-    voice::VoiceUnit,
+use crate::{
+    common::{constants, i4},
+    soyboy::{
+        event::{Event, Triggered},
+        utils::level,
+        voice::VoiceUnit,
+    },
 };
 
 pub type Signal = (f64, f64);
@@ -39,7 +41,7 @@ impl SoyBoy {
         }
     }
 
-    pub fn get_wavetable(&self) -> [i8; 32] {
+    pub fn get_wavetable(&self) -> [i4; constants::WAVETABLE_SIZE] {
         self.voice.get_wavetable()
     }
 }

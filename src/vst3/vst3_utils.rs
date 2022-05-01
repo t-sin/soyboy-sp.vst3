@@ -12,7 +12,7 @@ use vst3_sys::{
 };
 
 use super::raw_utils::fidstring_to_string;
-use crate::common::{constants, Vst3Message, Waveform};
+use crate::common::{constants, i4, Vst3Message, Waveform};
 
 pub struct SyncPtr<I: ComInterface + ?Sized> {
     ptr: VstPtr<I>,
@@ -108,8 +108,11 @@ impl Vst3Message {
 
                 let table_ptr = table_ptr as *mut i8;
                 let table_src = unsafe { std::slice::from_raw_parts(table_ptr, size as usize) };
-                let mut table: [i8; 32] = [0; 32];
-                table.as_mut_slice().copy_from_slice(&table_src[..]);
+                let mut table: [i4; constants::WAVETABLE_SIZE] =
+                    [i4::from(0i8); constants::WAVETABLE_SIZE];
+                for (i, v) in table_src.iter().enumerate() {
+                    table[i] = i4::from(*v);
+                }
 
                 Some(Vst3Message::WaveTableData(table))
             }
@@ -130,7 +133,7 @@ impl Vst3Message {
                         .get_int(id_val.as_ptr(), &mut val as *mut _);
                 };
 
-                Some(Vst3Message::SetWaveTable(idx as usize, val as i8))
+                Some(Vst3Message::SetWaveTable(idx as usize, i4::from(val as i8)))
             }
             "vst3:waveform-data" => {
                 let attr = unsafe { msg.get_attributes() };
@@ -182,12 +185,17 @@ impl Vst3Message {
             Vst3Message::RandomizeWaveTable => {
                 unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
             }
-            Vst3Message::WaveTableData(table) => {
+            Vst3Message::WaveTableData(i4table) => {
                 unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
 
                 let attr = unsafe { msg.get_attributes() };
                 let attr_id = CString::new("table").unwrap();
+                let mut table: [i8; constants::WAVETABLE_SIZE] = [0; constants::WAVETABLE_SIZE];
                 let size = table.len() as u32;
+
+                for (i, i4v) in i4table.iter().enumerate() {
+                    table[i] = (*i4v).into();
+                }
 
                 unsafe {
                     attr.upgrade().unwrap().set_binary(
@@ -206,14 +214,14 @@ impl Vst3Message {
                 let attr = unsafe { msg.get_attributes() };
                 let id_idx = CString::new("index").unwrap();
                 let id_val = CString::new("value").unwrap();
+                let val: i8 = (*val).into();
+                let val = val as i64;
 
                 unsafe {
                     attr.upgrade()
                         .unwrap()
                         .set_int(id_idx.as_ptr(), *idx as i64);
-                    attr.upgrade()
-                        .unwrap()
-                        .set_int(id_val.as_ptr(), *val as i64);
+                    attr.upgrade().unwrap().set_int(id_val.as_ptr(), val);
                 };
             }
             Vst3Message::WaveformData(wf) => {

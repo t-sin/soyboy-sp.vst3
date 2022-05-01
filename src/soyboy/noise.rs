@@ -1,9 +1,12 @@
 use rand::prelude::*;
 
-use crate::soyboy::{
-    event::{Event, Triggered},
-    parameters::{Parametric, SoyBoyParameter},
-    types::{i4, AudioProcessor},
+use crate::{
+    common::i4,
+    soyboy::{
+        event::{Event, Triggered},
+        parameters::{Parametric, SoyBoyParameter},
+        types::AudioProcessor,
+    },
 };
 
 const TABLE_SIZE: usize = 1024 * 8;
@@ -18,8 +21,9 @@ pub struct NoiseOscillator {
 impl NoiseOscillator {
     pub fn new() -> Self {
         let mut table = [i4::from(0.0); TABLE_SIZE];
-        for v in table.iter_mut() {
-            *v = i4::from(i4::range() * random::<f64>() - i4::min().abs());
+        for e in table.iter_mut() {
+            let v = random::<f64>() * 2.0 - 1.0;
+            *e = i4::from(v);
         }
 
         NoiseOscillator {

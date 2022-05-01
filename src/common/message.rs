@@ -1,6 +1,7 @@
 use std::fmt;
 
 use super::waveform::Waveform;
+use crate::common::{constants, i4};
 
 pub enum GUIThreadMessage {
     Terminate,
@@ -10,7 +11,7 @@ pub enum GUIThreadMessage {
 pub enum GUIEvent {
     Redraw,
     NoteOn,
-    WaveTableData([i8; 32]),
+    WaveTableData([i4; constants::WAVETABLE_SIZE]),
     WaveformData(Waveform),
 }
 
@@ -19,8 +20,8 @@ pub enum Vst3Message {
     InitializeWaveTable,
     RandomizeWaveTable,
     WaveTableRequested,
-    WaveTableData([i8; 32]),
-    SetWaveTable(usize, i8),
+    WaveTableData([i4; constants::WAVETABLE_SIZE]),
+    SetWaveTable(usize, i4),
     WaveformData(Waveform),
     EnableWaveform,
     DisableWaveform,

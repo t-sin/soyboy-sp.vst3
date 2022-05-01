@@ -1,4 +1,7 @@
-use crate::soyboy::{types::i4, Parametric, SoyBoyParameter};
+use crate::{
+    common::i4,
+    soyboy::{Parametric, SoyBoyParameter},
+};
 
 pub struct DAConverter {
     freq: f64,
@@ -55,7 +58,6 @@ impl DAConverter {
         }
 
         let input: f64 = input.into();
-        let input = input / i4::max();
         let (in0, in1) = (self.input_buf[0], self.input_buf[1]);
         let (out0, out1) = (self.output_buf[0], self.output_buf[1]);
 
