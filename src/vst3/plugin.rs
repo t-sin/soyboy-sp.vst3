@@ -3,6 +3,7 @@ use std::collections::{HashMap, VecDeque};
 use std::convert::TryFrom;
 use std::mem;
 use std::os::raw::c_void;
+use std::ptr::null_mut;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time;
@@ -22,14 +23,15 @@ use vst3_sys::{
     VstPtr, VST3,
 };
 
-use crate::common::{constants, PluginConfig, Vst3Message, Waveform};
+use crate::common::{constants, Vst3Message, Waveform};
 use crate::soyboy::{
     event::{Event, Triggered},
     parameters::{Normalizable, ParameterDef, Parametric, SoyBoyParameter},
     AudioProcessor, SoyBoy,
 };
 use crate::vst3::{
-    controller::SoyBoyController, plugin_data, raw_utils, vst3_utils, vst3_utils::SyncPtr,
+    controller::SoyBoyController, plugin_config::PluginConfigV01, plugin_data, raw_utils,
+    vst3_utils, vst3_utils::SyncPtr,
 };
 
 pub struct PluginTimerThread {
@@ -45,7 +47,7 @@ impl PluginTimerThread {
 
     fn start_thread(
         &mut self,
-        config: Arc<Mutex<PluginConfig>>,
+        config: Arc<Mutex<PluginConfigV01>>,
         host_context: Arc<Mutex<SyncPtr<dyn IUnknown>>>,
         controller: Arc<Mutex<SyncPtr<dyn IConnectionPoint>>>,
         waveform: Arc<Mutex<Waveform>>,
@@ -101,7 +103,7 @@ impl PluginTimerThread {
 #[VST3(implements(IComponent, IAudioProcessor, IConnectionPoint))]
 pub struct SoyBoyPlugin {
     soyboy: Mutex<SoyBoy>,
-    config: Arc<Mutex<PluginConfig>>,
+    config: Arc<Mutex<PluginConfigV01>>,
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     audio_out: RefCell<BusInfo>,
     event_in: RefCell<BusInfo>,
@@ -141,7 +143,7 @@ impl SoyBoyPlugin {
 
     pub unsafe fn new(param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Box<Self> {
         let soyboy = Mutex::new(SoyBoy::new());
-        let config = Arc::new(Mutex::new(PluginConfig::default()));
+        let config = Arc::new(Mutex::new(PluginConfigV01::default()));
         let audio_out = RefCell::new(raw_utils::make_empty_bus_info());
         let event_in = RefCell::new(raw_utils::make_empty_bus_info());
         let context = RefCell::new(None);
@@ -196,15 +198,6 @@ impl IPluginBase for SoyBoyPlugin {
         let context: VstPtr<dyn IUnknown> = VstPtr::shared(host_context as *mut _).unwrap();
         let context = SyncPtr::new(context);
         self.context.replace(Some(Arc::new(Mutex::new(context))));
-
-        for param in SoyBoyParameter::iter() {
-            if let Some(sp) = self.param_defs.get(&param) {
-                self.soyboy
-                    .lock()
-                    .unwrap()
-                    .set_param(&param, sp.default_value);
-            }
-        }
 
         self.init_event_in();
         self.init_audio_out();
@@ -320,21 +313,67 @@ impl IComponent for SoyBoyPlugin {
             return kResultFalse;
         }
         let state = state.unwrap();
-
         let mut num_bytes_read = 0;
-        for param in SoyBoyParameter::iter() {
-            if let Some(p) = self.param_defs.get(&param) {
-                let mut value = 0.0;
-                let ptr = &mut value as *mut f64 as *mut c_void;
 
-                state.read(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_read);
+        let mut config_version: u32 = 0;
+        let result = state.read(
+            &mut config_version as *mut u32 as *mut c_void,
+            mem::size_of::<u32> as i32,
+            null_mut(),
+        );
 
-                self.soyboy
-                    .lock()
-                    .unwrap()
-                    .set_param(&param, p.denormalize(value));
-            } else {
-                return kResultFalse;
+        if result != kResultOk {
+            println!("IAudioProcessor::set_state(): read CONFIG_VERSION failed");
+            {
+                let mut config = self.config.lock().unwrap();
+                let mut soyboy = self.soyboy.lock().unwrap();
+                for param in SoyBoyParameter::iter() {
+                    let def = self.param_defs.get(&param).unwrap();
+                    soyboy.set_param(&param, def.default_value);
+                    config.set_param(&param, def.default_value);
+                }
+            }
+
+            return kResultOk;
+        }
+
+        match config_version {
+            PluginConfigV01::CONFIG_VERSION => {
+                let size = bincode::serialized_size(&PluginConfigV01::default()).unwrap();
+                let mut bytes = vec![0; size as usize];
+
+                state.read(
+                    bytes.as_mut_ptr() as *mut c_void,
+                    size as i32,
+                    &mut num_bytes_read,
+                );
+
+                let decoded = bincode::deserialize(&bytes[..]);
+                if decoded.is_err() {
+                    return kResultFalse;
+                }
+
+                let config: PluginConfigV01 = decoded.unwrap();
+                let mut soyboy = self.soyboy.lock().unwrap();
+                for param in SoyBoyParameter::iter() {
+                    let value = config.get_param(&param);
+                    soyboy.set_param(&param, value);
+                }
+                *self.config.lock().unwrap() = config;
+            }
+            _ => {
+                println!("IAudioProcessor::set_state(): unsupported VST3 state");
+                let mut soyboy = self.soyboy.lock().unwrap();
+                let mut config = self.config.lock().unwrap();
+                println!("config  = {:?}", config);
+                for param in SoyBoyParameter::iter() {
+                    if let Some(sp) = self.param_defs.get(&param) {
+                        soyboy.set_param(&param, sp.default_value);
+                        config.set_param(&param, sp.default_value);
+                    }
+                }
+
+                return kResultOk;
             }
         }
 
@@ -342,6 +381,8 @@ impl IComponent for SoyBoyPlugin {
     }
 
     unsafe fn get_state(&self, state: SharedVstPtr<dyn IBStream>) -> tresult {
+        println!("config  = {:?}", self.config.lock().unwrap());
+
         if state.is_null() {
             return kResultFalse;
         }
@@ -351,18 +392,36 @@ impl IComponent for SoyBoyPlugin {
             return kResultFalse;
         }
         let state = state.unwrap();
+        let config = self.config.lock().unwrap();
+        let config_version = PluginConfigV01::CONFIG_VERSION;
 
-        let mut num_bytes_written = 0;
-        for param in SoyBoyParameter::iter() {
-            if let Some(p) = self.param_defs.get(&param) {
-                let value = self.soyboy.lock().unwrap().get_param(&param);
+        let encoded = bincode::serialize(&*config);
+        if encoded.is_err() {
+            println!("cannot encode configuration. it's a bug!");
+            return kResultFalse;
+        }
+        let bytes = encoded.unwrap();
 
-                let mut value = p.normalize(value);
-                let ptr = &mut value as *mut f64 as *mut c_void;
-                state.write(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_written);
-            } else {
-                return kResultFalse;
-            }
+        let result = state.write(
+            &config_version as *const _ as *const c_void,
+            mem::size_of::<u32>() as i32,
+            null_mut(),
+        );
+
+        if result != kResultOk {
+            println!("cannot write CONFIG_VERSION");
+            return kResultFalse;
+        }
+
+        state.write(
+            bytes.as_ptr() as *const c_void,
+            bytes.len() as i32,
+            null_mut(),
+        );
+
+        if result != kResultOk {
+            println!("cannot write PluginConfigV01");
+            return kResultFalse;
         }
 
         kResultOk

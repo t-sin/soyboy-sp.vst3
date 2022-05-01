@@ -2,6 +2,7 @@ mod controller;
 mod factory;
 mod gui;
 mod plugin;
+mod plugin_config;
 mod plugin_data;
 mod raw_utils;
 mod vst3_utils;

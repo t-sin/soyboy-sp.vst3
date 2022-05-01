@@ -22,6 +22,9 @@ glutin = { git = "https://github.com/t-sin/glutin" }
 egui_extras = { git = "https://github.com/t-sin/egui", features = ["image"] }
 image = { version = "0.24", features = ["png"] }
 
+bincode = "1.3.3"
+serde = "1.0.137"
+
 num = "0.4.0"
 rand = "0.8.4"
 widestring = "0.4.0"

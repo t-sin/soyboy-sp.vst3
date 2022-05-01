@@ -9,6 +9,8 @@ use std::sync::{
     Arc, Mutex,
 };
 
+use bincode;
+
 use vst3_com::{interfaces::IUnknown, sys::GUID};
 use vst3_sys::{
     base::{
@@ -26,8 +28,10 @@ use vst3_sys::{
 };
 
 use crate::common::{GUIEvent, Vst3Message};
-use crate::soyboy::parameters::{Normalizable, ParameterDef, SoyBoyParameter};
-use crate::vst3::{gui::SoyBoyVST3GUI, plugin_data, raw_utils, vst3_utils};
+use crate::soyboy::parameters::{Normalizable, ParameterDef, Parametric, SoyBoyParameter};
+use crate::vst3::{
+    gui::SoyBoyVST3GUI, plugin_config::PluginConfigV01, plugin_data, raw_utils, vst3_utils,
+};
 
 #[VST3(implements(IEditController, IUnitInfo, IMidiMapping, IConnectionPoint))]
 pub struct SoyBoyController {
@@ -161,16 +165,58 @@ impl IEditController for SoyBoyController {
         }
         let state = state.unwrap();
 
-        let mut num_bytes_read = 0;
-        for param in SoyBoyParameter::iter() {
-            let mut value = 0.0;
-            let ptr = &mut value as *mut f64 as *mut c_void;
+        let mut config_version: u32 = 0;
+        let result = state.read(
+            &mut config_version as *mut u32 as *mut c_void,
+            mem::size_of::<u32>() as i32,
+            null_mut(),
+        );
 
-            state.read(ptr, mem::size_of::<f64>() as i32, &mut num_bytes_read);
-            self.param_values
-                .lock()
-                .unwrap()
-                .insert(param as u32, value);
+        if result != kResultOk {
+            println!("IEditController::set_component_state(): read CONFIG_VERSION failed");
+            {
+                let mut param_vals = self.param_values.lock().unwrap();
+                for param in SoyBoyParameter::iter() {
+                    let def = self.param_defs.get(&param).unwrap();
+                    param_vals.insert(param as u32, def.default_value);
+                }
+            }
+
+            return kResultFalse;
+        }
+
+        match config_version {
+            PluginConfigV01::CONFIG_VERSION => {
+                let size = bincode::serialized_size(&PluginConfigV01::default()).unwrap();
+                let mut bytes: Vec<u8> = vec![0; size as usize];
+
+                let result = state.read(bytes.as_mut_ptr() as *mut c_void, size as i32, null_mut());
+
+                if result != kResultOk {
+                    println!("IEditController::set_component_state(): cannot read PluginConfigV01");
+                    return kResultFalse;
+                }
+
+                let decoded = bincode::deserialize(&bytes[..]);
+                if decoded.is_err() {
+                    println!(
+                        "IEditController::set_component_state(): invalid v01 config: {:?}",
+                        decoded
+                    );
+                    return kResultFalse;
+                }
+
+                let config: PluginConfigV01 = decoded.unwrap();
+                let mut param_vals = self.param_values.lock().unwrap();
+                for param in SoyBoyParameter::iter() {
+                    let value = config.get_param(&param);
+                    param_vals.insert(param as u32, value);
+                }
+            }
+            _ => {
+                println!("IEditController::set_component_state(): unsupported VST3 state");
+                return kResultFalse;
+            }
         }
 
         kResultOk
