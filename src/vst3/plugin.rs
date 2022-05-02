@@ -36,12 +36,14 @@ use crate::vst3::{
 
 pub struct PluginTimerThread {
     handle: RefCell<Option<thread::JoinHandle<()>>>,
+    quit: Arc<Mutex<bool>>,
 }
 
 impl PluginTimerThread {
     fn new() -> Self {
         Self {
             handle: RefCell::new(None),
+            quit: Arc::new(Mutex::new(false)),
         }
     }
 
@@ -58,8 +60,13 @@ impl PluginTimerThread {
         let connection = controller.clone();
         let waveform = waveform.clone();
         let queue = queue.clone();
+        let quit = self.quit.clone();
 
         let handle = thread::spawn(move || loop {
+            if *quit.lock().unwrap() {
+                break;
+            }
+
             {
                 let mut queue = queue.lock().unwrap();
                 loop {
@@ -94,8 +101,11 @@ impl PluginTimerThread {
     }
 
     fn stop_thread(&mut self) {
+        *self.quit.lock().unwrap() = true;
+
         if let Some(handle) = self.handle.replace(None) {
-            let _ = handle.join();
+            let res = handle.join();
+            println!("stop_thread(): res = {:?}", res);
         }
     }
 }
