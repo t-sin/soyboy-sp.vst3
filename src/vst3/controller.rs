@@ -174,14 +174,6 @@ impl IEditController for SoyBoyController {
 
         if result != kResultOk {
             println!("IEditController::set_component_state(): read CONFIG_VERSION failed");
-            {
-                let mut param_vals = self.param_values.lock().unwrap();
-                for param in SoyBoyParameter::iter() {
-                    let def = self.param_defs.get(&param).unwrap();
-                    param_vals.insert(param as u32, def.default_value);
-                }
-            }
-
             return kResultFalse;
         }
 
@@ -209,8 +201,9 @@ impl IEditController for SoyBoyController {
                 let config: PluginConfigV01 = decoded.unwrap();
                 let mut param_vals = self.param_values.lock().unwrap();
                 for param in SoyBoyParameter::iter() {
+                    let param_def = self.param_defs.get(&param).unwrap();
                     let value = config.get_param(&param);
-                    param_vals.insert(param as u32, value);
+                    param_vals.insert(param as u32, param_def.normalize(value));
                 }
             }
             _ => {

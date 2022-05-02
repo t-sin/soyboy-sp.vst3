@@ -199,6 +199,18 @@ impl IPluginBase for SoyBoyPlugin {
         let context = SyncPtr::new(context);
         self.context.replace(Some(Arc::new(Mutex::new(context))));
 
+        {
+            let mut soyboy = self.soyboy.lock().unwrap();
+            let mut config = self.config.lock().unwrap();
+
+            for param in SoyBoyParameter::iter() {
+                if let Some(sp) = self.param_defs.get(&param) {
+                    soyboy.set_param(&param, sp.default_value);
+                    config.set_param(&param, sp.default_value);
+                }
+            }
+        }
+
         self.init_event_in();
         self.init_audio_out();
 
@@ -324,16 +336,6 @@ impl IComponent for SoyBoyPlugin {
 
         if result != kResultOk {
             println!("IAudioProcessor::set_state(): read CONFIG_VERSION failed");
-            {
-                let mut config = self.config.lock().unwrap();
-                let mut soyboy = self.soyboy.lock().unwrap();
-                for param in SoyBoyParameter::iter() {
-                    let def = self.param_defs.get(&param).unwrap();
-                    soyboy.set_param(&param, def.default_value);
-                    config.set_param(&param, def.default_value);
-                }
-            }
-
             return kResultOk;
         }
 
@@ -363,17 +365,7 @@ impl IComponent for SoyBoyPlugin {
             }
             _ => {
                 println!("IAudioProcessor::set_state(): unsupported VST3 state");
-                let mut soyboy = self.soyboy.lock().unwrap();
-                let mut config = self.config.lock().unwrap();
-                println!("config  = {:?}", config);
-                for param in SoyBoyParameter::iter() {
-                    if let Some(sp) = self.param_defs.get(&param) {
-                        soyboy.set_param(&param, sp.default_value);
-                        config.set_param(&param, sp.default_value);
-                    }
-                }
-
-                return kResultOk;
+                return kResultFalse;
             }
         }
 
@@ -381,8 +373,6 @@ impl IComponent for SoyBoyPlugin {
     }
 
     unsafe fn get_state(&self, state: SharedVstPtr<dyn IBStream>) -> tresult {
-        println!("config  = {:?}", self.config.lock().unwrap());
-
         if state.is_null() {
             return kResultFalse;
         }
