@@ -8,6 +8,8 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time;
 
+use bincode::Options;
+
 use vst3_com::{interfaces::IUnknown, sys::GUID, IID};
 use vst3_sys::{
     base::{
@@ -335,7 +337,6 @@ impl IComponent for SoyBoyPlugin {
             return kResultFalse;
         }
         let state = state.unwrap();
-        let mut num_bytes_read = 0;
 
         let mut config_version: u32 = 0;
         let result = state.read(
@@ -351,16 +352,22 @@ impl IComponent for SoyBoyPlugin {
 
         match config_version {
             PluginConfigV01::CONFIG_VERSION => {
-                let size = bincode::serialized_size(&PluginConfigV01::default()).unwrap();
+                let options = bincode::config::DefaultOptions::new()
+                    .reject_trailing_bytes()
+                    .with_little_endian()
+                    .with_fixint_encoding();
+                let size = options
+                    .serialized_size(&PluginConfigV01::default())
+                    .unwrap();
                 let mut bytes = vec![0; size as usize];
 
-                state.read(
-                    bytes.as_mut_ptr() as *mut c_void,
-                    size as i32,
-                    &mut num_bytes_read,
-                );
+                let result = state.read(bytes.as_mut_ptr() as *mut c_void, size as i32, null_mut());
+                if result != kResultOk {
+                    println!("set_state(): state.read() fails with error code {}", result);
+                    return kResultFalse;
+                }
 
-                let decoded = bincode::deserialize(&bytes[..]);
+                let decoded = options.deserialize(&bytes[..]);
                 if decoded.is_err() {
                     return kResultFalse;
                 }
@@ -392,10 +399,15 @@ impl IComponent for SoyBoyPlugin {
             return kResultFalse;
         }
         let state = state.unwrap();
-        let config = self.config.lock().unwrap();
-        let config_version = PluginConfigV01::CONFIG_VERSION;
 
-        let encoded = bincode::serialize(&*config);
+        let options = bincode::config::DefaultOptions::new()
+            .reject_trailing_bytes()
+            .with_little_endian()
+            .with_fixint_encoding();
+
+        let config_version = PluginConfigV01::CONFIG_VERSION;
+        let config = self.config.lock().unwrap();
+        let encoded = options.serialize(&*config);
         if encoded.is_err() {
             println!("cannot encode configuration. it's a bug!");
             return kResultFalse;

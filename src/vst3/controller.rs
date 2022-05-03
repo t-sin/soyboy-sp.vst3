@@ -9,7 +9,7 @@ use std::sync::{
     Arc, Mutex,
 };
 
-use bincode;
+use bincode::Options;
 
 use vst3_com::{interfaces::IUnknown, sys::GUID};
 use vst3_sys::{
@@ -179,7 +179,13 @@ impl IEditController for SoyBoyController {
 
         match config_version {
             PluginConfigV01::CONFIG_VERSION => {
-                let size = bincode::serialized_size(&PluginConfigV01::default()).unwrap();
+                let options = bincode::config::DefaultOptions::new()
+                    .reject_trailing_bytes()
+                    .with_little_endian()
+                    .with_fixint_encoding();
+                let size = options
+                    .serialized_size(&PluginConfigV01::default())
+                    .unwrap();
                 let mut bytes: Vec<u8> = vec![0; size as usize];
 
                 let result = state.read(bytes.as_mut_ptr() as *mut c_void, size as i32, null_mut());
@@ -189,7 +195,7 @@ impl IEditController for SoyBoyController {
                     return kResultFalse;
                 }
 
-                let decoded = bincode::deserialize(&bytes[..]);
+                let decoded = options.deserialize(&bytes[..]);
                 if decoded.is_err() {
                     println!(
                         "IEditController::set_component_state(): invalid v01 config: {:?}",
