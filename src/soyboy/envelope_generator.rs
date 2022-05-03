@@ -21,6 +21,7 @@ pub struct EnvelopeGenerator {
     pub release: f64,
 
     velocity: f64,
+    note: u16,
     state: EnvelopeState,
     elapsed_samples: u64,
     last_value: f64,
@@ -36,6 +37,7 @@ impl EnvelopeGenerator {
             release: 0.1,
 
             velocity: 0.0,
+            note: 0,
             state: EnvelopeState::Off,
             elapsed_samples: 1,
             last_value: 0.0,
@@ -112,11 +114,16 @@ impl AudioProcessor<f64> for EnvelopeGenerator {
 impl Triggered for EnvelopeGenerator {
     fn trigger(&mut self, event: &Event) {
         match event {
-            Event::NoteOn { note: _, velocity } => {
+            Event::NoteOn { note, velocity } => {
+                self.note = *note;
                 self.set_state(EnvelopeState::Attack);
                 self.velocity = *velocity;
             }
-            Event::NoteOff { note: _ } => self.set_state(EnvelopeState::Release),
+            Event::NoteOff { note } => {
+                if *note == self.note {
+                    self.set_state(EnvelopeState::Release);
+                }
+            }
             _ => (),
         }
     }
