@@ -340,7 +340,7 @@ impl IComponent for SoyBoyPlugin {
         let mut config_version: u32 = 0;
         let result = state.read(
             &mut config_version as *mut u32 as *mut c_void,
-            mem::size_of::<u32> as i32,
+            mem::size_of::<u32>() as i32,
             null_mut(),
         );
 
