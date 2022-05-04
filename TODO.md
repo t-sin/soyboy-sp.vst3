@@ -29,6 +29,10 @@
     - [x] frequency sweep for all oscillators
     - [x] make soyboy a single voice unit (preparation for be a polyphonic synth)
     - [x] structured VST3 state
+- [ ] distribution
+    - [ ] website
+    - [ ] user manual
+    - [ ] bug reporter (for Japanese?)
 - [ ] future work
     - [ ] can be polyphonic
     - [ ] multiple switchable wavetables
