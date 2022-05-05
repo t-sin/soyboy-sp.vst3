@@ -14,7 +14,7 @@ I want to do some chiptunes on GNU/Linux.
 
 ## Author
 
-- Shinichi Tanaka (<shinichi.tanaka45@gmail.com>)
+- t-sin (<shinichi.tanaka45@gmail.com>)
 
 ## License
 
