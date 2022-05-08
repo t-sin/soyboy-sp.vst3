@@ -1,8 +1,11 @@
-use crate::soyboy::{
-    event::{Event, Triggered},
-    parameters::{Parametric, SoyBoyParameter},
-    types::AudioProcessor,
-    utils::{discrete_loudness, level_from_velocity, linear},
+use crate::{
+    common::f64_utils,
+    soyboy::{
+        event::{Event, Triggered},
+        parameters::{Parametric, SoyBoyParameter},
+        types::AudioProcessor,
+        utils::{discrete_loudness, level_from_velocity, linear},
+    },
 };
 
 #[derive(Debug)]
@@ -83,10 +86,11 @@ impl EnvelopeGenerator {
         match self.state {
             EnvelopeState::Attack => linear(s, 1.0 / self.attack),
             EnvelopeState::Decay => {
-                let max = self.last_state_value - self.sustain;
+                let sustain = f64_utils::normalize(self.sustain);
+                let max = self.last_state_value - sustain;
                 self.last_state_value - max * linear(s, 1.0 / self.decay)
             }
-            EnvelopeState::Sustain => self.sustain,
+            EnvelopeState::Sustain => f64_utils::normalize(self.sustain),
             EnvelopeState::Release => {
                 let max = self.last_state_value;
                 max - max * linear(s, 1.0 / self.release)
@@ -102,6 +106,7 @@ impl AudioProcessor<f64> for EnvelopeGenerator {
 
         self.update_state(s);
         let v = self.calculate(s);
+        let v = f64_utils::normalize(v);
         self.last_value = v;
         self.elapsed_samples += 1;
 

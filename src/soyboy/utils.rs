@@ -1,13 +1,15 @@
-use crate::common::i4;
+use crate::common::{f64_utils, i4};
 
 pub fn linear(x: f64, slope: f64) -> f64 {
-    x * slope
+    let v = x * slope;
+    f64_utils::normalize(v)
 }
 
 /// This maps from continuous value `x` to discrete value.
 /// This is for getting rough 4bit envelope signals.
 pub fn discrete_loudness(x: f64) -> f64 {
-    ((x * 16.0) as u32) as f64 / 16.0
+    let v = ((x * 16.0) as u32) as f64 / 16.0;
+    f64_utils::normalize(v)
 }
 
 pub fn pulse(phase: f64, duty: f64) -> i4 {
@@ -32,39 +34,47 @@ pub fn ratio_from_cents(cents: i16) -> f64 {
 }
 
 pub fn level(decibel: f64) -> f64 {
-    10.0f64.powf(decibel / 10.0)
+    let v = 10.0f64.powf(decibel / 10.0);
+    f64_utils::normalize(v)
 }
 
 pub fn level_from_velocity(velocity: f64) -> f64 {
-    10.0f64.powf(velocity - 1.0)
+    let v = 10.0f64.powf(velocity - 1.0);
+    f64_utils::normalize(v)
 }
 
 pub fn linear_denormalize(v: f64, min: f64, max: f64) -> f64 {
     let range = max.abs() + min.abs();
-    v * range + min
+    let v = v * range + min;
+    f64_utils::normalize(v)
 }
 
 pub fn linear_normalize(x: f64, min: f64, max: f64) -> f64 {
     let range = max.abs() + min.abs();
-    (x - min) / range
+    let v = (x - min) / range;
+    f64_utils::normalize(v)
 }
 
 pub fn divergent_denormalize(v: f64, min: f64, max: f64, factor: f64) -> f64 {
     let range = max.abs() + min.abs();
-    range * v.powf(factor) + min
+    let v = range * v.powf(factor) + min;
+    f64_utils::normalize(v)
 }
 
 pub fn divergent_normalize(x: f64, min: f64, max: f64, factor: f64) -> f64 {
     let range = max.abs() + min.abs();
-    ((x - min) / range).powf(1.0 / factor)
+    let v = ((x - min) / range).powf(1.0 / factor);
+    f64_utils::normalize(v)
 }
 
 pub fn convergent_denormalize(v: f64, min: f64, max: f64, factor: f64) -> f64 {
     let range = max.abs() + min.abs();
-    range * v.powf(1.0 / factor) + min
+    let v = range * v.powf(1.0 / factor) + min;
+    f64_utils::normalize(v)
 }
 
 pub fn convergent_normalize(x: f64, min: f64, max: f64, factor: f64) -> f64 {
     let range = max.abs() + min.abs();
-    ((x - min) / range).powf(factor)
+    let v = ((x - min) / range).powf(factor);
+    f64_utils::normalize(v)
 }

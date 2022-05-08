@@ -1,5 +1,7 @@
 use std::ops::{Add, Mul};
 
+use crate::common::f64_utils;
+
 #[allow(non_camel_case_types)]
 #[derive(Copy, Clone, Debug)]
 pub struct i4(u8);
@@ -35,6 +37,8 @@ impl Mul<f64> for i4 {
     type Output = i4;
     fn mul(self, other: f64) -> Self::Output {
         let f: f64 = self.into();
+        let f = f64_utils::normalize(f);
+        let other = f64_utils::normalize(other);
         i4::from(f * other)
     }
 }
@@ -78,7 +82,7 @@ impl From<i4> for f64 {
 
 impl From<f64> for i4 {
     fn from(v: f64) -> Self {
-        if v == 0.0 {
+        if f64_utils::is_normal(v) {
             i4::from(0i8)
         } else if v < 0.0 {
             let v = v.clamp(-1.0, 0.0) + 1.0;

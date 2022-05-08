@@ -1,7 +1,7 @@
 use rand::prelude::*;
 
 use crate::{
-    common::{constants, i4},
+    common::{constants, f64_utils, i4},
     soyboy::{
         event::{Event, Triggered},
         parameters::{Parametric, SoyBoyParameter},
@@ -42,6 +42,7 @@ impl WaveTableOscillator {
         let mut phase: f64 = 0.0;
         for e in self.table.iter_mut() {
             let v = (phase * 2.0 * std::f64::consts::PI).sin();
+            let v = f64_utils::normalize(v);
             let v = ((v + 1.0) * i4::SIGNED_MIN.abs() as f64) as u8;
             *e = i4::from(v);
             phase += 1.0 / constants::WAVETABLE_SIZE as f64;

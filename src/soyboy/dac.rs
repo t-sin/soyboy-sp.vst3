@@ -1,5 +1,5 @@
 use crate::{
-    common::i4,
+    common::{f64_utils, i4},
     soyboy::{Parametric, SoyBoyParameter},
 };
 
@@ -38,8 +38,11 @@ impl DAConverter {
 
     fn calculate_coefficient(&mut self, sample_rate: f64) {
         let w = (2.0 * std::f64::consts::PI * self.freq) / sample_rate;
+        let w = f64_utils::normalize(w);
 
         let (sw, cw) = (w.sin(), w.cos());
+        let (sw, cw) = (f64_utils::normalize(sw), f64_utils::normalize(cw));
+
         let a = sw / (2.0 * self.q);
 
         self.b0 = (1.0 - cw) / 2.0;
@@ -65,6 +68,7 @@ impl DAConverter {
             (self.b0 / self.a0 * input) + (self.b1 / self.a0 * in0) + (self.b2 / self.a0 * in1)
                 - (self.a1 / self.a0 * out0)
                 - (self.a2 / self.a0 * out1);
+        let output = f64_utils::normalize(output);
 
         self.input_buf[1] = self.input_buf[0];
         self.input_buf[0] = input;

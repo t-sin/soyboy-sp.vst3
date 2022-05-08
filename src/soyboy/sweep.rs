@@ -1,9 +1,12 @@
 use std::convert::TryFrom;
 
-use crate::soyboy::{
-    event::{Event, Triggered},
-    parameters::{Parametric, SoyBoyParameter},
-    types::AudioProcessor,
+use crate::{
+    common::f64_utils,
+    soyboy::{
+        event::{Event, Triggered},
+        parameters::{Parametric, SoyBoyParameter},
+        types::AudioProcessor,
+    },
 };
 
 #[derive(Debug, Copy, Clone)]
@@ -79,6 +82,7 @@ impl AudioProcessor<f64> for SweepOscillator {
 
         let sweep_timer_interval = 1.0 / SWEEP_TIMER_FREQUENCY;
         let fmod = self.shadow_freq * 2.0f64.powf(self.sweep_amount - 8.1);
+        let fmod = f64_utils::normalize(fmod);
 
         match self.sweep_type {
             SweepType::None => 0.0,
@@ -111,6 +115,7 @@ impl AudioProcessor<f64> for SweepOscillator {
             SweepType::Triangle => {
                 let quater_period = self.sweep_period * 1.0 / SWEEP_TIMER_FREQUENCY;
                 let fmod = 2.0f64.powf(self.sweep_amount - 8.1) / self.sweep_period;
+                let fmod = f64_utils::normalize(fmod);
 
                 self.check_frequency_clip();
 
