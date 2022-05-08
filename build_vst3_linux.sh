@@ -10,6 +10,9 @@ else
     BUILD_TARGET=debug
 fi
 
+# for distribution
+# export RUSTFLAGS="-Ctarget-cpu=x86-64"
+
 cargo build $CARGO_BUILD_OPTS
 
 mkdir -p target/$BUILD_TARGET/soyboy-sp.vst3

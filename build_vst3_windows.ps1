@@ -1,3 +1,4 @@
+$Env:RUSTFLAGS = "-Ctarget-cpu=x86-64"
 cargo build
 
 New-Item -Force -ItemType Directory target/debug/soyboy-sp.vst3
