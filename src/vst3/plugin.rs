@@ -64,38 +64,47 @@ impl PluginTimerThread {
         let queue = queue.clone();
         let quit = self.quit.clone();
 
-        let handle = thread::spawn(move || loop {
-            if *quit.lock().unwrap() {
-                break;
-            }
+        let handle = thread::spawn(move || {
+            let host = {
+                let context = context.lock().unwrap();
+                let context = context.ptr();
+                vst3_utils::get_host_app(&context).obj()
+            };
 
-            {
-                let mut queue = queue.lock().unwrap();
-                loop {
-                    match queue.pop_front() {
-                        Some(msg) => {
-                            vst3_utils::send_message(context.clone(), connection.clone(), msg)
+            let mut msg_note_on = vst3_utils::allocate_message(&host).unwrap();
+            let mut msg_waveform = vst3_utils::allocate_message(&host).unwrap();
+
+            loop {
+                if *quit.lock().unwrap() {
+                    break;
+                }
+
+                {
+                    let mut queue = queue.lock().unwrap();
+                    loop {
+                        match queue.pop_front() {
+                            Some(msg) => {
+                                msg.write_message(&mut msg_note_on);
+                                vst3_utils::send_message(connection.clone(), &msg_note_on);
+                            }
+                            None => break,
                         }
-                        None => break,
                     }
                 }
-            }
 
-            if config.lock().unwrap().waveform_view_enabled {
-                let wf = waveform.lock().unwrap().clone();
-                vst3_utils::send_message(
-                    context.clone(),
-                    connection.clone(),
-                    Vst3Message::WaveformData(wf),
-                );
+                if config.lock().unwrap().waveform_view_enabled {
+                    let wf = waveform.lock().unwrap().clone();
+                    Vst3Message::WaveformData(wf).write_message(&mut msg_waveform);
+                    vst3_utils::send_message(connection.clone(), &msg_waveform);
 
-                thread::sleep(time::Duration::from_millis(
-                    constants::WAVEFORM_UPDATE_INTERVAL_IN_MILLIS,
-                ));
-            } else {
-                thread::sleep(time::Duration::from_millis(
-                    constants::NORMAL_REDRAW_INTERVAL_IN_MILLIS,
-                ));
+                    thread::sleep(time::Duration::from_millis(
+                        constants::WAVEFORM_UPDATE_INTERVAL_IN_MILLIS,
+                    ));
+                } else {
+                    thread::sleep(time::Duration::from_millis(
+                        constants::NORMAL_REDRAW_INTERVAL_IN_MILLIS,
+                    ));
+                }
             }
         });
 
@@ -195,7 +204,13 @@ impl SoyBoyPlugin {
     fn send_message(&self, msg: Vst3Message) {
         if let Some(context) = self.context.borrow_mut().clone() {
             if let Some(controller) = self.controller.borrow_mut().clone() {
-                vst3_utils::send_message(context, controller, msg);
+                let context = context.lock().unwrap();
+                let context = context.ptr();
+                let host = vst3_utils::get_host_app(&context).obj();
+                let mut imsg = vst3_utils::allocate_message(&host).unwrap();
+                msg.write_message(&mut imsg);
+
+                vst3_utils::send_message(controller, &imsg);
             }
         }
     }

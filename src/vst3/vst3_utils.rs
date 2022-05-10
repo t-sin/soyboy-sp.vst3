@@ -68,14 +68,15 @@ impl ControllerConnection {
     }
 
     pub fn send_message(&self, msg: Vst3Message) {
-        let msg = msg.allocate(&self.host.obj());
+        let imsg = allocate_message(&self.host.obj());
 
-        if let Some(msg) = msg {
+        if let Some(mut imsg) = imsg {
+            msg.write_message(&mut imsg);
             unsafe {
-                let msg = std::mem::transmute::<VstPtr<dyn IMessage>, SharedVstPtr<dyn IMessage>>(
-                    msg.obj(),
+                let imsg = std::mem::transmute::<VstPtr<dyn IMessage>, SharedVstPtr<dyn IMessage>>(
+                    imsg.obj(),
                 );
-                self.conn.notify(msg);
+                self.conn.notify(imsg);
             }
         } else {
             println!("SoyBoyPlugin::send_message(): allocation failed");
@@ -174,7 +175,9 @@ impl Vst3Message {
         CString::new(self.to_string()).unwrap()
     }
 
-    fn write_message(&self, msg: &mut VstPtr<dyn IMessage>) {
+    pub fn write_message(&self, msg: &mut ComPtr<dyn IMessage>) {
+        let msg = msg.obj();
+
         match self {
             Vst3Message::NoteOn => {
                 unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
@@ -249,26 +252,26 @@ impl Vst3Message {
             }
         }
     }
+}
 
-    pub fn allocate(&self, host: &VstPtr<dyn IHostApplication>) -> Option<ComPtr<dyn IMessage>> {
-        let iid = <dyn IMessage as ComInterface>::IID;
-        let iid = &iid as *const _;
-        let mut msg_ptr: *mut c_void = null_mut();
+pub fn allocate_message(host: &VstPtr<dyn IHostApplication>) -> Option<ComPtr<dyn IMessage>> {
+    let iid = <dyn IMessage as ComInterface>::IID;
+    let iid = &iid as *const _;
+    let mut msg_ptr: *mut c_void = null_mut();
 
-        let result = unsafe { host.create_instance(iid, iid, &mut msg_ptr as *mut _) };
-        if result != kResultOk {
-            #[cfg(debug_assertions)]
-            print!("Vst3Message::allocate(): calling IHostApplication::create_instance() failed because ");
-
-            return None;
-        }
-
-        let mut msg_obj = unsafe { VstPtr::shared(msg_ptr as *mut _).unwrap() };
+    let result = unsafe { host.create_instance(iid, iid, &mut msg_ptr as *mut _) };
+    if result != kResultOk {
         #[cfg(debug_assertions)]
-        self.write_message(&mut msg_obj);
+        print!(
+            "Vst3Message::allocate(): calling IHostApplication::create_instance() failed because "
+        );
 
-        Some(ComPtr::new(msg_ptr, msg_obj))
+        return None;
     }
+
+    let msg_obj = unsafe { VstPtr::shared(msg_ptr as *mut _).unwrap() };
+
+    Some(ComPtr::new(msg_ptr, msg_obj))
 }
 
 pub fn get_host_app(context: &VstPtr<dyn IUnknown>) -> ComPtr<dyn IHostApplication> {
@@ -287,24 +290,15 @@ pub fn get_host_app(context: &VstPtr<dyn IUnknown>) -> ComPtr<dyn IHostApplicati
 }
 
 pub fn send_message(
-    host_context: Arc<Mutex<SyncPtr<dyn IUnknown>>>,
-    controller: Arc<Mutex<SyncPtr<dyn IConnectionPoint>>>,
-    msg: Vst3Message,
+    connection: Arc<Mutex<SyncPtr<dyn IConnectionPoint>>>,
+    msg: &ComPtr<dyn IMessage>,
 ) {
-    let controller = controller.lock().unwrap();
-    let controller = controller.ptr();
-    let context = host_context.lock().unwrap();
-    let context = context.ptr();
-    let host = get_host_app(&context).obj();
+    let connection = connection.lock().unwrap();
+    let connection = connection.ptr();
 
-    let msg = msg.allocate(&host);
-    if let Some(msg) = msg {
-        unsafe {
-            let msg =
-                std::mem::transmute::<VstPtr<dyn IMessage>, SharedVstPtr<dyn IMessage>>(msg.obj());
-            controller.notify(msg);
-        }
-    } else {
-        println!("SoyBoyPlugin::send_message(): allocation failed");
+    unsafe {
+        let msg =
+            std::mem::transmute::<VstPtr<dyn IMessage>, SharedVstPtr<dyn IMessage>>(msg.obj());
+        connection.notify(msg);
     }
 }
