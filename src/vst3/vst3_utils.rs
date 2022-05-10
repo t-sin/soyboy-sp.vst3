@@ -78,6 +78,8 @@ impl ControllerConnection {
                 );
                 self.conn.notify(imsg);
             }
+
+            unsafe { imsg.obj().release() };
         } else {
             println!("SoyBoyPlugin::send_message(): allocation failed");
         }

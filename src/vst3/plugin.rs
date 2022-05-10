@@ -211,6 +211,8 @@ impl SoyBoyPlugin {
                 msg.write_message(&mut imsg);
 
                 vst3_utils::send_message(controller, &imsg);
+
+                unsafe { imsg.obj().release() };
             }
         }
     }
