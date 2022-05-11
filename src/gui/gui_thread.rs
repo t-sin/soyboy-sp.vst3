@@ -483,40 +483,6 @@ impl GUIThread {
         (thread, event_loop)
     }
 
-    pub fn update(&mut self) {
-        let behaviors: &mut [&mut dyn Behavior] = &mut [
-            &mut self.ui.edamame as &mut dyn Behavior,
-            &mut self.ui.button_reset_random as &mut dyn Behavior,
-            &mut self.ui.button_reset_sine as &mut dyn Behavior,
-        ];
-
-        for widget in behaviors.iter_mut() {
-            self.needs_redraw |= widget.update();
-        }
-
-        for gui_event in self.plugin_event_recv.try_iter() {
-            match gui_event {
-                GUIEvent::NoteOn => {
-                    self.ui.edamame.jump();
-                    self.needs_redraw = true;
-                }
-                GUIEvent::WaveTableData(table) => {
-                    self.ui.param_wavetable.set_wavetable(&table);
-                }
-                GUIEvent::WaveformData(wf) => {
-                    if *self.waveform_view_enabled.borrow() {
-                        self.ui.oscilloscope.set_signals(wf.get_signals());
-                        self.needs_redraw = true;
-                    }
-                }
-            }
-        }
-
-        if self.needs_redraw {
-            self.window.window().request_redraw();
-        }
-    }
-
     pub fn draw(&mut self) {
         self.needs_redraw |= self.egui_glow.run(self.window.window(), |egui_ctx| {
             // background
@@ -609,6 +575,40 @@ impl GUIThread {
             // draw things on top of egui here
 
             self.window.swap_buffers().unwrap();
+        }
+    }
+
+    pub fn update(&mut self) {
+        let behaviors: &mut [&mut dyn Behavior] = &mut [
+            &mut self.ui.edamame as &mut dyn Behavior,
+            &mut self.ui.button_reset_random as &mut dyn Behavior,
+            &mut self.ui.button_reset_sine as &mut dyn Behavior,
+        ];
+
+        for widget in behaviors.iter_mut() {
+            self.needs_redraw |= widget.update();
+        }
+
+        for gui_event in self.plugin_event_recv.try_iter() {
+            match gui_event {
+                GUIEvent::NoteOn => {
+                    self.ui.edamame.jump();
+                    self.needs_redraw = true;
+                }
+                GUIEvent::WaveTableData(table) => {
+                    self.ui.param_wavetable.set_wavetable(&table);
+                }
+                GUIEvent::WaveformData(wf) => {
+                    if *self.waveform_view_enabled.borrow() {
+                        self.ui.oscilloscope.set_signals(wf.get_signals());
+                        self.needs_redraw = true;
+                    }
+                }
+            }
+        }
+
+        if self.needs_redraw {
+            self.window.window().request_redraw();
         }
     }
 
