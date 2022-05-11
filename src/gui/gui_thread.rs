@@ -16,7 +16,7 @@ use glutin::platform::unix::{EventLoopBuilderExtUnix, WindowBuilderExtUnix};
 use glutin::platform::windows::{EventLoopBuilderExtWindows, WindowBuilderExtWindows};
 use glutin::{
     event::{Event, WindowEvent},
-    event_loop::{ControlFlow, EventLoop, EventLoopBuilder, EventLoopProxy},
+    event_loop::{ControlFlow, EventLoop, EventLoopBuilder},
     platform::run_return::EventLoopExtRunReturn,
     window::WindowBuilder,
     PossiblyCurrent, WindowedContext,
@@ -483,13 +483,12 @@ impl GUIThread {
         (thread, event_loop)
     }
 
-    pub fn update(&mut self, proxy: EventLoopProxy<GUIEvent>) {
+    pub fn update(&mut self) {
         let behaviors: &mut [&mut dyn Behavior] = &mut [
             &mut self.ui.edamame as &mut dyn Behavior,
             &mut self.ui.button_reset_random as &mut dyn Behavior,
             &mut self.ui.button_reset_sine as &mut dyn Behavior,
         ];
-        self.needs_redraw = false;
 
         for widget in behaviors.iter_mut() {
             self.needs_redraw |= widget.update();
@@ -510,12 +509,11 @@ impl GUIThread {
                         self.needs_redraw = true;
                     }
                 }
-                _ => (),
             }
         }
 
         if self.needs_redraw {
-            let _ = proxy.send_event(GUIEvent::Redraw);
+            self.window.window().request_redraw();
         }
     }
 
@@ -659,7 +657,6 @@ impl GUIThread {
                 println!("LoopDestroyed is signaled.");
                 self.egui_glow.destroy();
             }
-            Event::UserEvent(GUIEvent::Redraw) => redraw(),
             _ => (),
         }
 
@@ -694,10 +691,10 @@ impl GUIThread {
             plugin_event_recv,
             controller_connection,
         );
-        let proxy = event_loop.create_proxy();
 
         event_loop.run_return(move |event, _, control_flow| {
-            thread.update(proxy.clone());
+            thread.needs_redraw = false;
+            thread.update();
             thread.proc_events(event, control_flow);
         });
     }

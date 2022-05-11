@@ -9,7 +9,6 @@ pub enum GUIThreadMessage {
 
 #[derive(PartialEq, Eq)]
 pub enum GUIEvent {
-    Redraw,
     NoteOn,
     WaveTableData([i4; constants::WAVETABLE_SIZE]),
     WaveformData(Waveform),
