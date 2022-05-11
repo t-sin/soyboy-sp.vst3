@@ -82,7 +82,7 @@ impl From<i4> for f64 {
 
 impl From<f64> for i4 {
     fn from(v: f64) -> Self {
-        if f64_utils::is_normal(v) {
+        if v.is_subnormal() {
             i4::from(0i8)
         } else if v < 0.0 {
             let v = v.clamp(-1.0, 0.0) + 1.0;
