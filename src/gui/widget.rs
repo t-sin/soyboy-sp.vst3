@@ -937,22 +937,17 @@ impl Behavior for Oscilloscope {
 
             static SAMPLES_TO_DISPLAY: usize =
                 constants::OSCILLOSCOPE_SAIMPLE_SIZE / SCALE_X as usize;
+            let mut points = vec![egui::pos2(0.0, 0.0); SAMPLES_TO_DISPLAY];
+
             for i in 0..SAMPLES_TO_DISPLAY {
                 let idx = i;
-                let idx2 = (i + 1) % constants::OSCILLOSCOPE_SAIMPLE_SIZE;
 
-                if idx2 == 0 {
-                    break;
-                }
-
-                let i = i as f32;
-                let s1 = -self.signals[idx] as f32;
-                let s2 = -self.signals[idx2] as f32;
-                let p1 = egui::pos2(self.pos.x + i * dx, s1 * h + self.pos.y + hh);
-                let p2 = egui::pos2(self.pos.x + (i + 1.0) * dx, s2 * h + self.pos.y + hh);
-
-                ui.painter().line_segment([p1, p2], stroke);
+                let s = -self.signals[idx] as f32;
+                let p = egui::pos2(self.pos.x + i as f32 * dx, s * h + self.pos.y + hh);
+                points[i] = p;
             }
+
+            ui.painter().add(egui::Shape::line(points, stroke));
         } else {
             ui.painter().rect_filled(
                 rect,
