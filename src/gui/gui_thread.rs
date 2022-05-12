@@ -365,6 +365,7 @@ pub struct GUIThread {
     ui: UI,
     // window stuff
     quit: bool,
+    last_redrawed_at: RefCell<Option<time::Instant>>,
     needs_redraw: bool,
     waveform_view_enabled: Rc<RefCell<bool>>,
     // threading stuff
@@ -470,6 +471,7 @@ impl GUIThread {
                 waveform_view_enabled.clone(),
             ),
             quit: false,
+            last_redrawed_at: RefCell::new(None),
             needs_redraw: false,
             waveform_view_enabled,
             receiver,
@@ -573,7 +575,12 @@ impl GUIThread {
         self.draw_ui();
 
         // OpenGL drawing
-        {
+        let last_redrawed_at = *self.last_redrawed_at.borrow_mut();
+        let dur = time::Duration::from_millis(constants::GL_SWAP_INTERVAL_IN_MILLIS);
+
+        if last_redrawed_at.is_none() || last_redrawed_at.unwrap().elapsed() > dur {
+            let _ = self.last_redrawed_at.replace(Some(time::Instant::now()));
+
             self.egui_glow.paint(self.window.window());
 
             // draw things on top of egui here

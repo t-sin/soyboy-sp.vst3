@@ -7,3 +7,4 @@ pub const SCREEN_HEIGHT: u32 = 560;
 // high frame rate for waveform view (fps ~= 30)
 pub const WAVEFORM_UPDATE_INTERVAL_IN_MILLIS: u64 = 35;
 pub const NORMAL_REDRAW_INTERVAL_IN_MILLIS: u64 = 100;
+pub const GL_SWAP_INTERVAL_IN_MILLIS: u64 = 25;
