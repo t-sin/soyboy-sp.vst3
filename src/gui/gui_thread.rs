@@ -655,7 +655,7 @@ impl GUIThread {
                 }
 
                 self.egui_glow.on_event(&event);
-                //self.window.window().request_redraw();
+                self.window.window().request_redraw();
             }
             Event::LoopDestroyed => {
                 println!("LoopDestroyed is signaled.");
