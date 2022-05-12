@@ -483,7 +483,7 @@ impl GUIThread {
         (thread, event_loop)
     }
 
-    pub fn draw(&mut self) {
+    fn draw_ui(&mut self) {
         self.needs_redraw |= self.egui_glow.run(self.window.window(), |egui_ctx| {
             // background
             egui::Area::new("background").show(egui_ctx, |ui| {
@@ -567,6 +567,10 @@ impl GUIThread {
                     let _ = self.ui.oscilloscope.show(ui);
                 });
         });
+    }
+
+    pub fn draw(&mut self) {
+        self.draw_ui();
 
         // OpenGL drawing
         {
