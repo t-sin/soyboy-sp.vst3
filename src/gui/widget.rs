@@ -24,23 +24,26 @@ fn screen_rect() -> egui::Rect {
 pub struct ParameterValue {
     atlas: Image,
     regions: Vec<Region>,
-    pos: egui::Pos2,
-    size: egui::Vec2,
+    rect: egui::Rect,
 }
 
 impl ParameterValue {
     pub fn new(value_str: String, unit: ParameterUnit, atlas: Image, x: f32, y: f32) -> Self {
         let (regions, w, h) = ParameterValue::layout(value_str, unit);
+
+        let pos = egui::pos2(x, y);
+        let size = egui::vec2(w, h);
+        let rect = egui::Rect::from_two_pos(pos, pos + size);
         Self {
             atlas,
             regions,
-            pos: egui::pos2(x, y),
-            size: egui::vec2(w, h),
+            rect,
         }
     }
 
     pub fn set_pos(&mut self, pos: egui::Pos2) {
-        self.pos = pos;
+        let size = self.rect.size();
+        self.rect = egui::Rect::from_min_size(pos, size);
     }
 
     fn layout(value_str: String, unit: ParameterUnit) -> (Vec<Region>, f32, f32) {
@@ -79,19 +82,17 @@ impl ParameterValue {
 
 impl Widget for ParameterValue {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.size);
+        let response = ui.allocate_rect(self.rect, egui::Sense::focusable_noninteractive());
 
-        let response = ui.allocate_rect(rect, egui::Sense::focusable_noninteractive());
-
-        if ui.is_rect_visible(rect) {
+        if ui.is_rect_visible(self.rect) {
             let mut offset = egui::pos2(0.0, 0.0);
             let img = egui::widgets::Image::new(self.atlas.texture_id, self.atlas.size);
 
             for region in self.regions.iter() {
-                let clip_rect = egui::Rect::from_two_pos(self.pos, self.pos + region.size);
+                let clip_rect = egui::Rect::from_min_size(self.rect.min, region.size);
                 ui.set_clip_rect(clip_rect.translate(offset.to_vec2()));
 
-                let draw_rect = egui::Rect::from_two_pos(self.pos, self.pos + self.atlas.size);
+                let draw_rect = egui::Rect::from_min_size(self.rect.min, self.atlas.size);
 
                 img.paint_at(
                     ui,
@@ -625,7 +626,7 @@ impl Behavior for ParameterSlider {
             0.0,
         );
         let size = egui::vec2(266.0, 30.0);
-        let value_rect = value.size;
+        let value_rect = value.rect.size();
         value.set_pos(self.pos + egui::vec2(size.x - value_rect.x, 0.0));
         ui.add(value);
 
