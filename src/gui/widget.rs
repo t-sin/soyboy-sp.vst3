@@ -147,41 +147,42 @@ impl Widget for ParameterName {
 
 #[derive(Clone)]
 pub struct VersionFrame {
-    frame: Image,
-    atlas: Image,
-    pos: egui::Pos2,
+    rect: egui::Rect,
+    border_image: egui::widgets::Image,
+    param_value: ParameterValue,
 }
 
 impl VersionFrame {
     pub fn new(frame: Image, atlas: Image, x: f32, y: f32) -> Self {
-        Self {
-            frame,
+        let pos = egui::pos2(x, y);
+        let rect = egui::Rect::from_min_size(pos, frame.size);
+        let border_image = egui::widgets::Image::new(frame.texture_id, frame.size);
+        let value_pos = rect.min + egui::vec2(6.0, 8.0);
+        let param_value = ParameterValue::new(
+            env!("CARGO_PKG_VERSION").to_string(),
+            ParameterUnit::None,
             atlas,
-            pos: egui::pos2(x, y),
+            value_pos.x,
+            value_pos.y,
+        );
+
+        Self {
+            rect,
+            border_image,
+            param_value,
         }
     }
 }
 
 impl Widget for VersionFrame {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.frame.size);
-        ui.set_clip_rect(rect);
+        ui.set_clip_rect(self.rect);
 
-        let response = ui.allocate_rect(rect, egui::Sense::focusable_noninteractive());
+        let response = ui.allocate_rect(self.rect, egui::Sense::focusable_noninteractive());
 
-        if ui.is_rect_visible(rect) {
-            let img = egui::widgets::Image::new(self.frame.texture_id, self.frame.size);
-            img.paint_at(ui, rect);
-
-            let (x, y) = (self.pos.x + 6.0, self.pos.y + 8.0);
-            let pv = ParameterValue::new(
-                env!("CARGO_PKG_VERSION").to_string(),
-                ParameterUnit::None,
-                self.atlas,
-                x,
-                y,
-            );
-            let _ = ui.add(pv);
+        if ui.is_rect_visible(self.rect) {
+            self.border_image.paint_at(ui, self.rect);
+            let _ = ui.add(self.param_value);
         }
 
         response
