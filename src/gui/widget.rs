@@ -224,68 +224,70 @@ impl Widget for ImageLabel {
     }
 }
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct Edamame {
-    image: Image,
+    image: egui::widgets::Image,
     jumping: bool,
     sense: egui::Sense,
-    pos: egui::Pos2,
+    rect: egui::Rect,
+    clip_rect: egui::Rect,
+    jumping_rect: egui::Rect,
 }
 
 impl Edamame {
     pub fn new(image: Image, jumping: bool, pos: egui::Pos2) -> Self {
+        let rect = egui::Rect::from_min_size(pos, egui::vec2(image.size.x, image.size.y));
+        let image = egui::widgets::Image::new(image.texture_id, rect.size());
+
+        let half_x = image.size().x / 2.0;
+        let clip_rect = egui::Rect::from_min_size(pos, egui::vec2(half_x, image.size().y));
+        let jumping_rect = rect.translate(egui::vec2(-half_x, 0.0));
+
         Self {
             image,
             jumping,
             sense: egui::Sense::click(),
-            pos,
+            rect,
+            clip_rect,
+            jumping_rect,
         }
     }
 }
 
 impl Widget for Edamame {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        let half_x = self.image.size.x / 2.0;
-        let rect = egui::Rect::from_two_pos(
-            self.pos,
-            self.pos + egui::vec2(self.image.size.x, self.image.size.y),
-        );
-        let clip_rect =
-            egui::Rect::from_two_pos(self.pos, self.pos + egui::vec2(half_x, self.image.size.y));
-
-        if ui.is_rect_visible(clip_rect) {
-            let img = egui::widgets::Image::new(self.image.texture_id, rect.size());
-
-            ui.set_clip_rect(clip_rect);
+        if ui.is_rect_visible(self.clip_rect) {
+            ui.set_clip_rect(self.clip_rect);
 
             if self.jumping {
-                img.paint_at(ui, rect.translate(egui::vec2(-half_x, 0.0)));
+                self.image.paint_at(ui, self.jumping_rect);
             } else {
-                img.paint_at(ui, rect);
+                self.image.paint_at(ui, self.rect);
             }
 
             ui.set_clip_rect(screen_rect());
         }
 
-        ui.allocate_rect(clip_rect, self.sense)
+        ui.allocate_rect(self.clip_rect, self.sense)
     }
 }
 
 #[derive(Clone)]
 pub struct AnimatedEdamame {
-    image: Image,
+    edamame: Edamame,
     jumped_at: time::Instant,
     jumping: Toggle,
-    pos: egui::Pos2,
 }
 
 impl AnimatedEdamame {
     pub fn new(image: Image, x: f32, y: f32) -> Self {
+        let pos = egui::pos2(x, y);
+        let edamame = Edamame::new(image, false, pos);
+
         Self {
-            image,
+            edamame,
             jumping: Toggle::new(false, false),
             jumped_at: time::Instant::now(),
-            pos: egui::pos2(x, y),
         }
     }
 
@@ -306,8 +308,8 @@ impl Behavior for AnimatedEdamame {
     }
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
-        let edamame = Edamame::new(self.image, self.jumping.val(), self.pos);
-        let response = ui.add(edamame);
+        self.edamame.jumping = self.jumping.val();
+        let response = ui.add(self.edamame);
 
         if response.clicked() {
             self.jump();
