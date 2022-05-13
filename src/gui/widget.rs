@@ -109,34 +109,36 @@ impl Widget for ParameterValue {
 
 #[derive(Clone)]
 pub struct ParameterName {
-    param: SoyBoyParameter,
-    atlas: Image,
-    pos: egui::Pos2,
+    region: Region,
+    rect: egui::Rect,
+    draw_rect: egui::Rect,
+    image: egui::widgets::Image,
 }
 
 impl ParameterName {
     pub fn new(param: SoyBoyParameter, atlas: Image, pos: egui::Pos2) -> Self {
-        Self { param, atlas, pos }
+        let region = param.get_region().unwrap();
+        let rect = egui::Rect::from_min_size(pos, region.size);
+        let draw_rect = egui::Rect::from_min_size(rect.min, atlas.size);
+        let image = egui::widgets::Image::new(atlas.texture_id, atlas.size);
+        Self {
+            region,
+            rect,
+            draw_rect,
+            image,
+        }
     }
 }
 
 impl Widget for ParameterName {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        let region = self.param.get_region().unwrap();
+        ui.set_clip_rect(self.rect);
 
-        let rect = egui::Rect::from_two_pos(
-            self.pos,
-            self.pos + egui::vec2(region.size.x, region.size.y),
-        );
-        ui.set_clip_rect(rect);
+        let response = ui.allocate_rect(self.rect, egui::Sense::focusable_noninteractive());
 
-        let response = ui.allocate_rect(rect, egui::Sense::focusable_noninteractive());
-
-        if ui.is_rect_visible(rect) {
-            let img = egui::widgets::Image::new(self.atlas.texture_id, self.atlas.size);
-
-            let draw_rect = egui::Rect::from_two_pos(self.pos, self.pos + self.atlas.size);
-            img.paint_at(ui, draw_rect.translate(-region.pos.to_vec2()));
+        if ui.is_rect_visible(self.rect) {
+            self.image
+                .paint_at(ui, self.draw_rect.translate(-self.region.pos.to_vec2()));
         }
 
         response
