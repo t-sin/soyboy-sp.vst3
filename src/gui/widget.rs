@@ -892,8 +892,8 @@ impl Behavior for WaveTableEditor {
 pub struct Oscilloscope {
     signals: [f64; constants::OSCILLOSCOPE_SAIMPLE_SIZE],
     enabled: Rc<RefCell<bool>>,
-    pos: egui::Pos2,
-    border_img: Image,
+    rect: egui::Rect,
+    border_image: egui::widgets::Image,
     controller_connection: Arc<Mutex<ControllerConnection>>,
 }
 
@@ -905,11 +905,16 @@ impl Oscilloscope {
         y: f32,
         controller_connection: Arc<Mutex<ControllerConnection>>,
     ) -> Self {
+        let pos = egui::pos2(x, y);
+        let rect = egui::Rect::from_min_size(pos, border_img.size);
+
+        let border_image = egui::widgets::Image::new(border_img.texture_id, border_img.size);
+
         Self {
             signals: [0.0; constants::OSCILLOSCOPE_SAIMPLE_SIZE],
             enabled,
-            pos: egui::pos2(x, y),
-            border_img,
+            rect,
+            border_image,
             controller_connection,
         }
     }
@@ -925,9 +930,8 @@ impl Behavior for Oscilloscope {
     }
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
-        let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.border_img.size);
-        ui.set_clip_rect(rect);
-        let response = ui.allocate_rect(rect, egui::Sense::click());
+        ui.set_clip_rect(self.rect);
+        let response = ui.allocate_rect(self.rect, egui::Sense::click());
 
         if response.clicked() {
             let enabled = *self.enabled.borrow();
@@ -941,12 +945,11 @@ impl Behavior for Oscilloscope {
             self.controller_connection.lock().unwrap().send_message(msg);
         }
 
-        let img = egui::widgets::Image::new(self.border_img.texture_id, self.border_img.size);
-        img.paint_at(ui, rect);
+        self.border_image.paint_at(ui, self.rect);
 
         if *self.enabled.borrow() {
             static SCALE_X: f32 = 1.0;
-            let w = self.border_img.size.x;
+            let w = self.border_image.size().x;
             let h = 90.0;
             let hh = h / 2.0;
             let dx = w / constants::OSCILLOSCOPE_SAIMPLE_SIZE as f32 * SCALE_X;
@@ -960,14 +963,17 @@ impl Behavior for Oscilloscope {
                 let idx = i;
 
                 let s = -self.signals[idx] as f32;
-                let p = egui::pos2(self.pos.x + i as f32 * dx, s * h + self.pos.y + hh);
+                let p = egui::pos2(
+                    self.rect.min.x + i as f32 * dx,
+                    s * h + self.rect.min.y + hh,
+                );
                 points[i] = p;
             }
 
             ui.painter().add(egui::Shape::line(points, stroke));
         } else {
             ui.painter().rect_filled(
-                rect,
+                self.rect,
                 egui::Rounding::none(),
                 egui::Color32::from_rgba_unmultiplied(0x33, 0x3f, 0x32, 130),
             );
