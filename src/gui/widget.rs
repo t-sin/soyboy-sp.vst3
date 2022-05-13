@@ -652,40 +652,41 @@ impl Behavior for ParameterSlider {
 pub struct SelectButton {
     param: SoyBoyParameter,
     value: usize,
-    image: Image,
-    pos: egui::Pos2,
+    image: egui::widgets::Image,
+    rect: egui::Rect,
 }
 
 impl SelectButton {
     pub fn new(param: SoyBoyParameter, value: usize, image: Image, x: f32, y: f32) -> Self {
+        let pos = egui::pos2(x, y);
+        let rect = egui::Rect::from_min_size(pos, image.size);
+        let image = egui::widgets::Image::new(image.texture_id, image.size);
+
         Self {
             param,
             value,
             image,
-            pos: egui::pos2(x, y),
+            rect,
         }
     }
 }
 
 impl Widget for SelectButton {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.image.size);
-
         let sense = egui::Sense {
             click: false,
             drag: false,
             focusable: false,
         };
-        let response = ui.allocate_rect(rect, sense);
+        let response = ui.allocate_rect(self.rect, sense);
 
-        if ui.is_rect_visible(rect) {
-            let img = egui::widgets::Image::new(self.image.texture_id, self.image.size);
-            img.paint_at(ui, rect);
+        if ui.is_rect_visible(self.rect) {
+            self.image.paint_at(ui, self.rect);
 
             let regions = self.param.get_select_button_regions().unwrap();
             let region = regions.get(self.value).unwrap();
-            let topleft = self.pos + region.pos.to_vec2();
-            let selected_rect = egui::Rect::from_two_pos(topleft, topleft + region.size);
+            let min = self.rect.min + region.pos.to_vec2();
+            let selected_rect = egui::Rect::from_min_size(min, region.size);
             ui.painter().rect_filled(
                 selected_rect,
                 egui::Rounding::none(),
