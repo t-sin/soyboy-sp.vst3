@@ -788,8 +788,8 @@ impl Behavior for ParameterSelector {
 
 pub struct WaveTableEditor {
     values: [f64; constants::WAVETABLE_SIZE],
-    border_img: Image,
-    pos: egui::Pos2,
+    border_image: egui::widgets::Image,
+    rect: egui::Rect,
     controller_connection: Arc<Mutex<ControllerConnection>>,
 }
 
@@ -800,10 +800,14 @@ impl WaveTableEditor {
         y: f32,
         controller_connection: Arc<Mutex<ControllerConnection>>,
     ) -> Self {
+        let pos = egui::pos2(x, y);
+        let rect = egui::Rect::from_min_size(pos, border_img.size);
+        let border_image = egui::widgets::Image::new(border_img.texture_id, border_img.size);
+
         Self {
             values: [1.0; constants::WAVETABLE_SIZE],
-            border_img,
-            pos: egui::pos2(x, y),
+            border_image,
+            rect,
             controller_connection,
         }
     }
@@ -850,14 +854,13 @@ impl Behavior for WaveTableEditor {
     }
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
-        let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.border_img.size);
-        ui.set_clip_rect(rect);
-        let response = ui.allocate_rect(rect, egui::Sense::drag());
+        ui.set_clip_rect(self.rect);
+        let response = ui.allocate_rect(self.rect, egui::Sense::drag());
 
         let size = egui::vec2(6.0, 6.0 + 6.0 + 166.0);
         let size_y = size.y - 6.0 - 6.0;
         for (i, value) in self.values.iter_mut().enumerate() {
-            let pos = self.pos + egui::vec2(6.0, 2.0) + egui::vec2(8.0 * i as f32, 0.0);
+            let pos = self.rect.min + egui::vec2(6.0, 2.0) + egui::vec2(8.0 * i as f32, 0.0);
             let slider_rect = egui::Rect::from_two_pos(pos, pos + size);
 
             if response.dragged_by(egui::PointerButton::Primary) {
@@ -880,8 +883,7 @@ impl Behavior for WaveTableEditor {
             Self::show_sample_slider(ui, slider_rect, *value);
         }
 
-        let img = egui::widgets::Image::new(self.border_img.texture_id, self.border_img.size);
-        img.paint_at(ui, rect);
+        self.border_image.paint_at(ui, self.rect);
 
         response
     }
