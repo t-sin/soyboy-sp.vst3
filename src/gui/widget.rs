@@ -191,31 +191,33 @@ impl Widget for VersionFrame {
 
 #[derive(Clone)]
 pub struct ImageLabel {
-    image: Image,
+    image: egui::widgets::Image,
     sense: egui::Sense,
-    pos: egui::Pos2,
+    rect: egui::Rect,
 }
 
 impl ImageLabel {
     pub fn new(image: Image, x: f32, y: f32) -> Self {
+        let pos = egui::pos2(x, y);
+        let rect = egui::Rect::from_min_size(pos, image.size);
+        let image = egui::widgets::Image::new(image.texture_id, rect.size());
+
         Self {
             image,
             sense: egui::Sense::focusable_noninteractive(),
-            pos: egui::pos2(x, y),
+            rect,
         }
     }
 }
 
 impl Widget for ImageLabel {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.image.size);
-        ui.set_clip_rect(rect);
+        ui.set_clip_rect(self.rect);
 
-        let response = ui.allocate_rect(rect, self.sense);
+        let response = ui.allocate_rect(self.rect, self.sense);
 
-        if ui.is_rect_visible(rect) {
-            let img = egui::widgets::Image::new(self.image.texture_id, rect.size());
-            img.paint_at(ui, rect);
+        if ui.is_rect_visible(self.rect) {
+            self.image.paint_at(ui, self.rect);
         }
 
         response
