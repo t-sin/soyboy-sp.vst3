@@ -501,7 +501,7 @@ pub struct SliderBehavior {
     border_img: Image,
     bipolar: bool,
     value: f64,
-    pos: egui::Pos2,
+    rect: egui::Rect,
     parameter: SoyBoyParameter,
     param_def: ParameterDef,
     event_handler: Arc<dyn EventHandler>,
@@ -517,11 +517,13 @@ impl SliderBehavior {
         param_def: ParameterDef,
         event_handler: Arc<dyn EventHandler>,
     ) -> Self {
+        let rect = egui::Rect::from_min_size(pos, border_img.size);
+
         Self {
             border_img,
             value,
             bipolar,
-            pos,
+            rect,
             parameter,
             param_def,
             event_handler,
@@ -535,13 +537,12 @@ impl Behavior for SliderBehavior {
     }
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
-        let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.border_img.size);
         let widget = Slider::new(
             self.border_img,
             self.param_def
                 .normalize(self.param_def.denormalize(self.value)),
             self.bipolar,
-            rect,
+            self.rect,
         );
         let response = ui.add(widget);
 
