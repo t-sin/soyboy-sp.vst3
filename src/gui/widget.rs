@@ -321,19 +321,24 @@ impl Behavior for AnimatedEdamame {
 
 #[derive(Clone)]
 pub struct Button {
-    image: Image,
+    image: egui::widgets::Image,
     sense: egui::Sense,
     clicked: bool,
     rect: egui::Rect,
+    clicked_rect: egui::Rect,
 }
 
 impl Button {
     pub fn new(image: Image, clicked: bool, rect: egui::Rect) -> Self {
+        let image = egui::widgets::Image::new(image.texture_id, rect.size());
+        let clicked_rect = rect.translate(egui::vec2(2.0, 2.0));
+
         Self {
             image,
             sense: egui::Sense::click().union(egui::Sense::hover()),
             clicked,
             rect,
+            clicked_rect,
         }
     }
 }
@@ -341,7 +346,7 @@ impl Button {
 impl Widget for &mut Button {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
         let rect = if self.clicked {
-            self.rect.translate(egui::vec2(2.0, 2.0))
+            self.clicked_rect
         } else {
             self.rect
         };
@@ -349,8 +354,7 @@ impl Widget for &mut Button {
         let response = ui.allocate_rect(rect, self.sense);
 
         if ui.is_rect_visible(rect) {
-            let img = egui::widgets::Image::new(self.image.texture_id, rect.size());
-            img.paint_at(ui, rect);
+            self.image.paint_at(ui, rect);
 
             if response.hovered() {
                 ui.painter().rect_filled(
@@ -367,19 +371,21 @@ impl Widget for &mut Button {
 
 #[derive(Clone)]
 pub struct ButtonBehavior {
-    image: Image,
+    button: Button,
     clicked_at: time::Instant,
     clicked: Toggle,
-    pos: egui::Pos2,
 }
 
 impl ButtonBehavior {
     pub fn new(image: Image, x: f32, y: f32) -> Self {
+        let pos = egui::pos2(x, y);
+        let rect = egui::Rect::from_min_size(pos, image.size);
+        let button = Button::new(image, false, rect);
+
         Self {
-            image,
+            button,
             clicked_at: time::Instant::now(),
             clicked: Toggle::new(false, false),
-            pos: egui::pos2(x, y),
         }
     }
 }
@@ -396,9 +402,8 @@ impl Behavior for ButtonBehavior {
     }
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
-        let rect = egui::Rect::from_two_pos(self.pos, self.pos + self.image.size);
-        let mut widget = Button::new(self.image, self.clicked.val(), rect);
-        let response = widget.ui(ui);
+        self.button.clicked = self.clicked.val();
+        let response = self.button.ui(ui);
 
         if response.clicked() {
             self.clicked_at = time::Instant::now();
