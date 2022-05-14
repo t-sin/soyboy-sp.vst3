@@ -861,6 +861,8 @@ impl ParameterVoices {
 impl SetValue for ParameterVoices {
     fn set(&mut self, v: f64) {
         self.value = self.param_def.denormalize(v) as usize;
+        self.param_value
+            .set_value(self.value.to_string(), ParameterUnit::Voices);
     }
 }
 

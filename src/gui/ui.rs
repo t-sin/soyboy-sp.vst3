@@ -362,7 +362,7 @@ impl UI {
             SoyBoyParameter::PitchBend => (),
             SoyBoyParameter::Detune => self.param_detune.set(value),
             SoyBoyParameter::OscillatorType => self.param_osc_type.set(value),
-            SoyBoyParameter::NumVoices => (), // TODO
+            SoyBoyParameter::NumVoices => self.param_voices.set(value),
             SoyBoyParameter::SweepType => self.param_sweep_type.set(value),
             SoyBoyParameter::SweepAmount => self.param_amount.set(value),
             SoyBoyParameter::SweepPeriod => self.param_period.set(value),
