@@ -1,3 +1,4 @@
+pub const MAX_NUMBER_OF_VOICES: usize = 8;
 pub const OSCILLOSCOPE_SAIMPLE_SIZE: usize = 512;
 pub const WAVETABLE_SIZE: usize = 32;
 

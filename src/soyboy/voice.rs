@@ -82,6 +82,14 @@ impl VoiceUnit {
     pub fn set_wavetable(&mut self, wavetable: &[i4; constants::WAVETABLE_SIZE]) {
         self.wavetable_osc.set_wavetable(wavetable);
     }
+
+    pub fn same_note(&self, note: u16) -> bool {
+        self.envelope_gen.same_note(note)
+    }
+
+    pub fn assignable(&self, note: u16) -> bool {
+        self.envelope_gen.assignable(note)
+    }
 }
 
 impl Triggered for VoiceUnit {

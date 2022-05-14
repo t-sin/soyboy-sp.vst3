@@ -48,6 +48,21 @@ impl EnvelopeGenerator {
         }
     }
 
+    pub fn same_note(&self, note: u16) -> bool {
+        self.note == note
+    }
+
+    pub fn assignable(&self, note: u16) -> bool {
+        let same_note = self.same_note(note);
+        let silent = match self.state {
+            EnvelopeState::Release => true,
+            EnvelopeState::Off => true,
+            _ => false,
+        };
+
+        same_note || silent
+    }
+
     pub fn set_state(&mut self, state: EnvelopeState) {
         match self.state {
             EnvelopeState::Attack => self.last_state_value = self.last_value,
