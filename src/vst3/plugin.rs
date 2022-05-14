@@ -527,6 +527,8 @@ impl IAudioProcessor for SoyBoyPlugin {
             let param_changes = data.input_param_changes.upgrade().unwrap();
             let count = param_changes.get_parameter_count();
 
+            let mut config = self.config.lock().unwrap();
+
             for i in 0..count {
                 let param_queue = param_changes.get_parameter_data(i);
                 if let Some(param_queue) = param_queue.upgrade() {
@@ -541,6 +543,7 @@ impl IAudioProcessor for SoyBoyPlugin {
                         ) == kResultTrue
                         {
                             if let Some(p) = self.param_defs.get(&param) {
+                                config.set_param(&param, p.denormalize(value));
                                 soyboy.set_param(&param, p.denormalize(value));
                             }
                         }
