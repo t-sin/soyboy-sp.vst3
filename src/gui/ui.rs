@@ -41,6 +41,7 @@ pub struct UI {
     pub param_osc_type: ParameterSelector,
     pub param_osc_sq_duty: ParameterSelector,
     pub param_sweep_type: ParameterSelector,
+    pub param_voices: ParameterVoices,
     pub param_wavetable: WaveTableEditor,
 }
 
@@ -332,6 +333,16 @@ impl UI {
                 388.0,
                 186.0,
                 event_handler.clone(),
+            ),
+            param_voices: ParameterVoices::new(
+                *param_values
+                    .get(&(SoyBoyParameter::NumVoices as u32))
+                    .unwrap(),
+                param_defs.get(&SoyBoyParameter::NumVoices).unwrap().clone(),
+                Image::new(egui_ctx, &images.value_atlas),
+                246.0,
+                158.0,
+                //                event_handler.clone(),
             ),
             param_wavetable: WaveTableEditor::new(
                 Image::new(egui_ctx, &images.wavetable_border),

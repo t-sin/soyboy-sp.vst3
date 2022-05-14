@@ -122,6 +122,7 @@ pub enum ParameterUnit {
     MilliSec,
     Sec,
     Percent,
+    Voices,
 }
 
 impl ParameterUnit {
@@ -133,6 +134,7 @@ impl ParameterUnit {
             ParameterUnit::MilliSec => Some(Region::new(96.0, 16.0, 22.0, 14.0)),
             ParameterUnit::Sec => Some(Region::new(126.0, 16.0, 10.0, 14.0)),
             ParameterUnit::Percent => Some(Region::new(144.0, 16.0, 10.0, 14.0)),
+            ParameterUnit::Voices => Some(Region::new(0.0, 32.0, 62.0, 14.0)),
         }
     }
 }

@@ -231,8 +231,9 @@ impl GUIThread {
                     let _ = self.ui.param_osc_sq_duty.show(ui);
                     let _ = self.ui.param_sweep_type.show(ui);
 
-                    let _ = self.ui.param_wavetable.show(ui);
+                    let _ = self.ui.param_voices.show(ui);
 
+                    let _ = self.ui.param_wavetable.show(ui);
                     let _ = self.ui.oscilloscope.show(ui);
                 });
         });

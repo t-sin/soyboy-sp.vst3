@@ -802,6 +802,48 @@ impl Behavior for ParameterSelector {
     }
 }
 
+pub struct ParameterVoices {
+    value: usize,
+    param_def: ParameterDef,
+    param_value: ParameterValue,
+    value_atlas: Image,
+    rect: egui::Rect,
+}
+
+impl ParameterVoices {
+    pub fn new(value: f64, param_def: ParameterDef, value_atlas: Image, x: f32, y: f32) -> Self {
+        let pos = egui::pos2(x, y);
+        let rect = egui::Rect::from_min_size(pos, egui::vec2(82.0, 42.0));
+
+        let param_value = ParameterValue::new(
+            (value as usize).to_string(),
+            ParameterUnit::Voices,
+            value_atlas,
+            pos.x,
+            pos.y,
+        );
+
+        Self {
+            value: value as usize,
+            param_def,
+            param_value,
+            value_atlas,
+            rect,
+        }
+    }
+}
+
+impl Behavior for ParameterVoices {
+    fn update(&mut self) -> bool {
+        false
+    }
+
+    fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
+        ui.set_clip_rect(self.rect);
+        ui.add(self.param_value.clone())
+    }
+}
+
 pub struct WaveTableEditor {
     values: [f64; constants::WAVETABLE_SIZE],
     border_image: egui::widgets::Image,
