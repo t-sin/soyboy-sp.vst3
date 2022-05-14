@@ -746,6 +746,12 @@ impl ParameterSelector {
     }
 }
 
+impl SetValue for ParameterSelector {
+    fn set(&mut self, v: f64) {
+        self.value = self.param_def.denormalize(v) as usize;
+    }
+}
+
 impl Behavior for ParameterSelector {
     fn update(&mut self) -> bool {
         false

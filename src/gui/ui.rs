@@ -348,8 +348,8 @@ impl UI {
             SoyBoyParameter::MasterVolume => self.param_volume.set(value),
             SoyBoyParameter::PitchBend => (),
             SoyBoyParameter::Detune => self.param_detune.set(value),
-            SoyBoyParameter::OscillatorType => (), // TODO: implment
-            SoyBoyParameter::SweepType => (),      // TODO: implment
+            SoyBoyParameter::OscillatorType => self.param_osc_type.set(value),
+            SoyBoyParameter::SweepType => self.param_sweep_type.set(value),
             SoyBoyParameter::SweepAmount => self.param_amount.set(value),
             SoyBoyParameter::SweepPeriod => self.param_period.set(value),
             SoyBoyParameter::StutterTime => self.param_time.set(value),
@@ -358,7 +358,7 @@ impl UI {
             SoyBoyParameter::EgDecay => self.param_decay.set(value),
             SoyBoyParameter::EgSustain => self.param_sustain.set(value),
             SoyBoyParameter::EgRelease => self.param_release.set(value),
-            SoyBoyParameter::OscSqDuty => (), // TODO: implment
+            SoyBoyParameter::OscSqDuty => self.param_osc_sq_duty.set(value),
             SoyBoyParameter::OscNsInterval => self.param_interval.set(value),
             SoyBoyParameter::DacFreq => (),
             SoyBoyParameter::DacQ => (),
