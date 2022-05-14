@@ -237,6 +237,8 @@ impl IPluginBase for SoyBoyPlugin {
                     config.set_param(&param, sp.default_value);
                 }
             }
+
+            config.set_wavetable(&soyboy.get_wavetable());
         }
 
         self.init_event_in();
@@ -652,15 +654,22 @@ impl IConnectionPoint for SoyBoyPlugin {
         match Vst3Message::from_message(&message) {
             Some(Vst3Message::InitializeWaveTable) => {
                 let mut soyboy = self.soyboy.lock().unwrap();
+                let mut config = self.config.lock().unwrap();
+
                 soyboy.trigger(&Event::ResetWaveTableAsSine);
                 let table = soyboy.get_wavetable();
+
+                config.set_wavetable(&table);
                 self.send_message(Vst3Message::WaveTableData(table));
             }
             Some(Vst3Message::RandomizeWaveTable) => {
                 let mut soyboy = self.soyboy.lock().unwrap();
+                let mut config = self.config.lock().unwrap();
 
                 soyboy.trigger(&Event::ResetWaveTableAtRandom);
                 let table = soyboy.get_wavetable();
+
+                config.set_wavetable(&table);
                 self.send_message(Vst3Message::WaveTableData(table));
             }
             Some(Vst3Message::WaveTableRequested) => {
@@ -672,7 +681,7 @@ impl IConnectionPoint for SoyBoyPlugin {
                 let mut config = self.config.lock().unwrap();
 
                 soyboy.trigger(&Event::SetWaveTable { idx, value });
-                config.set_wavetable(idx, value);
+                config.set_wavetable_sample(idx, value);
 
                 let table = soyboy.get_wavetable();
                 self.send_message(Vst3Message::WaveTableData(table));
