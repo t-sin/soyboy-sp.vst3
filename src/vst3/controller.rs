@@ -202,18 +202,13 @@ impl IEditController for SoyBoyController {
                     return kResultFalse;
                 }
 
-                let mut config: PluginConfigV01 = decoded.unwrap();
+                let config: PluginConfigV01 = decoded.unwrap();
                 let mut param_vals = self.param_values.lock().unwrap();
                 for param in SoyBoyParameter::iter() {
                     let param_def = self.param_defs.get(&param).unwrap();
                     let value = config.get_param(&param);
                     let norm = param_def.normalize(value);
                     param_vals.insert(param as u32, norm);
-                    config.set_param(&param, norm);
-                }
-
-                if let Some(sender) = &*self.gui_sender.lock().unwrap() {
-                    let _ = sender.send(GUIEvent::Configure(config));
                 }
             }
             _ => {
@@ -365,7 +360,7 @@ impl IEditController for SoyBoyController {
                 host,
             );
 
-            conn.send_message(Vst3Message::WaveTableRequested);
+            conn.send_message(Vst3Message::ConfigurationRequested);
 
             let gui = SoyBoyVST3GUI::new(
                 self.component_handler.borrow().clone(),
@@ -477,6 +472,9 @@ impl IConnectionPoint for SoyBoyController {
             match Vst3Message::from_message(&message) {
                 Some(Vst3Message::NoteOn) => {
                     let _ = sender.send(GUIEvent::NoteOn);
+                }
+                Some(Vst3Message::ConfigurationData(config)) => {
+                    let _ = sender.send(GUIEvent::Configure(config));
                 }
                 Some(Vst3Message::WaveTableData(table)) => {
                     let _ = sender.send(GUIEvent::WaveTableData(table));

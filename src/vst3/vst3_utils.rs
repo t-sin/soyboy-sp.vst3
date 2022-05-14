@@ -3,6 +3,8 @@ use std::os::raw::c_void;
 use std::ptr::null_mut;
 use std::sync::{Arc, Mutex};
 
+use bincode::Options;
+
 use vst3_com::{interfaces::IUnknown, ComInterface};
 use vst3_sys::{
     base::kResultOk,
@@ -12,7 +14,7 @@ use vst3_sys::{
 };
 
 use super::raw_utils::fidstring_to_string;
-use crate::common::{constants, i4, Vst3Message, Waveform};
+use crate::common::{constants, i4, PluginConfigV01, Vst3Message, Waveform};
 
 pub struct SyncPtr<I: ComInterface + ?Sized> {
     ptr: VstPtr<I>,
@@ -119,7 +121,38 @@ impl Vst3Message {
 
                 Some(Vst3Message::WaveTableData(table))
             }
-            "vst3:wavetable-requested" => Some(Vst3Message::WaveTableRequested),
+            "vst3:config-requested" => Some(Vst3Message::ConfigurationRequested),
+            "vst3:config-data" => {
+                let attr = unsafe { msg.get_attributes() };
+                let attr_id = CString::new("config").unwrap();
+
+                let mut size: u32 = 0;
+                let bytes_ptr: *mut c_void = null_mut();
+
+                unsafe {
+                    attr.upgrade().unwrap().get_binary(
+                        attr_id.as_ptr(),
+                        &bytes_ptr as *const _,
+                        &mut size as *mut _,
+                    );
+                };
+
+                let bytes_ptr = bytes_ptr as *mut u8;
+                let bytes_src = unsafe { std::slice::from_raw_parts(bytes_ptr, size as usize) };
+
+                let options = bincode::config::DefaultOptions::new()
+                    .reject_trailing_bytes()
+                    .with_little_endian()
+                    .with_fixint_encoding();
+                let decoded = options.deserialize(&bytes_src[..]);
+                if decoded.is_err() {
+                    println!("cannot decode configuration data");
+                    return Some(Vst3Message::ConfigurationData(PluginConfigV01::default()));
+                }
+
+                let config: PluginConfigV01 = decoded.unwrap();
+                Some(Vst3Message::ConfigurationData(config))
+            }
             "vst3:set-wavetable-sample" => {
                 let attr = unsafe { msg.get_attributes() };
                 let id_idx = CString::new("index").unwrap();
@@ -210,8 +243,32 @@ impl Vst3Message {
                     );
                 };
             }
-            Vst3Message::WaveTableRequested => {
+            Vst3Message::ConfigurationRequested => {
                 unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
+            }
+            Vst3Message::ConfigurationData(config) => {
+                unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
+                let attr = unsafe { msg.get_attributes() };
+                let attr_id = CString::new("config").unwrap();
+
+                let options = bincode::config::DefaultOptions::new()
+                    .reject_trailing_bytes()
+                    .with_little_endian()
+                    .with_fixint_encoding();
+                let encoded = options.serialize(config);
+                if encoded.is_err() {
+                    println!("cannot encode configuration. it's a bug!");
+                    return;
+                }
+                let bytes = encoded.unwrap();
+
+                unsafe {
+                    attr.upgrade().unwrap().set_binary(
+                        attr_id.as_ptr(),
+                        bytes.as_ptr() as *const c_void,
+                        bytes.len() as u32,
+                    );
+                };
             }
             Vst3Message::SetWaveTable(idx, val) => {
                 unsafe { msg.set_message_id(self.to_cstring().as_ptr()) };
