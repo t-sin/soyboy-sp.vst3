@@ -346,7 +346,22 @@ impl UI {
     pub fn set_value(&mut self, param: &SoyBoyParameter, value: f64) {
         match param {
             SoyBoyParameter::MasterVolume => self.param_volume.set(value),
-            _ => (),
+            SoyBoyParameter::PitchBend => (),
+            SoyBoyParameter::Detune => self.param_detune.set(value),
+            SoyBoyParameter::OscillatorType => (), // TODO: implment
+            SoyBoyParameter::SweepType => (),      // TODO: implment
+            SoyBoyParameter::SweepAmount => self.param_amount.set(value),
+            SoyBoyParameter::SweepPeriod => self.param_period.set(value),
+            SoyBoyParameter::StutterTime => self.param_time.set(value),
+            SoyBoyParameter::StutterDepth => self.param_depth.set(value),
+            SoyBoyParameter::EgAttack => self.param_attack.set(value),
+            SoyBoyParameter::EgDecay => self.param_decay.set(value),
+            SoyBoyParameter::EgSustain => self.param_sustain.set(value),
+            SoyBoyParameter::EgRelease => self.param_release.set(value),
+            SoyBoyParameter::OscSqDuty => (), // TODO: implment
+            SoyBoyParameter::OscNsInterval => self.param_interval.set(value),
+            SoyBoyParameter::DacFreq => (),
+            SoyBoyParameter::DacQ => (),
         }
     }
 
