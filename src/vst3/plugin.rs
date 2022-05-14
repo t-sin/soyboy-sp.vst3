@@ -233,8 +233,8 @@ impl IPluginBase for SoyBoyPlugin {
 
             for param in SoyBoyParameter::iter() {
                 if let Some(sp) = self.param_defs.get(&param) {
-                    soyboy.set_param(&param, sp.default_value);
-                    config.set_param(&param, sp.default_value);
+                    soyboy.set_param(&param, sp.denormalize(sp.default_value));
+                    config.set_param(&param, sp.denormalize(sp.default_value));
                 }
             }
 
