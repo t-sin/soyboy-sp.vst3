@@ -11,6 +11,7 @@ pub enum SoyBoyParameter {
     PitchBend,
     Detune,
     OscillatorType,
+    NumVoices,
     // frequency sweep
     SweepType,
     SweepAmount,
@@ -40,6 +41,8 @@ impl TryFrom<u32> for SoyBoyParameter {
             Ok(SoyBoyParameter::MasterVolume)
         } else if id == SoyBoyParameter::OscillatorType as u32 {
             Ok(SoyBoyParameter::OscillatorType)
+        } else if id == SoyBoyParameter::NumVoices as u32 {
+            Ok(SoyBoyParameter::NumVoices)
         } else if id == SoyBoyParameter::PitchBend as u32 {
             Ok(SoyBoyParameter::PitchBend)
         } else if id == SoyBoyParameter::Detune as u32 {
@@ -407,6 +410,20 @@ fn make_global_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
             unit_name: "".to_string(),
             step_count: (SELECTED_OSC.denormalize(1.0)) as i32,
             default_value: 0.0,
+        },
+    );
+
+    static NUM_VOICES: IntegerParameter = IntegerParameter { min: 1, max: 8 };
+    params.insert(
+        SoyBoyParameter::NumVoices,
+        ParameterDef {
+            r#type: ParameterType::Integer,
+            parameter: ParameterInfo { int: NUM_VOICES },
+            title: "Num of voices".to_string(),
+            short_title: "Voice num".to_string(),
+            unit_name: "".to_string(),
+            step_count: NUM_VOICES.max - NUM_VOICES.min,
+            default_value: 1.0,
         },
     );
 

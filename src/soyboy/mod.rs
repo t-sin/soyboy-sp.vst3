@@ -85,6 +85,7 @@ impl Parametric<SoyBoyParameter> for SoyBoy {
     fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
         match param {
             SoyBoyParameter::MasterVolume => self.master_volume = value,
+            SoyBoyParameter::NumVoices => self.num_voices = value as usize,
             param => self
                 .voices
                 .iter_mut()
@@ -95,6 +96,7 @@ impl Parametric<SoyBoyParameter> for SoyBoy {
     fn get_param(&self, param: &SoyBoyParameter) -> f64 {
         match param {
             SoyBoyParameter::MasterVolume => self.master_volume,
+            SoyBoyParameter::NumVoices => self.num_voices as f64,
             param => self.voices[0].get_param(param),
         }
     }
