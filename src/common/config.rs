@@ -32,8 +32,13 @@ impl PluginConfigV01 {
     /// So this is not equal to Cargo.toml's one.
     pub const CONFIG_VERSION: u32 = 1;
 
-    pub fn set_wavetable(&mut self, idx: usize, v: i4) {
+    pub fn set_wavetable_sample(&mut self, idx: usize, v: i4) {
+        println!("wavetable = {:?}", self.wavetable);
         self.wavetable[idx] = v;
+    }
+
+    pub fn set_wavetable(&mut self, wavetable: &[i4; constants::WAVETABLE_SIZE]) {
+        self.wavetable = wavetable.clone();
     }
 }
 
