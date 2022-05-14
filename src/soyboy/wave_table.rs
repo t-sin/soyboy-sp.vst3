@@ -73,7 +73,6 @@ impl Triggered for WaveTableOscillator {
             Event::SetWaveTable { idx, value } => {
                 let idx = *idx;
                 if idx < constants::WAVETABLE_SIZE {
-                    println!("Wavetable::set_sample({}, {:?})", idx, value);
                     self.table[idx] = *value;
                 }
             }
