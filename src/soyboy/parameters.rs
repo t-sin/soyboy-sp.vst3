@@ -648,7 +648,7 @@ fn make_dac_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
         },
     );
     static DAC_Q: NonLinearParameter = NonLinearParameter {
-        plain_zero: 0.005,
+        plain_zero: 0.5,
         plain_min: 1.0,
         plain_max: 40.0,
         plain_one: 40.0,
@@ -664,7 +664,7 @@ fn make_dac_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
             short_title: "Q".to_string(),
             unit_name: "".to_string(),
             step_count: 0,
-            default_value: 0.005,
+            default_value: 0.5,
         },
     );
 }
