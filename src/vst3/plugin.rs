@@ -364,7 +364,7 @@ impl IComponent for SoyBoyPlugin {
 
         if result != kResultOk {
             println!("IAudioProcessor::set_state(): read CONFIG_VERSION failed");
-            return kResultOk;
+            return kResultFalse;
         }
 
         match config_version {
