@@ -78,6 +78,10 @@ impl VoiceUnit {
     pub fn get_wavetable(&self) -> [i4; constants::WAVETABLE_SIZE] {
         self.wavetable_osc.get_wavetable()
     }
+
+    pub fn set_wavetable(&mut self, wavetable: &[i4; constants::WAVETABLE_SIZE]) {
+        self.wavetable_osc.set_wavetable(wavetable);
+    }
 }
 
 impl Triggered for VoiceUnit {

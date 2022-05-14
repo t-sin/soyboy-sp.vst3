@@ -58,6 +58,10 @@ impl WaveTableOscillator {
 
         table
     }
+
+    pub fn set_wavetable(&mut self, wavetable: &[i4; constants::WAVETABLE_SIZE]) {
+        self.table = wavetable.clone();
+    }
 }
 
 impl Triggered for WaveTableOscillator {
