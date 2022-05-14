@@ -44,13 +44,13 @@ pub fn level_from_velocity(velocity: f64) -> f64 {
 }
 
 pub fn linear_denormalize(v: f64, min: f64, max: f64) -> f64 {
-    let range = max.abs() + min.abs();
+    let range = (max - min).abs();
     let v = v * range + min;
     f64_utils::normalize(v)
 }
 
 pub fn linear_normalize(x: f64, min: f64, max: f64) -> f64 {
-    let range = max.abs() + min.abs();
+    let range = (max - min).abs();
     let v = (x - min) / range;
     f64_utils::normalize(v)
 }
