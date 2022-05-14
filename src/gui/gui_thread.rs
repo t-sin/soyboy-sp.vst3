@@ -454,9 +454,9 @@ impl GUIThread {
         let glow_context = Rc::new(glow_context);
         let egui_glow = EguiGlow::new(window.window(), glow_context);
 
-        let scale_factor = window.window().scale_factor();
-        #[cfg(debug_assertions)]
-        println!("scale factor = {}", scale_factor);
+        // let scale_factor = window.window().scale_factor();
+        // #[cfg(debug_assertions)]
+        // println!("scale factor = {}", scale_factor);
         egui_glow.egui_ctx.set_pixels_per_point(1.0);
 
         let waveform_view_enabled = Rc::new(RefCell::new(false));
