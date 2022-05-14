@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::soyboy::parameters::{Parametric, SoyBoyParameter};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PluginConfigV01 {
     pub waveform_view_enabled: bool,
     // soyboy parameters
