@@ -489,7 +489,7 @@ fn make_global_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
             short_title: "Stutter time".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
-            default_value: 0.0,
+            default_value: 0.1,
         },
     );
     static STUTTER_DEPTH: LinearParameter = LinearParameter {
