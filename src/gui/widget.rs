@@ -50,6 +50,13 @@ impl ParameterValue {
         self.rect = egui::Rect::from_min_size(pos, size);
     }
 
+    pub fn set_value(&mut self, value_str: String, unit: ParameterUnit) {
+        let (regions, w, h) = Self::layout(value_str, unit);
+        self.regions = regions;
+        let rect = egui::Rect::from_min_size(self.rect.min, egui::vec2(w, h));
+        self.rect = rect;
+    }
+
     fn layout(value_str: String, unit: ParameterUnit) -> (Vec<Region>, f32, f32) {
         let mut regions = Vec::new();
         let (mut w, mut h) = (0.0, 0.0);
@@ -806,12 +813,23 @@ pub struct ParameterVoices {
     value: usize,
     param_def: ParameterDef,
     param_value: ParameterValue,
-    value_atlas: Image,
+    button_minus: ButtonBehavior,
+    button_plus: ButtonBehavior,
     rect: egui::Rect,
+    event_handler: Arc<dyn EventHandler>,
 }
 
 impl ParameterVoices {
-    pub fn new(value: f64, param_def: ParameterDef, value_atlas: Image, x: f32, y: f32) -> Self {
+    pub fn new(
+        value: f64,
+        param_def: ParameterDef,
+        value_atlas: Image,
+        button_minus: Image,
+        button_plus: Image,
+        x: f32,
+        y: f32,
+        event_handler: Arc<dyn EventHandler>,
+    ) -> Self {
         let pos = egui::pos2(x, y);
         let rect = egui::Rect::from_min_size(pos, egui::vec2(82.0, 42.0));
 
@@ -823,24 +841,67 @@ impl ParameterVoices {
             pos.y,
         );
 
+        let minus_pos = pos + egui::vec2(0.0, 16.0);
+        let button_minus = ButtonBehavior::new(button_minus, minus_pos.x, minus_pos.y);
+        let plus_pos = minus_pos + egui::vec2(44.0, 0.0);
+        let button_plus = ButtonBehavior::new(button_plus, plus_pos.x, plus_pos.y);
+
         Self {
             value: value as usize,
             param_def,
             param_value,
-            value_atlas,
+            button_minus,
+            button_plus,
             rect,
+            event_handler,
         }
+    }
+}
+
+impl SetValue for ParameterVoices {
+    fn set(&mut self, v: f64) {
+        self.value = self.param_def.denormalize(v) as usize;
     }
 }
 
 impl Behavior for ParameterVoices {
     fn update(&mut self) -> bool {
-        false
+        self.button_minus.update() || self.button_plus.update()
     }
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
         ui.set_clip_rect(self.rect);
-        ui.add(self.param_value.clone())
+        ui.add(self.param_value.clone());
+
+        ui.set_clip_rect(self.rect);
+        let resp_minus = self.button_minus.show(ui);
+        let resp_plus = self.button_plus.show(ui);
+
+        if resp_minus.clicked() {
+            if self.value > 1 {
+                self.value -= 1;
+                self.param_value
+                    .set_value(self.value.to_string(), ParameterUnit::Voices);
+
+                let param = SoyBoyParameter::NumVoices;
+                self.event_handler
+                    .change_parameter(param, self.param_def.normalize(self.value as f64));
+            }
+        }
+
+        if resp_plus.clicked() {
+            if self.value < 8 {
+                self.value += 1;
+                self.param_value
+                    .set_value(self.value.to_string(), ParameterUnit::Voices);
+
+                let param = SoyBoyParameter::NumVoices;
+                self.event_handler
+                    .change_parameter(param, self.param_def.normalize(self.value as f64));
+            }
+        }
+
+        resp_minus
     }
 }
 

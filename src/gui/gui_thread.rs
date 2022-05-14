@@ -262,6 +262,7 @@ impl GUIThread {
             &mut self.ui.edamame as &mut dyn Behavior,
             &mut self.ui.button_reset_random as &mut dyn Behavior,
             &mut self.ui.button_reset_sine as &mut dyn Behavior,
+            &mut self.ui.param_voices as &mut dyn Behavior,
         ];
 
         for widget in behaviors.iter_mut() {

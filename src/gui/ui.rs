@@ -340,9 +340,11 @@ impl UI {
                     .unwrap(),
                 param_defs.get(&SoyBoyParameter::NumVoices).unwrap().clone(),
                 Image::new(egui_ctx, &images.value_atlas),
+                Image::new(egui_ctx, &images.button_minus),
+                Image::new(egui_ctx, &images.button_plus),
                 246.0,
                 158.0,
-                //                event_handler.clone(),
+                event_handler.clone(),
             ),
             param_wavetable: WaveTableEditor::new(
                 Image::new(egui_ctx, &images.wavetable_border),

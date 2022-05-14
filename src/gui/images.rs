@@ -13,6 +13,8 @@ const IMG_LABEL_SWEEP: &[u8] = include_bytes!("../../resources/label-sweep.png")
 const IMG_LABEL_STUTTER: &[u8] = include_bytes!("../../resources/label-stutter.png");
 const IMG_BUTTON_RESET_RANDOM: &[u8] = include_bytes!("../../resources/button-reset-random.png");
 const IMG_BUTTON_RESET_SINE: &[u8] = include_bytes!("../../resources/button-reset-sine.png");
+const IMG_BUTTON_MINUS: &[u8] = include_bytes!("../../resources/button-minus.png");
+const IMG_BUTTON_PLUS: &[u8] = include_bytes!("../../resources/button-plus.png");
 const IMG_SLIDER_BORDER: &[u8] = include_bytes!("../../resources/slider-border.png");
 const IMG_VALUE_ATLAS: &[u8] = include_bytes!("../../resources/paramval.png");
 const IMG_PARAM_ATLAS: &[u8] = include_bytes!("../../resources/paramname.png");
@@ -50,6 +52,8 @@ pub struct Images {
     pub label_stutter: RetainedImage,
     pub button_reset_random: RetainedImage,
     pub button_reset_sine: RetainedImage,
+    pub button_minus: RetainedImage,
+    pub button_plus: RetainedImage,
     pub slider_border: RetainedImage,
     pub select_osc_type: RetainedImage,
     pub select_osc_sq_duty: RetainedImage,
@@ -100,6 +104,10 @@ impl Images {
                 IMG_BUTTON_RESET_SINE,
             )
             .unwrap(),
+            button_minus: RetainedImage::from_image_bytes("soyboy:button:minus", IMG_BUTTON_MINUS)
+                .unwrap(),
+            button_plus: RetainedImage::from_image_bytes("soyboy:button:plus", IMG_BUTTON_PLUS)
+                .unwrap(),
             slider_border: RetainedImage::from_image_bytes(
                 "soyboy:slider:border",
                 IMG_SLIDER_BORDER,
