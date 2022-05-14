@@ -1,9 +1,11 @@
 use std::ops::{Add, Mul};
 
+use serde::{Deserialize, Serialize};
+
 use crate::common::f64_utils;
 
 #[allow(non_camel_case_types)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct i4(u8);
 
 impl i4 {

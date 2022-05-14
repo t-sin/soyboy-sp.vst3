@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::common::{constants, i4};
 use crate::soyboy::parameters::{Parametric, SoyBoyParameter};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -23,12 +24,17 @@ pub struct PluginConfigV01 {
     pub osc_noise_interval: f64,
     pub dac_freq: f64,
     pub dac_q: f64,
+    pub wavetable: [i4; constants::WAVETABLE_SIZE],
 }
 
 impl PluginConfigV01 {
     /// This version is for versioning configuration data.
     /// So this is not equal to Cargo.toml's one.
     pub const CONFIG_VERSION: u32 = 1;
+
+    pub fn set_wavetable(&mut self, idx: usize, v: i4) {
+        self.wavetable[idx] = v;
+    }
 }
 
 impl Parametric<SoyBoyParameter> for PluginConfigV01 {
@@ -53,6 +59,7 @@ impl Parametric<SoyBoyParameter> for PluginConfigV01 {
             SoyBoyParameter::DacQ => self.dac_q = value,
         }
     }
+
     fn get_param(&self, param: &SoyBoyParameter) -> f64 {
         match param {
             SoyBoyParameter::MasterVolume => self.master_volume,
@@ -97,6 +104,7 @@ impl Default for PluginConfigV01 {
             osc_noise_interval: 0.0,
             dac_freq: 0.0,
             dac_q: 0.0,
+            wavetable: [i4::from(0i8); constants::WAVETABLE_SIZE],
         }
     }
 }

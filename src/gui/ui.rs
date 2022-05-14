@@ -369,5 +369,7 @@ impl UI {
         for ref param in SoyBoyParameter::iter() {
             self.set_value(param, config.get_param(param));
         }
+
+        self.param_wavetable.set_wavetable(&config.wavetable);
     }
 }

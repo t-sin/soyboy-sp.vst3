@@ -214,7 +214,6 @@ impl IEditController for SoyBoyController {
 
                 if let Some(sender) = &*self.gui_sender.lock().unwrap() {
                     let _ = sender.send(GUIEvent::Configure(config));
-                    // TODO: send wavetable data
                 }
             }
             _ => {
