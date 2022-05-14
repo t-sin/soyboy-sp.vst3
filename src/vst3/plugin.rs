@@ -25,15 +25,14 @@ use vst3_sys::{
     VstPtr, VST3,
 };
 
-use crate::common::{constants, Vst3Message, Waveform};
+use crate::common::{constants, PluginConfigV01, Vst3Message, Waveform};
 use crate::soyboy::{
     event::{Event, Triggered},
     parameters::{Normalizable, ParameterDef, Parametric, SoyBoyParameter},
     AudioProcessor, SoyBoy,
 };
 use crate::vst3::{
-    controller::SoyBoyController, plugin_config::PluginConfigV01, plugin_data, raw_utils,
-    vst3_utils, vst3_utils::SyncPtr,
+    controller::SoyBoyController, plugin_data, raw_utils, vst3_utils, vst3_utils::SyncPtr,
 };
 
 pub struct PluginTimerThread {

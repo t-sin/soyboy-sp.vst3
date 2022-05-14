@@ -20,6 +20,10 @@ fn screen_rect() -> egui::Rect {
     }
 }
 
+pub trait SetValue {
+    fn set(&mut self, v: f64);
+}
+
 #[derive(Clone)]
 pub struct ParameterValue {
     atlas: Image,
@@ -616,6 +620,12 @@ impl ParameterSlider {
             value_atlas: images.value_atlas,
             pos: egui::pos2(x, y),
         }
+    }
+}
+
+impl SetValue for ParameterSlider {
+    fn set(&mut self, v: f64) {
+        self.slider.value = v;
     }
 }
 

@@ -282,6 +282,10 @@ impl GUIThread {
                         self.needs_redraw = true;
                     }
                 }
+                GUIEvent::Configure(config) => {
+                    self.ui.configure(config);
+                    self.needs_redraw = true;
+                }
             }
         }
 

@@ -27,11 +27,9 @@ use vst3_sys::{
     VstPtr, VST3,
 };
 
-use crate::common::{GUIEvent, Vst3Message};
+use crate::common::{GUIEvent, PluginConfigV01, Vst3Message};
 use crate::soyboy::parameters::{Normalizable, ParameterDef, Parametric, SoyBoyParameter};
-use crate::vst3::{
-    gui::SoyBoyVST3GUI, plugin_config::PluginConfigV01, plugin_data, raw_utils, vst3_utils,
-};
+use crate::vst3::{gui::SoyBoyVST3GUI, plugin_data, raw_utils, vst3_utils};
 
 #[VST3(implements(IEditController, IUnitInfo, IMidiMapping, IConnectionPoint))]
 pub struct SoyBoyController {
@@ -204,12 +202,19 @@ impl IEditController for SoyBoyController {
                     return kResultFalse;
                 }
 
-                let config: PluginConfigV01 = decoded.unwrap();
+                let mut config: PluginConfigV01 = decoded.unwrap();
                 let mut param_vals = self.param_values.lock().unwrap();
                 for param in SoyBoyParameter::iter() {
                     let param_def = self.param_defs.get(&param).unwrap();
                     let value = config.get_param(&param);
-                    param_vals.insert(param as u32, param_def.normalize(value));
+                    let norm = param_def.normalize(value);
+                    param_vals.insert(param as u32, norm);
+                    config.set_param(&param, norm);
+                }
+
+                if let Some(sender) = &*self.gui_sender.lock().unwrap() {
+                    let _ = sender.send(GUIEvent::Configure(config));
+                    // TODO: send wavetable data
                 }
             }
             _ => {

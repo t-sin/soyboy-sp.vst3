@@ -1,5 +1,6 @@
 use std::fmt;
 
+use super::config::PluginConfigV01;
 use super::waveform::Waveform;
 use crate::common::{constants, i4};
 
@@ -12,6 +13,7 @@ pub enum GUIEvent {
     NoteOn,
     WaveTableData([i4; constants::WAVETABLE_SIZE]),
     WaveformData(Waveform),
+    Configure(PluginConfigV01),
 }
 
 pub enum Vst3Message {

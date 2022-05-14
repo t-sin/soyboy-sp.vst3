@@ -5,8 +5,9 @@ use std::sync::{Arc, Mutex};
 
 use egui_glow::egui_winit::egui;
 
+use crate::common::PluginConfigV01;
 use crate::gui::images::{Image, Images};
-use crate::soyboy::parameters::{ParameterDef, SoyBoyParameter};
+use crate::soyboy::parameters::{ParameterDef, Parametric, SoyBoyParameter};
 use crate::vst3::ControllerConnection;
 
 use super::{images, types::*, widget::*};
@@ -339,6 +340,19 @@ impl UI {
                 controller_connection,
             ),
             _images: images,
+        }
+    }
+
+    pub fn set_value(&mut self, param: &SoyBoyParameter, value: f64) {
+        match param {
+            SoyBoyParameter::MasterVolume => self.param_volume.set(value),
+            _ => (),
+        }
+    }
+
+    pub fn configure(&mut self, config: PluginConfigV01) {
+        for ref param in SoyBoyParameter::iter() {
+            self.set_value(param, config.get_param(param));
         }
     }
 }

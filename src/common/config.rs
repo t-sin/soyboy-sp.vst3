@@ -100,3 +100,14 @@ impl Default for PluginConfigV01 {
         }
     }
 }
+
+impl PartialEq for PluginConfigV01 {
+    fn eq(&self, _other: &Self) -> bool {
+        false
+    }
+
+    fn ne(&self, _other: &Self) -> bool {
+        true
+    }
+}
+impl Eq for PluginConfigV01 {}
