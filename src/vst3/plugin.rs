@@ -396,6 +396,8 @@ impl IComponent for SoyBoyPlugin {
                     let value = config.get_param(&param);
                     soyboy.set_param(&param, value);
                 }
+
+                soyboy.set_wavetable(&config.wavetable);
                 *self.config.lock().unwrap() = config;
             }
             _ => {

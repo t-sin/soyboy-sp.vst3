@@ -44,6 +44,10 @@ impl SoyBoy {
     pub fn get_wavetable(&self) -> [i4; constants::WAVETABLE_SIZE] {
         self.voice.get_wavetable()
     }
+
+    pub fn set_wavetable(&mut self, wavetable: &[i4; constants::WAVETABLE_SIZE]) {
+        self.voice.set_wavetable(wavetable);
+    }
 }
 
 impl Triggered for SoyBoy {
