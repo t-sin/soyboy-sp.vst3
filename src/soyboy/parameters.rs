@@ -359,7 +359,7 @@ fn make_global_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
             short_title: "Volume".to_string(),
             unit_name: "dB".to_string(),
             step_count: 0,
-            default_value: -4.0,
+            default_value: GLOBAL_MASTER_VOLUME.normalize(-4.0),
         },
     );
 
@@ -376,7 +376,7 @@ fn make_global_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
             short_title: "Detune".to_string(),
             unit_name: "cent".to_string(),
             step_count: GLOBAL_DETUNE.max.abs() + GLOBAL_DETUNE.min.abs(),
-            default_value: 0.0,
+            default_value: GLOBAL_DETUNE.normalize(0.0),
         },
     );
     static GLOBAL_PITCH: IntegerParameter = IntegerParameter {
@@ -392,7 +392,7 @@ fn make_global_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
             short_title: "Pitch".to_string(),
             unit_name: "cent".to_string(),
             step_count: GLOBAL_PITCH.max.abs() + GLOBAL_PITCH.min.abs(),
-            default_value: 0.0,
+            default_value: GLOBAL_PITCH.normalize(0.0),
         },
     );
 
@@ -423,7 +423,7 @@ fn make_global_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
             short_title: "Voice num".to_string(),
             unit_name: "".to_string(),
             step_count: NUM_VOICES.max - NUM_VOICES.min,
-            default_value: 1.0,
+            default_value: NUM_VOICES.normalize(3.0),
         },
     );
 
@@ -489,7 +489,7 @@ fn make_global_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
             short_title: "Stutter time".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
-            default_value: 0.05,
+            default_value: STUTTER_TIME.normalize(0.05),
         },
     );
     static STUTTER_DEPTH: LinearParameter = LinearParameter {
@@ -526,7 +526,7 @@ pub fn make_square_oscillator_parameters(params: &mut HashMap<SoyBoyParameter, P
             short_title: "Duty".to_string(),
             unit_name: "".to_string(),
             step_count: (OSC_SQ_DUTY.denormalize(1.0)) as i32,
-            default_value: 2.0,
+            default_value: OSC_SQ_DUTY.normalize(2.0),
         },
     );
 }
@@ -551,7 +551,7 @@ pub fn make_noise_oscillator_parameters(params: &mut HashMap<SoyBoyParameter, Pa
             short_title: "Noise int".to_string(),
             unit_name: "ms".to_string(),
             step_count: 0,
-            default_value: 0.05,
+            default_value: OSC_NS_INTERVAL.normalize(0.05),
         },
     );
 }
@@ -578,7 +578,7 @@ pub fn make_envelope_generator_parameters(params: &mut HashMap<SoyBoyParameter, 
             short_title: "Attack".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
-            default_value: 0.08,
+            default_value: EG_TIME.normalize(0.08),
         },
     );
     params.insert(
@@ -592,7 +592,7 @@ pub fn make_envelope_generator_parameters(params: &mut HashMap<SoyBoyParameter, 
             short_title: "Decay".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
-            default_value: 0.1,
+            default_value: EG_TIME.normalize(0.1),
         },
     );
     params.insert(
@@ -606,7 +606,7 @@ pub fn make_envelope_generator_parameters(params: &mut HashMap<SoyBoyParameter, 
             short_title: "Release".to_string(),
             unit_name: "s".to_string(),
             step_count: 0,
-            default_value: 0.1,
+            default_value: EG_TIME.normalize(0.1),
         },
     );
     static EG_SUSTAIN: LinearParameter = LinearParameter { min: 0.0, max: 1.0 };
@@ -619,7 +619,7 @@ pub fn make_envelope_generator_parameters(params: &mut HashMap<SoyBoyParameter, 
             short_title: "Sustain".to_string(),
             unit_name: "".to_string(),
             step_count: 0,
-            default_value: 0.3,
+            default_value: EG_SUSTAIN.normalize(0.3),
         },
     );
 }
@@ -644,7 +644,7 @@ fn make_dac_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
             short_title: "freq".to_string(),
             unit_name: "Hz".to_string(),
             step_count: 0,
-            default_value: 22_000.0,
+            default_value: DAC_FREQ.normalize(22_000.0),
         },
     );
     static DAC_Q: NonLinearParameter = NonLinearParameter {
@@ -664,7 +664,7 @@ fn make_dac_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
             short_title: "Q".to_string(),
             unit_name: "".to_string(),
             step_count: 0,
-            default_value: 0.005,
+            default_value: DAC_Q.normalize(0.005),
         },
     );
 }
