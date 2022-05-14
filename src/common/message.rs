@@ -3,17 +3,19 @@ use std::fmt;
 use super::config::PluginConfigV01;
 use super::waveform::Waveform;
 use crate::common::{constants, i4};
+use crate::soyboy::parameters::SoyBoyParameter;
 
 pub enum GUIThreadMessage {
     Terminate,
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq)]
 pub enum GUIEvent {
     NoteOn,
     WaveTableData([i4; constants::WAVETABLE_SIZE]),
     WaveformData(Waveform),
     Configure(PluginConfigV01),
+    SetParam(SoyBoyParameter, f64),
 }
 
 pub enum Vst3Message {

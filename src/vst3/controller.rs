@@ -321,6 +321,12 @@ impl IEditController for SoyBoyController {
     }
 
     unsafe fn set_param_normalized(&self, id: u32, value: f64) -> tresult {
+        if let Ok(param) = SoyBoyParameter::try_from(id) {
+            if let Some(sender) = &*self.gui_sender.lock().unwrap() {
+                let _ = sender.send(GUIEvent::SetParam(param, value));
+            }
+        }
+
         match self.param_values.lock().unwrap().insert(id, value) {
             Some(_) => kResultTrue,
             _ => kResultFalse,

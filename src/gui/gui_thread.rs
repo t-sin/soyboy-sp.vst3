@@ -286,6 +286,10 @@ impl GUIThread {
                     self.ui.configure(config);
                     self.needs_redraw = true;
                 }
+                GUIEvent::SetParam(ref param, v) => {
+                    self.ui.set_value(param, v);
+                    self.needs_redraw = true;
+                }
             }
         }
 
