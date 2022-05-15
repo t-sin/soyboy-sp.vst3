@@ -104,15 +104,15 @@ impl IPluginBase for SoyBoyController {
         let _ = self.context.replace(Some(context));
 
         let param_defs = self.param_defs.clone();
-        for (param, soyboy_param) in param_defs.iter() {
+        for (param, param_def) in param_defs.iter() {
             self.add_parameter(
                 *param as u32,
                 Paraminfo {
-                    title: &soyboy_param.title,
-                    short_title: &soyboy_param.short_title,
-                    unit_name: &soyboy_param.unit_name,
-                    step_count: soyboy_param.step_count,
-                    default_value: soyboy_param.default_value,
+                    title: &param_def.title,
+                    short_title: &param_def.short_title,
+                    unit_name: &param_def.unit_name,
+                    step_count: param_def.step_count,
+                    default_value: param_def.normalize(param_def.default_value),
                     flags: ParameterFlags::kCanAutomate as i32,
                 },
             );

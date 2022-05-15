@@ -233,8 +233,8 @@ impl IPluginBase for SoyBoyPlugin {
 
             for param in SoyBoyParameter::iter() {
                 if let Some(sp) = self.param_defs.get(&param) {
-                    soyboy.set_param(&param, sp.denormalize(sp.default_value));
-                    config.set_param(&param, sp.denormalize(sp.default_value));
+                    soyboy.set_param(&param, sp.default_value);
+                    config.set_param(&param, sp.default_value);
                 }
             }
 
@@ -393,8 +393,8 @@ impl IComponent for SoyBoyPlugin {
                 let config: PluginConfigV01 = decoded.unwrap();
                 let mut soyboy = self.soyboy.lock().unwrap();
                 for param in SoyBoyParameter::iter() {
-                    let value = config.get_param(&param);
-                    soyboy.set_param(&param, value);
+                    let denorm = config.get_param(&param);
+                    soyboy.set_param(&param, denorm);
                 }
 
                 soyboy.set_wavetable(&config.wavetable);
@@ -546,8 +546,9 @@ impl IAudioProcessor for SoyBoyPlugin {
                         ) == kResultTrue
                         {
                             if let Some(p) = self.param_defs.get(&param) {
-                                config.set_param(&param, p.denormalize(value));
-                                soyboy.set_param(&param, p.denormalize(value));
+                                let denorm = p.denormalize(value);
+                                config.set_param(&param, denorm);
+                                soyboy.set_param(&param, denorm);
                             }
                         }
                     }
