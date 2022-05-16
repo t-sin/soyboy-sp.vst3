@@ -15,7 +15,7 @@ body {
 header {
   margin-bottom: 2em;
   padding: 1em 2em;
-  background-color: #eeeeee;
+  background-color: #eaf5fb;
   color: #1c231b;
   font-size: 1em;
 }
@@ -57,7 +57,7 @@ footer {
   clear: both;
   margin: 2em 0 0;
   padding: 2em;
-  background-color: #eeeeee;
+  background-color: #eaf5fb;
   font-size: 0.9em;
 }
 
