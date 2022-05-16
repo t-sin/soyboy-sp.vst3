@@ -34,5 +34,5 @@
     - [ ] user manual
     - [ ] bug reporter (for Japanese?)
 - [ ] future work
-    - [ ] can be polyphonic
+    - [x] can be polyphonic
     - [ ] multiple switchable wavetables
