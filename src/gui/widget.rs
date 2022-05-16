@@ -66,7 +66,7 @@ impl ParameterValue {
             match Character::from_char(ch) {
                 Some(c) => {
                     let region = c.get_region();
-                    w += region.size.x;
+                    w += region.size.x + 2.0;
                     h = region.size.y;
                     regions.push(region);
                 }
@@ -76,15 +76,10 @@ impl ParameterValue {
             }
         }
 
-        // for the spacing between characters
-        w += (value_str.chars().count() - 1) as f32 * 2.0;
-
         if let Some(region) = unit.get_region() {
             w += region.size.x;
             h = region.size.y;
             regions.push(region);
-            // for the spacing between last char and unit string
-            w += 2.0;
         }
 
         (regions, w, h)
