@@ -826,7 +826,7 @@ impl ParameterVoices {
         event_handler: Arc<dyn EventHandler>,
     ) -> Self {
         let pos = egui::pos2(x, y);
-        let rect = egui::Rect::from_min_size(pos, egui::vec2(82.0, 42.0));
+        let rect = egui::Rect::from_min_size(pos, egui::vec2(76.0, 42.0));
 
         let param_value = ParameterValue::new(
             (value as usize).to_string(),
@@ -836,9 +836,9 @@ impl ParameterVoices {
             0.0,
         );
 
-        let minus_pos = pos + egui::vec2(0.0, 16.0);
+        let minus_pos = pos + egui::vec2(4.0, 18.0);
         let button_minus = ButtonBehavior::new(button_minus, minus_pos.x, minus_pos.y);
-        let plus_pos = minus_pos + egui::vec2(44.0, 0.0);
+        let plus_pos = minus_pos + egui::vec2(40.0, 0.0);
         let button_plus = ButtonBehavior::new(button_plus, plus_pos.x, plus_pos.y);
 
         Self {
@@ -868,9 +868,10 @@ impl Behavior for ParameterVoices {
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
         ui.set_clip_rect(self.rect);
-        let size = egui::vec2(82.0, 41.0);
-        self.param_value
-            .set_pos(self.rect.min + egui::vec2(size.x - self.param_value.rect.size().x, 0.0));
+        let size = egui::vec2(76.0, 42.0);
+        self.param_value.set_pos(
+            self.rect.min + egui::vec2(size.x - self.param_value.rect.size().x - 2.0, 0.0),
+        );
         ui.add(self.param_value.clone());
 
         ui.set_clip_rect(self.rect);

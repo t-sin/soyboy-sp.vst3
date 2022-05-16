@@ -342,7 +342,7 @@ impl UI {
                 Image::new(egui_ctx, &images.value_atlas),
                 Image::new(egui_ctx, &images.button_minus),
                 Image::new(egui_ctx, &images.button_plus),
-                246.0,
+                252.0,
                 158.0,
                 event_handler.clone(),
             ),
