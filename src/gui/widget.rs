@@ -832,8 +832,8 @@ impl ParameterVoices {
             (value as usize).to_string(),
             ParameterUnit::Voices,
             value_atlas,
-            pos.x,
-            pos.y,
+            0.0,
+            0.0,
         );
 
         let minus_pos = pos + egui::vec2(0.0, 16.0);
@@ -868,6 +868,9 @@ impl Behavior for ParameterVoices {
 
     fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
         ui.set_clip_rect(self.rect);
+        let size = egui::vec2(82.0, 41.0);
+        self.param_value
+            .set_pos(self.rect.min + egui::vec2(size.x - self.param_value.rect.size().x, 0.0));
         ui.add(self.param_value.clone());
 
         ui.set_clip_rect(self.rect);
