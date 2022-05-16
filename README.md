@@ -21,7 +21,7 @@ Additionally, *SoyBoy SP* has these features:
 - Can be polyphonic; you can choose a number of voices (1 ~ 6)
 - Pitch bending with MPE (MIDI Polyphonic Expression)
 
-See [the website](https://t-sin.github.io/soyboy-sp.vst3/) ([Japanese ver. here]()) to know how to use.
+See [the website](https://t-sin.github.io/soyboy-sp.vst3/) ([Japanese ver. here](https://t-sin.github.io/soyboy-sp.vst3/index.ja.html)) to know how to use.
 o
 ## Requirements
 
