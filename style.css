@@ -1,0 +1,117 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #abbba8;
+  color: #1c231b;
+  font-size: 18px;
+  font-family: sans-serif;
+}
+
+/* header and footer */
+
+header {
+  margin-bottom: 2em;
+  padding: 1em 2em;
+  background-color: #eeeeee;
+  color: #1c231b;
+  font-size: 1em;
+}
+
+header h1 {
+  text-decoration: none;
+  font-size: 2.5em;
+}
+
+header hr {
+  margin: 0.5em 0 0.1em;
+  border-style: solid none none none;
+  border-width: 1px;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+header nav ul {
+  padding-left: 0px;
+  list-style: none;
+}
+
+header nav ul li {
+  margin: 0 1em 0 0;
+  display: inline-block;
+  font-size: 0.9em;
+}
+
+header a {
+  text-decoration: none;
+  font-weight: 300;
+}
+
+header a:hover {
+  text-decoration: underline;
+  font-weight: 300;
+}
+
+footer {
+  clear: both;
+  margin: 2em 0 0;
+  padding: 2em;
+  background-color: #eeeeee;
+  font-size: 0.9em;
+}
+
+/* content */
+
+main {
+  padding: 20px 2em;
+  max-width: 1000px;
+}
+
+h2 {
+  margin: 2em 0 0.5em;
+  font-size: 1.7em;
+}
+
+h3 {
+  margin: 1em 0 0.5em;
+  font-size: 1.4em;
+}
+
+p {
+  margin: 0.5em 0;
+}
+
+a {
+  color: #213510;
+  text-decoration: underline;
+}
+
+a:hover {
+  color: #305020;
+  text-decoration: none;
+}
+
+ul {
+  padding-left: 40px;
+}
+
+ol {
+  padding-left: 40px;
+}
+
+hr {
+  margin: 4em 0 2em;
+  border-style: solid none none none;
+  border-width: 1px;
+  border-color: #888888;
+}
+
+dl dt {
+  margin-top: 0.5em;
+  font-weight: 500;
+}
+
+dl dd {
+  padding-left: 1em;
+}
