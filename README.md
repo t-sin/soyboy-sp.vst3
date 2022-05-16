@@ -36,6 +36,7 @@ See [the website]() ([Japanese ver. here]()) to know how to use.
 - `-`: not tested
 
 | /              | GNU/Linux | Winwods | mac OS |
+| ---            | ---       | ---     | ---    |
 | Bitwig 4.x     | o         | o       | -      |
 | FL Studio 20.x | -         | o       | -      |
 | Zrythm         | -         | o       | -      |
