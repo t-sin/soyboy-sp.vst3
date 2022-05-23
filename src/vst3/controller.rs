@@ -319,8 +319,11 @@ impl IEditController for SoyBoyController {
 
     unsafe fn set_param_normalized(&self, id: u32, value: f64) -> tresult {
         if let Ok(param) = SoyBoyParameter::try_from(id) {
+            let param_def = self.param_defs.get(&param).unwrap();
+            let denorm = param_def.denormalize(value);
+
             if let Some(sender) = &*self.gui_sender.lock().unwrap() {
-                let _ = sender.send(GUIEvent::SetParam(param, value));
+                let _ = sender.send(GUIEvent::SetParam(param, denorm));
             }
         }
 
