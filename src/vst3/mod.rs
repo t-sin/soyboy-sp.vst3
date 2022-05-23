@@ -21,20 +21,20 @@ pub use vst3_utils::*;
 #[no_mangle]
 #[allow(non_snake_case)]
 pub unsafe extern "system" fn GetPluginFactory() -> *mut c_void {
-    #[cfg(debug_assertions)]
-    {
-        #[cfg(target_os = "linux")]
-        let path = "/home/grey/soyboy-sp.log";
-        #[cfg(target_os = "windows")]
-        let path = "/c/User/mostl/soyboy-sp.log";
+    // #[cfg(debug_assertions)]
+    // {
+    //     #[cfg(target_os = "linux")]
+    //     let path = "/home/grey/soyboy-sp.log";
+    //     #[cfg(target_os = "windows")]
+    //     let path = "/c/User/mostl/soyboy-sp.log";
 
-        CombinedLogger::init(vec![WriteLogger::new(
-            LevelFilter::Debug,
-            Config::default(),
-            File::create(path).unwrap(),
-        )])
-        .unwrap();
-    }
+    //     CombinedLogger::init(vec![WriteLogger::new(
+    //         LevelFilter::Debug,
+    //         Config::default(),
+    //         File::create(path).unwrap(),
+    //     )])
+    //     .unwrap();
+    // }
 
     #[cfg(debug_assertions)]
     log::debug!("GetPluginFactory(): VST3 plugin factory will be created");
