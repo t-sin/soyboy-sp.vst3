@@ -69,6 +69,7 @@ pub extern "system" fn ModuleExit() -> bool {
 }
 
 //// for Windows, maybe
+#[cfg(target_os = "windows")]
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "system" fn InitDll() -> bool {
@@ -78,6 +79,7 @@ pub extern "system" fn InitDll() -> bool {
     true
 }
 
+#[cfg(target_os = "windows")]
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "system" fn ExitDll() -> bool {
@@ -89,12 +91,14 @@ pub extern "system" fn ExitDll() -> bool {
 
 //// for mac, maybe
 
+#[cfg(target_os = "macos")]
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "system" fn bundleEntry(_: *mut c_void) -> bool {
     true
 }
 
+#[cfg(target_os = "macos")]
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "system" fn bundleExit() -> bool {
