@@ -561,10 +561,13 @@ impl Behavior for SliderBehavior {
 
         if response.dragged_by(egui::PointerButton::Primary) {
             let delta_x = response.drag_delta().x;
-            let delta_v = delta_x as f64 / delta_factor;
-            self.value = num::clamp(self.value + delta_v, 0.0, 1.0);
-            self.event_handler
-                .change_parameter(self.parameter, self.value);
+
+            if delta_x != 0.0 {
+                let delta_v = delta_x as f64 / delta_factor;
+                self.value = num::clamp(self.value + delta_v, 0.0, 1.0);
+                self.event_handler
+                    .change_parameter(self.parameter, self.value);
+            }
         }
 
         response
