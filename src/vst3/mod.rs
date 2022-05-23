@@ -6,7 +6,12 @@ mod plugin_data;
 mod raw_utils;
 mod vst3_utils;
 
+#[cfg(debug_assertions)]
+use std::fs::File;
 use std::os::raw::c_void;
+
+#[cfg(debug_assertions)]
+use simplelog::*;
 
 pub use vst3_utils::*;
 
@@ -16,6 +21,21 @@ pub use vst3_utils::*;
 #[no_mangle]
 #[allow(non_snake_case)]
 pub unsafe extern "system" fn GetPluginFactory() -> *mut c_void {
+    #[cfg(debug_assertions)]
+    {
+        #[cfg(target_os = "linux")]
+        let path = "/home/grey/soyboy-sp.log";
+        #[cfg(target_os = "windows")]
+        let path = "/c/User/mostl/soyboy-sp.log";
+
+        CombinedLogger::init(vec![WriteLogger::new(
+            LevelFilter::Debug,
+            Config::default(),
+            File::create(path).unwrap(),
+        )])
+        .unwrap();
+    }
+
     #[cfg(debug_assertions)]
     log::debug!("GetPluginFactory(): VST3 plugin factory will be created");
 
