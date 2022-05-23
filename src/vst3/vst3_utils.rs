@@ -83,7 +83,7 @@ impl ControllerConnection {
 
             unsafe { imsg.obj().release() };
         } else {
-            println!("SoyBoyPlugin::send_message(): allocation failed");
+            log::error!("SoyBoyPlugin::send_message(): allocation failed");
         }
     }
 }
@@ -146,7 +146,7 @@ impl Vst3Message {
                     .with_fixint_encoding();
                 let decoded = options.deserialize(&bytes_src[..]);
                 if decoded.is_err() {
-                    println!("cannot decode configuration data");
+                    log::error!("cannot decode configuration data");
                     return Some(Vst3Message::ConfigurationData(PluginConfigV01::default()));
                 }
 
@@ -257,7 +257,7 @@ impl Vst3Message {
                     .with_fixint_encoding();
                 let encoded = options.serialize(config);
                 if encoded.is_err() {
-                    println!("cannot encode configuration. it's a bug!");
+                    log::error!("cannot encode configuration. it's a bug!");
                     return;
                 }
                 let bytes = encoded.unwrap();

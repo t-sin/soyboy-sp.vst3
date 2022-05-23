@@ -129,7 +129,7 @@ impl SoyBoyVST3GUI {
 impl IPlugViewContentScaleSupport for SoyBoyVST3GUI {
     unsafe fn set_scale_factor(&self, scale_factor: f32) -> tresult {
         #[cfg(debug_assertions)]
-        println!(
+        log::debug!(
             "IPlugViewContentScaleSupport::set_scale_factor({})",
             scale_factor
         );
@@ -142,7 +142,7 @@ impl IPlugViewContentScaleSupport for SoyBoyVST3GUI {
 impl IPlugView for SoyBoyVST3GUI {
     unsafe fn is_platform_type_supported(&self, type_: FIDString) -> tresult {
         #[cfg(debug_assertions)]
-        println!("IPlugView::is_platform_type_supported()");
+        log::debug!("IPlugView::is_platform_type_supported()");
 
         let type_ = raw_utils::fidstring_to_string(type_);
 
@@ -155,7 +155,7 @@ impl IPlugView for SoyBoyVST3GUI {
 
     unsafe fn attached(&self, parent: *mut c_void, type_: FIDString) -> tresult {
         #[cfg(debug_assertions)]
-        println!("IPlugView::attached()");
+        log::debug!("IPlugView::attached()");
 
         let type_ = raw_utils::fidstring_to_string(type_);
 
@@ -170,7 +170,7 @@ impl IPlugView for SoyBoyVST3GUI {
 
     unsafe fn removed(&self) -> tresult {
         #[cfg(debug_assertions)]
-        println!("IPlugView::removed()");
+        log::debug!("IPlugView::removed()");
 
         self.controller_connection
             .lock()
@@ -184,13 +184,13 @@ impl IPlugView for SoyBoyVST3GUI {
             .send(GUIThreadMessage::Terminate);
 
         #[cfg(debug_assertions)]
-        println!("sended terminate.");
+        log::debug!("sended terminate.");
 
         #[allow(unused_variables)]
         if let Some(handle) = old_handle {
             let res = handle.join();
             #[cfg(debug_assertions)]
-            println!("joined: {:?}", res);
+            log::debug!("joined: {:?}", res);
         }
 
         let _ = self.sender.replace(None);
@@ -199,28 +199,28 @@ impl IPlugView for SoyBoyVST3GUI {
 
     unsafe fn on_wheel(&self, _distance: f32) -> tresult {
         #[cfg(debug_assertions)]
-        println!("IPlugView::on_wheel()");
+        log::debug!("IPlugView::on_wheel()");
 
         kResultOk
     }
 
     unsafe fn on_key_down(&self, _key: char16, _key_code: i16, _modifiers: i16) -> tresult {
         #[cfg(debug_assertions)]
-        println!("IPlugView::on_key_down()");
+        log::debug!("IPlugView::on_key_down()");
 
         kResultOk
     }
 
     unsafe fn on_key_up(&self, _key: char16, _key_code: i16, _modifiers: i16) -> tresult {
         #[cfg(debug_assertions)]
-        println!("IPlugView::on_key_up()");
+        log::debug!("IPlugView::on_key_up()");
 
         kResultOk
     }
 
     unsafe fn get_size(&self, size: *mut ViewRect) -> tresult {
         #[cfg(debug_assertions)]
-        println!("IPlugView::get_size()");
+        log::debug!("IPlugView::get_size()");
 
         (*size).left = 0;
         (*size).top = 0;
@@ -231,20 +231,20 @@ impl IPlugView for SoyBoyVST3GUI {
 
     unsafe fn on_size(&self, _new_size: *mut ViewRect) -> tresult {
         #[cfg(debug_assertions)]
-        println!("IPlugView::on_size()");
+        log::debug!("IPlugView::on_size()");
 
         kResultOk
     }
 
     unsafe fn on_focus(&self, _state: TBool) -> tresult {
         #[cfg(debug_assertions)]
-        println!("IPlugView::on_focus()");
+        log::debug!("IPlugView::on_focus()");
 
         kResultOk
     }
     unsafe fn set_frame(&self, _frame: *mut c_void) -> tresult {
         #[cfg(debug_assertions)]
-        println!("IPlugView::set_frame()");
+        log::debug!("IPlugView::set_frame()");
 
         // SoyBoy-SP does not allow GUI resizing so does not implement IPlugFrame inteface.
         // If you need to implement IPlugFrame in Rust, you should implement IPlugFrame not on &self,
@@ -255,14 +255,14 @@ impl IPlugView for SoyBoyVST3GUI {
 
     unsafe fn can_resize(&self) -> tresult {
         #[cfg(debug_assertions)]
-        println!("IPlugView::can_resize()");
+        log::debug!("IPlugView::can_resize()");
 
         kResultFalse
     }
 
     unsafe fn check_size_constraint(&self, _rect: *mut ViewRect) -> tresult {
         #[cfg(debug_assertions)]
-        println!("IPlugView::check_size_constraint()");
+        log::debug!("IPlugView::check_size_constraint()");
 
         kResultOk
     }

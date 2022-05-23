@@ -17,7 +17,7 @@ pub use vst3_utils::*;
 #[allow(non_snake_case)]
 pub unsafe extern "system" fn GetPluginFactory() -> *mut c_void {
     #[cfg(debug_assertions)]
-    println!("GetPluginFactory(): VST3 plugin factory will be created");
+    log::debug!("GetPluginFactory(): VST3 plugin factory will be created");
 
     let factory = factory::SoyBoyPluginFactory::new();
     Box::into_raw(factory) as *mut c_void
@@ -32,7 +32,7 @@ pub fn init() {}
 #[allow(non_snake_case)]
 pub extern "system" fn ModuleEntry(_: *mut c_void) -> bool {
     #[cfg(debug_assertions)]
-    println!("ModuleEntry(): VST3 plugin started");
+    log::debug!("ModuleEntry(): VST3 plugin started");
 
     init();
     true
@@ -43,7 +43,7 @@ pub extern "system" fn ModuleEntry(_: *mut c_void) -> bool {
 #[allow(non_snake_case)]
 pub extern "system" fn ModuleExit() -> bool {
     #[cfg(debug_assertions)]
-    println!("ModuleExit(): VST3 plugin terminated");
+    log::debug!("ModuleExit(): VST3 plugin terminated");
 
     true
 }
@@ -53,7 +53,7 @@ pub extern "system" fn ModuleExit() -> bool {
 #[allow(non_snake_case)]
 pub extern "system" fn InitDll() -> bool {
     #[cfg(debug_assertions)]
-    println!("InitDll(): VST3 plugin started");
+    log::debug!("InitDll(): VST3 plugin started");
 
     true
 }
@@ -62,7 +62,7 @@ pub extern "system" fn InitDll() -> bool {
 #[allow(non_snake_case)]
 pub extern "system" fn ExitDll() -> bool {
     #[cfg(debug_assertions)]
-    println!("ExitDll(): VST3 plugin terminated");
+    log::debug!("ExitDll(): VST3 plugin terminated");
 
     true
 }

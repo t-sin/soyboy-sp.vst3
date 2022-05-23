@@ -123,7 +123,7 @@ impl IPluginBase for SoyBoyController {
 
     unsafe fn terminate(&self) -> tresult {
         #[cfg(debug_assertions)]
-        println!("SoyBoyController::terminate()");
+        log::debug!("SoyBoyController::terminate()");
 
         kResultOk
     }
@@ -171,7 +171,7 @@ impl IEditController for SoyBoyController {
         );
 
         if result != kResultOk {
-            println!("IEditController::set_component_state(): read CONFIG_VERSION failed");
+            log::error!("IEditController::set_component_state(): read CONFIG_VERSION failed");
             return kResultFalse;
         }
 
@@ -189,13 +189,15 @@ impl IEditController for SoyBoyController {
                 let result = state.read(bytes.as_mut_ptr() as *mut c_void, size as i32, null_mut());
 
                 if result != kResultOk {
-                    println!("IEditController::set_component_state(): cannot read PluginConfigV01");
+                    log::error!(
+                        "IEditController::set_component_state(): cannot read PluginConfigV01"
+                    );
                     return kResultFalse;
                 }
 
                 let decoded = options.deserialize(&bytes[..]);
                 if decoded.is_err() {
-                    println!(
+                    log::error!(
                         "IEditController::set_component_state(): invalid v01 config: {:?}",
                         decoded
                     );
@@ -212,7 +214,7 @@ impl IEditController for SoyBoyController {
                 }
             }
             _ => {
-                println!("IEditController::set_component_state(): unsupported VST3 state");
+                log::debug!("IEditController::set_component_state(): unsupported VST3 state");
                 return kResultFalse;
             }
         }
@@ -333,7 +335,7 @@ impl IEditController for SoyBoyController {
         handler: SharedVstPtr<dyn IComponentHandler>,
     ) -> tresult {
         #[cfg(debug_assertion)]
-        println!("IEditController::set_component_handler()");
+        log::debug!("IEditController::set_component_handler()");
 
         if let Some(handler) = handler.upgrade() {
             (*self.component_handler.borrow_mut()) = Some(Arc::new(handler));
@@ -346,7 +348,7 @@ impl IEditController for SoyBoyController {
     unsafe fn create_view(&self, name: FIDString) -> *mut c_void {
         if raw_utils::fidstring_to_string(name) == "editor" {
             #[cfg(debug_assertions)]
-            println!("IEditController::create_view()");
+            log::debug!("IEditController::create_view()");
 
             let (send, recv) = channel::<GUIEvent>();
             *self.gui_sender.lock().unwrap() = Some(send);
@@ -372,7 +374,7 @@ impl IEditController for SoyBoyController {
 
             let gui = Box::into_raw(gui) as *mut dyn IPlugView as *mut c_void;
             #[cfg(debug_assertions)]
-            println!("IEditController::create_view(): casted self.gui into *mut c_void");
+            log::debug!("IEditController::create_view(): casted self.gui into *mut c_void");
 
             gui
         } else {

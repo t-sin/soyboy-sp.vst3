@@ -115,7 +115,7 @@ impl PluginTimerThread {
 
         if let Some(handle) = self.handle.replace(None) {
             let res = handle.join();
-            println!("stop_thread(): res = {:?}", res);
+            log::debug!("stop_thread(): res = {:?}", res);
         }
     }
 }
@@ -249,7 +249,7 @@ impl IPluginBase for SoyBoyPlugin {
 
     unsafe fn terminate(&self) -> tresult {
         #[cfg(debug_assertions)]
-        println!("SoyBoyPlugin::terminate()");
+        log::debug!("SoyBoyPlugin::terminate()");
 
         self.timer_thread.borrow_mut().stop_thread();
 
@@ -364,7 +364,7 @@ impl IComponent for SoyBoyPlugin {
         );
 
         if result != kResultOk {
-            println!("IAudioProcessor::set_state(): read CONFIG_VERSION failed");
+            log::error!("IAudioProcessor::set_state(): read CONFIG_VERSION failed");
             return kResultFalse;
         }
 
@@ -381,7 +381,7 @@ impl IComponent for SoyBoyPlugin {
 
                 let result = state.read(bytes.as_mut_ptr() as *mut c_void, size as i32, null_mut());
                 if result != kResultOk {
-                    println!("set_state(): state.read() fails with error code {}", result);
+                    log::error!("set_state(): state.read() fails with error code {}", result);
                     return kResultFalse;
                 }
 
@@ -401,7 +401,7 @@ impl IComponent for SoyBoyPlugin {
                 *self.config.lock().unwrap() = config;
             }
             _ => {
-                println!("IAudioProcessor::set_state(): unsupported VST3 state");
+                log::error!("IAudioProcessor::set_state(): unsupported VST3 state");
                 return kResultFalse;
             }
         }
@@ -429,7 +429,7 @@ impl IComponent for SoyBoyPlugin {
         let config = self.config.lock().unwrap();
         let encoded = options.serialize(&*config);
         if encoded.is_err() {
-            println!("cannot encode configuration. it's a bug!");
+            log::error!("cannot encode configuration. it's a bug!");
             return kResultFalse;
         }
         let bytes = encoded.unwrap();
@@ -441,7 +441,7 @@ impl IComponent for SoyBoyPlugin {
         );
 
         if result != kResultOk {
-            println!("cannot write CONFIG_VERSION");
+            log::error!("cannot write CONFIG_VERSION");
             return kResultFalse;
         }
 
@@ -452,7 +452,7 @@ impl IComponent for SoyBoyPlugin {
         );
 
         if result != kResultOk {
-            println!("cannot write PluginConfigV01");
+            log::error!("cannot write PluginConfigV01");
             return kResultFalse;
         }
 
@@ -631,20 +631,20 @@ impl IAudioProcessor for SoyBoyPlugin {
 impl IConnectionPoint for SoyBoyPlugin {
     unsafe fn connect(&self, other: SharedVstPtr<dyn IConnectionPoint>) -> tresult {
         #[cfg(debug_assertions)]
-        println!("IConnectionPoint::connect() on SoyBoyPlugin");
+        log::debug!("IConnectionPoint::connect() on SoyBoyPlugin");
 
         let other = other.upgrade().unwrap();
         let other = SyncPtr::new(other);
         self.controller.replace(Some(Arc::new(Mutex::new(other))));
         #[cfg(debug_assertions)]
-        println!("IConnectionPoint::connect() on SoyBoyPlugin: connected");
+        log::debug!("IConnectionPoint::connect() on SoyBoyPlugin: connected");
 
         kResultOk
     }
 
     unsafe fn disconnect(&self, _other: SharedVstPtr<dyn IConnectionPoint>) -> tresult {
         #[cfg(debug_assertions)]
-        println!("IConnectionPoint::disconnect() on SoyBoyPlugin");
+        log::debug!("IConnectionPoint::disconnect() on SoyBoyPlugin");
 
         self.controller.replace(None);
         kResultOk
@@ -652,7 +652,7 @@ impl IConnectionPoint for SoyBoyPlugin {
 
     unsafe fn notify(&self, message: SharedVstPtr<dyn IMessage>) -> tresult {
         #[cfg(debug_assertions)]
-        println!("IConnectionPoint::notify() on SoyBoyPlugin");
+        log::debug!("IConnectionPoint::notify() on SoyBoyPlugin");
 
         match Vst3Message::from_message(&message) {
             Some(Vst3Message::InitializeWaveTable) => {

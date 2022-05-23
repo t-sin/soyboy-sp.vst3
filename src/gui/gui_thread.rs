@@ -313,7 +313,7 @@ impl GUIThread {
 
             if let Err(TryRecvError::Disconnected) = recv.try_recv() {
                 #[cfg(debug_assertions)]
-                println!("try_recv() fails because disconnected");
+                log::error!("try_recv() fails because disconnected");
                 self.quit = true;
             }
         }
@@ -333,7 +333,7 @@ impl GUIThread {
             Event::RedrawRequested(_) if !cfg!(windows) => redraw(),
             Event::WindowEvent { event, .. } => {
                 match event {
-                    WindowEvent::Destroyed => println!("WindowEvent::Destroyed received, but it may be re-opened GUI so ignore it."),
+                    WindowEvent::Destroyed => log::info!("WindowEvent::Destroyed received, but it may be re-opened GUI so ignore it."),
                     WindowEvent::CloseRequested => self.quit = true,
                     _ => (),
                 }
@@ -342,7 +342,7 @@ impl GUIThread {
                 self.window.window().request_redraw();
             }
             Event::LoopDestroyed => {
-                println!("LoopDestroyed is signaled.");
+                log::info!("LoopDestroyed is signaled.");
                 self.egui_glow.destroy();
             }
             _ => (),
