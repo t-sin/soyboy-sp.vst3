@@ -6,12 +6,12 @@ mod plugin_data;
 mod raw_utils;
 mod vst3_utils;
 
-#[cfg(debug_assertions)]
-use std::fs::File;
 use std::os::raw::c_void;
 
-#[cfg(debug_assertions)]
-use simplelog::*;
+// #[cfg(debug_assertions)]
+// use simplelog::*;
+// #[cfg(debug_assertions)]
+// use std::fs::File;
 
 pub use vst3_utils::*;
 
