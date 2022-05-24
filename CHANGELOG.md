@@ -12,6 +12,7 @@
     - a Japanese version
 - Add a CHANGELOG.md (this!!!!)
 - Protect synth params from too small/large values (#18)
+- Fix a bug: Stutter sometimes don't stop delay sounds (#15)
 
 ## v0.9.8
 
