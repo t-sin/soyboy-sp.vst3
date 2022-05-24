@@ -2,6 +2,8 @@
 
 ## unreleased
 
+## v0.9.9
+
 - README for users
 - Adjust GUI
     - slider value's position
@@ -10,6 +12,7 @@
 - Website hosted in GitHub Pages
     - an English version
     - a Japanese version
+    - but "Installation" and "Usage" section is still WIP
 - Add a CHANGELOG.md (this!!!!)
 - Protect synth params from too small/large values (#18)
 - Fix a bug: Stutter sometimes don't stop delay sounds (#15)
