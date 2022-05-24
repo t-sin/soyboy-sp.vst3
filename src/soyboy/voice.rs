@@ -9,7 +9,6 @@ use crate::{
         noise::NoiseOscillator,
         parameters::{ParameterDef, Parametric, SoyBoyParameter},
         square_wave::SquareWaveOscillator,
-        stutter::NoteStutter,
         sweep::SweepOscillator,
         types::AudioProcessor,
         utils::{frequency_from_note_number, ratio_from_cents},
@@ -49,7 +48,6 @@ pub struct VoiceUnit {
     sweep_osc: SweepOscillator,
     dac: DAConverter,
     envelope_gen: EnvelopeGenerator,
-    note_stutter: NoteStutter,
 
     pitch: i16,
     detune: i16,
@@ -67,7 +65,6 @@ impl VoiceUnit {
             sweep_osc: SweepOscillator::new(),
             dac: DAConverter::new(22_000.0, 0.005),
             envelope_gen: EnvelopeGenerator::new(),
-            note_stutter: NoteStutter::new(),
 
             pitch: 0,
             detune: 0,
@@ -99,8 +96,7 @@ impl Triggered for VoiceUnit {
                 self.freq = frequency_from_note_number(*note);
                 self.sweep_osc
                     .trigger(&Event::SweepReset { freq: self.freq });
-
-                self.note_stutter.trigger(event, &mut self.envelope_gen);
+                self.envelope_gen.trigger(event);
             }
             Event::NoteOff { note: _ } => {
                 self.envelope_gen.trigger(event);
@@ -138,8 +134,8 @@ impl Parametric<SoyBoyParameter> for VoiceUnit {
             SoyBoyParameter::SweepType => self.sweep_osc.set_param(param, param_def, value),
             SoyBoyParameter::SweepAmount => self.sweep_osc.set_param(param, param_def, value),
             SoyBoyParameter::SweepPeriod => self.sweep_osc.set_param(param, param_def, value),
-            SoyBoyParameter::StutterTime => self.note_stutter.set_param(param, param_def, value),
-            SoyBoyParameter::StutterDepth => self.note_stutter.set_param(param, param_def, value),
+            SoyBoyParameter::StutterTime => self.envelope_gen.set_param(param, param_def, value),
+            SoyBoyParameter::StutterDepth => self.envelope_gen.set_param(param, param_def, value),
             SoyBoyParameter::EgAttack => self.envelope_gen.set_param(param, param_def, value),
             SoyBoyParameter::EgDecay => self.envelope_gen.set_param(param, param_def, value),
             SoyBoyParameter::EgSustain => self.envelope_gen.set_param(param, param_def, value),
@@ -163,8 +159,8 @@ impl Parametric<SoyBoyParameter> for VoiceUnit {
             SoyBoyParameter::SweepType => self.sweep_osc.get_param(param),
             SoyBoyParameter::SweepAmount => self.sweep_osc.get_param(param),
             SoyBoyParameter::SweepPeriod => self.sweep_osc.get_param(param),
-            SoyBoyParameter::StutterTime => self.note_stutter.get_param(param),
-            SoyBoyParameter::StutterDepth => self.note_stutter.get_param(param),
+            SoyBoyParameter::StutterTime => self.envelope_gen.get_param(param),
+            SoyBoyParameter::StutterDepth => self.envelope_gen.get_param(param),
             SoyBoyParameter::EgAttack => self.envelope_gen.get_param(param),
             SoyBoyParameter::EgDecay => self.envelope_gen.get_param(param),
             SoyBoyParameter::EgSustain => self.envelope_gen.get_param(param),
@@ -185,9 +181,6 @@ impl AudioProcessor<f64> for VoiceUnit {
         } else {
             self.freq += self.sweep_osc.process(sample_rate);
         }
-
-        self.note_stutter
-            .process(sample_rate, &mut self.envelope_gen);
 
         let osc = match self.selected_osc {
             OscillatorType::Square => {

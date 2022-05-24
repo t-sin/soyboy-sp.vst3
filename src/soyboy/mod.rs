@@ -2,7 +2,6 @@ mod dac;
 mod envelope_generator;
 mod noise;
 mod square_wave;
-mod stutter;
 mod sweep;
 mod types;
 mod utils;

@@ -18,10 +18,12 @@ pub enum EnvelopeState {
 }
 
 pub struct EnvelopeGenerator {
-    pub attack: f64,
-    pub decay: f64,
-    pub sustain: f64,
-    pub release: f64,
+    attack: f64,
+    decay: f64,
+    sustain: f64,
+    release: f64,
+    stutter_time: f64,
+    stutter_depth: f64,
 
     velocity: f64,
     note: u16,
@@ -38,6 +40,8 @@ impl EnvelopeGenerator {
             decay: 0.05,
             sustain: 0.3,
             release: 0.1,
+            stutter_time: 0.1,
+            stutter_depth: 0.0,
 
             velocity: 0.0,
             note: 0,
@@ -119,6 +123,16 @@ impl AudioProcessor<f64> for EnvelopeGenerator {
     fn process(&mut self, sample_rate: f64) -> f64 {
         let s = self.elapsed_samples as f64 / sample_rate;
 
+        if self.stutter_depth > 0.0 && s > self.stutter_time {
+            self.velocity -= 1.0 - self.stutter_depth / 100.0;
+
+            if self.velocity > 0.05 {
+                self.set_state(EnvelopeState::Attack);
+            } else {
+                self.velocity = 0.0;
+            }
+        }
+
         self.update_state(s);
         let v = self.calculate(s);
         let v = f64_utils::normalize(v);
@@ -156,6 +170,8 @@ impl Parametric<SoyBoyParameter> for EnvelopeGenerator {
             SoyBoyParameter::EgDecay => self.decay = value,
             SoyBoyParameter::EgSustain => self.sustain = value,
             SoyBoyParameter::EgRelease => self.release = value,
+            SoyBoyParameter::StutterTime => self.stutter_time = value,
+            SoyBoyParameter::StutterDepth => self.stutter_depth = value,
             _ => (),
         }
     }
@@ -166,6 +182,8 @@ impl Parametric<SoyBoyParameter> for EnvelopeGenerator {
             SoyBoyParameter::EgDecay => self.decay,
             SoyBoyParameter::EgSustain => self.sustain,
             SoyBoyParameter::EgRelease => self.release,
+            SoyBoyParameter::StutterTime => self.stutter_time,
+            SoyBoyParameter::StutterDepth => self.stutter_depth,
             _ => 0.0,
         }
     }
