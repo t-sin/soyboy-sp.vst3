@@ -123,13 +123,9 @@ impl EnvelopeGenerator {
             EnvelopeState::Off => 0.0,
         }
     }
-}
 
-impl AudioProcessor<f64> for EnvelopeGenerator {
-    fn process(&mut self, sample_rate: f64) -> f64 {
-        let s = self.elapsed_samples as f64 / sample_rate;
-
-        if self.stutter_depth > 0.0 && s > self.stutter_time {
+    fn stutter(&mut self, elapsed_sec: f64) {
+        if self.stutter_depth > 0.0 && elapsed_sec > self.stutter_time {
             self.stuttering = true;
             self.stutter_velocity -= 1.0 - self.stutter_depth / 100.0;
 
@@ -140,7 +136,14 @@ impl AudioProcessor<f64> for EnvelopeGenerator {
                 self.stuttering = false;
             }
         }
+    }
+}
 
+impl AudioProcessor<f64> for EnvelopeGenerator {
+    fn process(&mut self, sample_rate: f64) -> f64 {
+        let s = self.elapsed_samples as f64 / sample_rate;
+
+        self.stutter(s);
         self.update_state(s);
         let v = self.calculate(s);
         let v = f64_utils::normalize(v);
