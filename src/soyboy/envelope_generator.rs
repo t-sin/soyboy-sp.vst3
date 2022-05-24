@@ -33,6 +33,7 @@ pub struct EnvelopeGenerator {
     last_state_value: f64,
 
     stuttering: bool,
+    stutter_velocity: f64,
 }
 
 impl EnvelopeGenerator {
@@ -53,6 +54,7 @@ impl EnvelopeGenerator {
             last_state_value: 0.0,
 
             stuttering: false,
+            stutter_velocity: 0.0,
         }
     }
 
@@ -129,12 +131,12 @@ impl AudioProcessor<f64> for EnvelopeGenerator {
 
         if self.stutter_depth > 0.0 && s > self.stutter_time {
             self.stuttering = true;
-            self.velocity -= 1.0 - self.stutter_depth / 100.0;
+            self.stutter_velocity -= 1.0 - self.stutter_depth / 100.0;
 
-            if self.velocity > 0.05 {
+            if self.stutter_velocity > 0.05 {
                 self.set_state(EnvelopeState::Attack);
             } else {
-                self.velocity = 0.0;
+                self.stutter_velocity = 0.0;
                 self.stuttering = false;
             }
         }
@@ -145,7 +147,7 @@ impl AudioProcessor<f64> for EnvelopeGenerator {
         self.last_value = v;
         self.elapsed_samples += 1;
 
-        discrete_loudness(v * level_from_velocity(self.velocity))
+        discrete_loudness(v * self.stutter_velocity * level_from_velocity(self.velocity))
     }
 
     fn set_freq(&mut self, _freq: f64) {}
@@ -159,6 +161,7 @@ impl Triggered for EnvelopeGenerator {
                 self.set_state(EnvelopeState::Attack);
                 self.velocity = *velocity;
                 self.stuttering = false;
+                self.stutter_velocity = 1.0;
             }
             Event::NoteOff { note } => {
                 if *note == self.note {
