@@ -671,7 +671,7 @@ fn make_dac_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
             short_title: "freq".to_string(),
             unit_name: "Hz".to_string(),
             step_count: 0,
-            default_value: 22_000.0,
+            default_value: 19_700.0,
         },
     );
     static DAC_Q: NonLinearParameter = NonLinearParameter {
