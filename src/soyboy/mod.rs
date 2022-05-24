@@ -82,14 +82,16 @@ impl Triggered for SoyBoy {
 }
 
 impl Parametric<SoyBoyParameter> for SoyBoy {
-    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
+    fn set_param(&mut self, param: &SoyBoyParameter, param_def: &ParameterDef, value: f64) {
+        let value = param_def.clamp(value);
+
         match param {
             SoyBoyParameter::MasterVolume => self.master_volume = value,
             SoyBoyParameter::NumVoices => self.num_voices = value as usize,
             param => self
                 .voices
                 .iter_mut()
-                .for_each(|v| v.set_param(param, value)),
+                .for_each(|v| v.set_param(param, param_def, value)),
         }
     }
 

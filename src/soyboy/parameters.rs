@@ -107,7 +107,7 @@ impl SoyBoyParameter {
 }
 
 pub trait Parametric<Parameter> {
-    fn set_param(&mut self, param: &Parameter, value: f64);
+    fn set_param(&mut self, param: &Parameter, param_def: &ParameterDef, value: f64);
     fn get_param(&self, param: &Parameter) -> f64;
 }
 
@@ -296,6 +296,33 @@ pub struct ParameterDef {
     pub unit_name: String,
     pub step_count: i32,
     pub default_value: f64,
+}
+
+impl ParameterDef {
+    pub fn clamp(&self, denorm: f64) -> f64 {
+        match self.r#type {
+            ParameterType::NonLinear => {
+                let non_linear = unsafe { self.parameter.non_linear };
+                if non_linear.plain_zero == denorm || non_linear.plain_one == denorm {
+                    denorm
+                } else {
+                    num::clamp(denorm, non_linear.plain_min, non_linear.plain_max)
+                }
+            }
+            ParameterType::Linear => {
+                let linear = unsafe { self.parameter.linear };
+                num::clamp(denorm, linear.min, linear.max)
+            }
+            ParameterType::List => {
+                let list = unsafe { self.parameter.list };
+                num::clamp(denorm, 0.0, (list.elements.len() - 1) as f64)
+            }
+            ParameterType::Integer => {
+                let integer = unsafe { self.parameter.int };
+                num::clamp(denorm, integer.min as f64, integer.max as f64)
+            }
+        }
+    }
 }
 
 impl Normalizable<f64> for ParameterDef {

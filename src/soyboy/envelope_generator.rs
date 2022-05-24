@@ -2,7 +2,7 @@ use crate::{
     common::f64_utils,
     soyboy::{
         event::{Event, Triggered},
-        parameters::{Parametric, SoyBoyParameter},
+        parameters::{ParameterDef, Parametric, SoyBoyParameter},
         types::AudioProcessor,
         utils::{discrete_loudness, level_from_velocity, linear},
     },
@@ -150,7 +150,7 @@ impl Triggered for EnvelopeGenerator {
 }
 
 impl Parametric<SoyBoyParameter> for EnvelopeGenerator {
-    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
+    fn set_param(&mut self, param: &SoyBoyParameter, _param_def: &ParameterDef, value: f64) {
         match param {
             SoyBoyParameter::EgAttack => self.attack = value,
             SoyBoyParameter::EgDecay => self.decay = value,

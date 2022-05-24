@@ -1,6 +1,6 @@
 use crate::soyboy::{
     event::{Event, Triggered},
-    parameters::{Parametric, SoyBoyParameter},
+    parameters::{ParameterDef, Parametric, SoyBoyParameter},
 };
 
 pub struct NoteStutter {
@@ -67,7 +67,7 @@ impl NoteStutter {
 }
 
 impl Parametric<SoyBoyParameter> for NoteStutter {
-    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
+    fn set_param(&mut self, param: &SoyBoyParameter, _param_def: &ParameterDef, value: f64) {
         match param {
             SoyBoyParameter::StutterTime => self.time = value,
             SoyBoyParameter::StutterDepth => self.depth = value,

@@ -4,7 +4,7 @@ use crate::{
     common::{constants, f64_utils, i4},
     soyboy::{
         event::{Event, Triggered},
-        parameters::{Parametric, SoyBoyParameter},
+        parameters::{ParameterDef, Parametric, SoyBoyParameter},
         types::AudioProcessor,
     },
 };
@@ -88,7 +88,7 @@ impl Triggered for WaveTableOscillator {
 }
 
 impl Parametric<SoyBoyParameter> for WaveTableOscillator {
-    fn set_param(&mut self, _param: &SoyBoyParameter, _value: f64) {}
+    fn set_param(&mut self, _param: &SoyBoyParameter, _param_def: &ParameterDef, _value: f64) {}
 
     fn get_param(&self, _param: &SoyBoyParameter) -> f64 {
         0.0

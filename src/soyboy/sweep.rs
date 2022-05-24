@@ -4,7 +4,7 @@ use crate::{
     common::f64_utils,
     soyboy::{
         event::{Event, Triggered},
-        parameters::{Parametric, SoyBoyParameter},
+        parameters::{ParameterDef, Parametric, SoyBoyParameter},
         types::AudioProcessor,
     },
 };
@@ -153,7 +153,7 @@ impl Triggered for SweepOscillator {
 }
 
 impl Parametric<SoyBoyParameter> for SweepOscillator {
-    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
+    fn set_param(&mut self, param: &SoyBoyParameter, _param_def: &ParameterDef, value: f64) {
         match param {
             SoyBoyParameter::SweepType => {
                 self.sweep_timer_sec = 0.0;

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::common::{constants, i4};
-use crate::soyboy::parameters::{Parametric, SoyBoyParameter};
+use crate::soyboy::parameters::{ParameterDef, Parametric, SoyBoyParameter};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PluginConfigV01 {
@@ -43,7 +43,9 @@ impl PluginConfigV01 {
 }
 
 impl Parametric<SoyBoyParameter> for PluginConfigV01 {
-    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
+    fn set_param(&mut self, param: &SoyBoyParameter, param_def: &ParameterDef, value: f64) {
+        let value = param_def.clamp(value);
+
         match param {
             SoyBoyParameter::MasterVolume => self.master_volume = value,
             SoyBoyParameter::PitchBend => self.pitch_bend = value,

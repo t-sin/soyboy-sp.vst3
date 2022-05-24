@@ -7,7 +7,7 @@ use crate::{
         envelope_generator::EnvelopeGenerator,
         event::{Event, Triggered},
         noise::NoiseOscillator,
-        parameters::{Parametric, SoyBoyParameter},
+        parameters::{ParameterDef, Parametric, SoyBoyParameter},
         square_wave::SquareWaveOscillator,
         stutter::NoteStutter,
         sweep::SweepOscillator,
@@ -118,7 +118,7 @@ impl Triggered for VoiceUnit {
 }
 
 impl Parametric<SoyBoyParameter> for VoiceUnit {
-    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
+    fn set_param(&mut self, param: &SoyBoyParameter, param_def: &ParameterDef, value: f64) {
         match param {
             SoyBoyParameter::PitchBend => {
                 self.pitch = value as i16;
@@ -135,19 +135,19 @@ impl Parametric<SoyBoyParameter> for VoiceUnit {
                     self.selected_osc = r#type
                 }
             }
-            SoyBoyParameter::SweepType => self.sweep_osc.set_param(param, value),
-            SoyBoyParameter::SweepAmount => self.sweep_osc.set_param(param, value),
-            SoyBoyParameter::SweepPeriod => self.sweep_osc.set_param(param, value),
-            SoyBoyParameter::StutterTime => self.note_stutter.set_param(param, value),
-            SoyBoyParameter::StutterDepth => self.note_stutter.set_param(param, value),
-            SoyBoyParameter::EgAttack => self.envelope_gen.set_param(param, value),
-            SoyBoyParameter::EgDecay => self.envelope_gen.set_param(param, value),
-            SoyBoyParameter::EgSustain => self.envelope_gen.set_param(param, value),
-            SoyBoyParameter::EgRelease => self.envelope_gen.set_param(param, value),
-            SoyBoyParameter::OscSqDuty => self.square_osc.set_param(param, value),
-            SoyBoyParameter::OscNsInterval => self.noise_osc.set_param(param, value),
-            SoyBoyParameter::DacFreq => self.dac.set_param(param, value),
-            SoyBoyParameter::DacQ => self.dac.set_param(param, value),
+            SoyBoyParameter::SweepType => self.sweep_osc.set_param(param, param_def, value),
+            SoyBoyParameter::SweepAmount => self.sweep_osc.set_param(param, param_def, value),
+            SoyBoyParameter::SweepPeriod => self.sweep_osc.set_param(param, param_def, value),
+            SoyBoyParameter::StutterTime => self.note_stutter.set_param(param, param_def, value),
+            SoyBoyParameter::StutterDepth => self.note_stutter.set_param(param, param_def, value),
+            SoyBoyParameter::EgAttack => self.envelope_gen.set_param(param, param_def, value),
+            SoyBoyParameter::EgDecay => self.envelope_gen.set_param(param, param_def, value),
+            SoyBoyParameter::EgSustain => self.envelope_gen.set_param(param, param_def, value),
+            SoyBoyParameter::EgRelease => self.envelope_gen.set_param(param, param_def, value),
+            SoyBoyParameter::OscSqDuty => self.square_osc.set_param(param, param_def, value),
+            SoyBoyParameter::OscNsInterval => self.noise_osc.set_param(param, param_def, value),
+            SoyBoyParameter::DacFreq => self.dac.set_param(param, param_def, value),
+            SoyBoyParameter::DacQ => self.dac.set_param(param, param_def, value),
             _ => (),
         }
     }

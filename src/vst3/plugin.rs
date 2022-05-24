@@ -232,10 +232,9 @@ impl IPluginBase for SoyBoyPlugin {
             let mut config = self.config.lock().unwrap();
 
             for param in SoyBoyParameter::iter() {
-                if let Some(sp) = self.param_defs.get(&param) {
-                    soyboy.set_param(&param, sp.default_value);
-                    config.set_param(&param, sp.default_value);
-                }
+                let param_def = self.param_defs.get(&param).unwrap();
+                soyboy.set_param(&param, param_def, param_def.default_value);
+                config.set_param(&param, param_def, param_def.default_value);
             }
 
             config.set_wavetable(&soyboy.get_wavetable());
@@ -393,8 +392,9 @@ impl IComponent for SoyBoyPlugin {
                 let config: PluginConfigV01 = decoded.unwrap();
                 let mut soyboy = self.soyboy.lock().unwrap();
                 for param in SoyBoyParameter::iter() {
+                    let param_def = self.param_defs.get(&param).unwrap();
                     let denorm = config.get_param(&param);
-                    soyboy.set_param(&param, denorm);
+                    soyboy.set_param(&param, param_def, denorm);
                 }
 
                 soyboy.set_wavetable(&config.wavetable);
@@ -545,11 +545,10 @@ impl IAudioProcessor for SoyBoyPlugin {
                             &mut value as *mut _,
                         ) == kResultTrue
                         {
-                            if let Some(p) = self.param_defs.get(&param) {
-                                let denorm = p.denormalize(value);
-                                config.set_param(&param, denorm);
-                                soyboy.set_param(&param, denorm);
-                            }
+                            let param_def = self.param_defs.get(&param).unwrap();
+                            let denorm = param_def.denormalize(value);
+                            config.set_param(&param, param_def, denorm);
+                            soyboy.set_param(&param, param_def, denorm);
                         }
                     }
                 }

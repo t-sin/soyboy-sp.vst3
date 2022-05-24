@@ -4,7 +4,7 @@ use crate::{
     common::i4,
     soyboy::{
         event::{Event, Triggered},
-        parameters::{Parametric, SoyBoyParameter},
+        parameters::{ParameterDef, Parametric, SoyBoyParameter},
         types::AudioProcessor,
         utils::pulse,
     },
@@ -99,7 +99,7 @@ impl AudioProcessor<i4> for SquareWaveOscillator {
 }
 
 impl Parametric<SoyBoyParameter> for SquareWaveOscillator {
-    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
+    fn set_param(&mut self, param: &SoyBoyParameter, _param_def: &ParameterDef, value: f64) {
         if param == &SoyBoyParameter::OscSqDuty {
             if let Ok(ratio) = SquareWaveDuty::try_from(value as u32) {
                 self.set_duty(ratio);

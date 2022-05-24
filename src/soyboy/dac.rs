@@ -1,6 +1,6 @@
 use crate::{
     common::{f64_utils, i4},
-    soyboy::{Parametric, SoyBoyParameter},
+    soyboy::{ParameterDef, Parametric, SoyBoyParameter},
 };
 
 pub struct DAConverter {
@@ -80,7 +80,7 @@ impl DAConverter {
 }
 
 impl Parametric<SoyBoyParameter> for DAConverter {
-    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
+    fn set_param(&mut self, param: &SoyBoyParameter, _param_def: &ParameterDef, value: f64) {
         match param {
             SoyBoyParameter::DacFreq => {
                 self.calculated_coefficient = false;

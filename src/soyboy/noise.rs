@@ -4,7 +4,7 @@ use crate::{
     common::i4,
     soyboy::{
         event::{Event, Triggered},
-        parameters::{Parametric, SoyBoyParameter},
+        parameters::{ParameterDef, Parametric, SoyBoyParameter},
         types::AudioProcessor,
     },
 };
@@ -60,7 +60,7 @@ impl Triggered for NoiseOscillator {
 }
 
 impl Parametric<SoyBoyParameter> for NoiseOscillator {
-    fn set_param(&mut self, param: &SoyBoyParameter, value: f64) {
+    fn set_param(&mut self, param: &SoyBoyParameter, _param_def: &ParameterDef, value: f64) {
         if param == &SoyBoyParameter::OscNsInterval {
             self.interval_msec = value;
         }
