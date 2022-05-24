@@ -11,6 +11,7 @@
     - an English version
     - a Japanese version
 - Add a CHANGELOG.md (this!!!!)
+- Protect synth params from too small/large values (#18)
 
 ## v0.9.8
 
