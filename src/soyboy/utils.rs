@@ -39,7 +39,7 @@ pub fn level(decibel: f64) -> f64 {
 }
 
 pub fn level_from_velocity(velocity: f64) -> f64 {
-    let v = 10.0f64.powf(velocity - 1.0);
+    let v = 10.0f64.powf(velocity * 2.0 - 2.0);
     f64_utils::normalize(v)
 }
 
