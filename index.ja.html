@@ -100,9 +100,127 @@
       </div>
 
       <div>
-      <h2 id="usage">つかいかた</h2>
+        <h2 id="usage">つかいかた</h2>
 
-      TBD
+        <table>
+          <caption>SoyBoy SPのパラメータ一覧</caption>
+          <thead>
+            <tr>
+              <th class="param-section">セクション</th>
+              <th class="param-name">パラメータ名</th>
+              <th class="param-desc">説明</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td>Global</td>
+              <td>Volume</td>
+              <td>全体の音量をデシベル (dB) 単位で設定します。</td>
+            </tr>
+            <tr>
+              <td>Global</td>
+              <td>Detune</td>
+              <td>全体のピッチをセント (cent) 単位で微調整します。</td>
+            </tr>
+            <tr>
+              <td>Global</td>
+              <td>Osc type</td>
+              <td>出力するオシレータの種類を設定します。左から「矩形波」「ノイズ」「波形テーブル」です。</td>
+            </tr>
+            <tr>
+              <td>Global</td>
+              <td>Voices</td>
+              <td>同時発音数を1から8の間で指定します。2以上のとき、和音を出すことができます。</td>
+            </tr>
+
+            <tr>
+              <td>Square wave osc.</td>
+              <td>Duty ratio</td>
+              <td>矩形波オシレータの波形の種類を指定します。</td>
+            </tr>
+
+            <tr>
+              <td>Noise osc.</td>
+              <td>Interval</td>
+              <td>ノイズオシレータの乱数の更新間隔を指定します。</td>
+            </tr>
+
+            <tr>
+              <td>Wave table osc.</td>
+              <td>波形エディタ</td>
+              <td>波形テーブルオシレータの波形テーブルを編集します。</td>
+            </tr>
+            <tr>
+              <td>Wave table osc.</td>
+              <td>Rand.ボタン</td>
+              <td>波形テーブルオシレータの波形をランダムな値で更新します。</td>
+            </tr>
+            <tr>
+              <td>Wave table osc.</td>
+              <td>Sineボタン</td>
+              <td>波形テーブルオシレータの波形をサイン波で更新します。</td>
+            </tr>
+
+            <tr>
+              <td>Envelope</td>
+              <td>Attack</td>
+              <td>
+                ノートオン・オフによる音量変化のしかたを指定します。アタックは音の立ち上がり時間です。
+              </td>
+            </tr>
+            <tr>
+              <td>Envelope</td>
+              <td>Decay</td>
+              <td>
+                ノートオン・オフによる音量変化のしかたを指定します。ディケイは音量が立ち上がったあと、サスティンの音量まで下がっていく時間です。
+              </td>
+            </tr>
+            <tr>
+              <td>Envelope</td>
+              <td>Sustain</td>
+              <td>
+                ノートオン・オフによる音量変化のしかたを指定します。サスティンは音を伸ばしているあいだの音量 (0.0〜1.0)です。
+              </td>
+            </tr>
+            <tr>
+              <td>Envelope</td>
+              <td>Release</td>
+              <td>
+                ノートオン・オフによる音量変化のしかたを指定します。リリースはノートオフしてから音量がゼロになるまでの時間です。
+              </td>
+            </tr>
+
+            <tr>
+              <td>Sweep</td>
+              <td>Type</td>
+              <td>
+                音のピッチをどのように自動で変化させるかを指定します。「None」は変化させない、「Up」は上昇させる、「Down」は下降させる、「Tri」は三角波で揺らす、です。
+              </td>
+            </tr>
+            <tr>
+              <td>Sweep</td>
+              <td>Amount</td>
+              <td>音のピッチを自動で変化させる量を0 〜 8の範囲で指定します。</td>
+            </tr>
+            <tr>
+              <td>Sweep</td>
+              <td>Period</td>
+              <td>音のピッチを自動で変化させる速度を0 〜 8の範囲で指定します。</td>
+            </tr>
+
+            <tr>
+              <td>Stutter</td>
+              <td>Time</td>
+              <td>ノートディレイです。Time秒後に自動でノートオンします。</td>
+            </tr>
+            <tr>
+              <td>Stutter</td>
+              <td>Depth</td>
+              <td>ノートディレイです。自動ノートオン時に音量をDepthパーセントにしてノートオンします。0のとき、自動ノートオンがオフになります。100のときは最初のノートオンの音量で自動ノートオンしつづけます。</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <div>

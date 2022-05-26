@@ -115,3 +115,25 @@ dl dt {
 dl dd {
   padding-left: 1em;
 }
+
+table {
+  margin-left: 2em;
+  border-collapse: collapse;
+}
+
+thead {
+  border-bottom: solid 1px #333333;
+  text-align: left;
+}
+
+thead .param-section {
+  width: 10em;
+}
+
+thead .param-name {
+  width: 8em;
+}
+
+tbody td {
+  padding-top: 5px;
+}
