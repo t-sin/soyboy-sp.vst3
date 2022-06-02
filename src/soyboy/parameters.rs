@@ -19,6 +19,7 @@ pub enum SoyBoyParameter {
     // note stutter
     StutterTime,
     StutterDepth,
+    StutterWhen,
     // envelope generator
     EgAttack,
     EgDecay,
@@ -57,6 +58,8 @@ impl TryFrom<u32> for SoyBoyParameter {
             Ok(SoyBoyParameter::StutterTime)
         } else if id == SoyBoyParameter::StutterDepth as u32 {
             Ok(SoyBoyParameter::StutterDepth)
+        } else if id == SoyBoyParameter::StutterWhen as u32 {
+            Ok(SoyBoyParameter::StutterWhen)
         } else if id == SoyBoyParameter::EgAttack as u32 {
             Ok(SoyBoyParameter::EgAttack)
         } else if id == SoyBoyParameter::EgDecay as u32 {
@@ -534,6 +537,22 @@ fn make_global_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
             short_title: "Stutter Depth".to_string(),
             unit_name: "%".to_string(),
             step_count: 0,
+            default_value: 0.0,
+        },
+    );
+    static STUTTER_WHEN_LIST: [&str; 2] = ["Note on", "Note off"];
+    static STUTTER_WHEN: ListParameter = ListParameter {
+        elements: &STUTTER_WHEN_LIST,
+    };
+    params.insert(
+        SoyBoyParameter::StutterWhen,
+        ParameterDef {
+            r#type: ParameterType::List,
+            parameter: ParameterInfo { list: STUTTER_WHEN },
+            title: "Stutter when".to_string(),
+            short_title: "Stutter when".to_string(),
+            unit_name: "".to_string(),
+            step_count: (STUTTER_WHEN.denormalize(1.0)) as i32,
             default_value: 0.0,
         },
     );

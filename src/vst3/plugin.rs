@@ -25,7 +25,10 @@ use vst3_sys::{
     VstPtr, VST3,
 };
 
-use crate::common::{constants, PluginConfigV01, Vst3Message, Waveform};
+use crate::common::{
+    config::{PluginConfigV01, PluginConfigV02},
+    constants, Vst3Message, Waveform,
+};
 use crate::soyboy::{
     event::{Event, Triggered},
     parameters::{Normalizable, ParameterDef, Parametric, SoyBoyParameter},
@@ -50,7 +53,7 @@ impl PluginTimerThread {
 
     fn start_thread(
         &mut self,
-        config: Arc<Mutex<PluginConfigV01>>,
+        config: Arc<Mutex<PluginConfigV02>>,
         host_context: Arc<Mutex<SyncPtr<dyn IUnknown>>>,
         controller: Arc<Mutex<SyncPtr<dyn IConnectionPoint>>>,
         waveform: Arc<Mutex<Waveform>>,
@@ -123,7 +126,7 @@ impl PluginTimerThread {
 #[VST3(implements(IComponent, IAudioProcessor, IConnectionPoint))]
 pub struct SoyBoyPlugin {
     soyboy: Mutex<SoyBoy>,
-    config: Arc<Mutex<PluginConfigV01>>,
+    config: Arc<Mutex<PluginConfigV02>>,
     param_defs: HashMap<SoyBoyParameter, ParameterDef>,
     audio_out: RefCell<BusInfo>,
     event_in: RefCell<BusInfo>,
@@ -163,7 +166,7 @@ impl SoyBoyPlugin {
 
     pub unsafe fn new(param_defs: HashMap<SoyBoyParameter, ParameterDef>) -> Box<Self> {
         let soyboy = Mutex::new(SoyBoy::new());
-        let config = Arc::new(Mutex::new(PluginConfigV01::default()));
+        let config = Arc::new(Mutex::new(PluginConfigV02::default()));
         let audio_out = RefCell::new(raw_utils::make_empty_bus_info());
         let event_in = RefCell::new(raw_utils::make_empty_bus_info());
         let context = RefCell::new(None);
@@ -367,20 +370,32 @@ impl IComponent for SoyBoyPlugin {
             return kResultFalse;
         }
 
+        let set_config = |config: PluginConfigV02| {
+            let mut soyboy = self.soyboy.lock().unwrap();
+            for param in SoyBoyParameter::iter() {
+                let param_def = self.param_defs.get(&param).unwrap();
+                let denorm = config.get_param(&param);
+                soyboy.set_param(&param, param_def, denorm);
+            }
+
+            soyboy.set_wavetable(&config.wavetable);
+            *self.config.lock().unwrap() = config;
+        };
+
         match config_version {
             PluginConfigV01::CONFIG_VERSION => {
                 let mut config = PluginConfigV01::default();
                 vst3_utils::read_config!(config, state);
+                println!("set_state with V01");
 
-                let mut soyboy = self.soyboy.lock().unwrap();
-                for param in SoyBoyParameter::iter() {
-                    let param_def = self.param_defs.get(&param).unwrap();
-                    let denorm = config.get_param(&param);
-                    soyboy.set_param(&param, param_def, denorm);
-                }
+                let config = PluginConfigV02::from_v01(config, &self.param_defs);
+                (set_config)(config);
+            }
+            PluginConfigV02::CONFIG_VERSION => {
+                let mut config = PluginConfigV02::default();
+                vst3_utils::read_config!(config, state);
 
-                soyboy.set_wavetable(&config.wavetable);
-                *self.config.lock().unwrap() = config;
+                (set_config)(config);
             }
             _ => {
                 log::error!("IAudioProcessor::set_state(): unsupported VST3 state");
@@ -403,7 +418,7 @@ impl IComponent for SoyBoyPlugin {
         let state = state.unwrap();
 
         vst3_utils::write_config!(
-            PluginConfigV01::CONFIG_VERSION,
+            PluginConfigV02::CONFIG_VERSION,
             &*self.config.lock().unwrap(),
             state
         );

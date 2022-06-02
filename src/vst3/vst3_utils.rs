@@ -14,7 +14,7 @@ use vst3_sys::{
 };
 
 use super::raw_utils::fidstring_to_string;
-use crate::common::{constants, i4, PluginConfigV01, Vst3Message, Waveform};
+use crate::common::{constants, i4, PluginConfigV02, Vst3Message, Waveform};
 
 pub struct SyncPtr<I: ComInterface + ?Sized> {
     ptr: VstPtr<I>,
@@ -147,10 +147,10 @@ impl Vst3Message {
                 let decoded = options.deserialize(&bytes_src[..]);
                 if decoded.is_err() {
                     log::error!("cannot decode configuration data");
-                    return Some(Vst3Message::ConfigurationData(PluginConfigV01::default()));
+                    return Some(Vst3Message::ConfigurationData(PluginConfigV02::default()));
                 }
 
-                let config: PluginConfigV01 = decoded.unwrap();
+                let config: PluginConfigV02 = decoded.unwrap();
                 Some(Vst3Message::ConfigurationData(config))
             }
             "vst3:set-wavetable-sample" => {

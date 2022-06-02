@@ -1,4 +1,4 @@
-mod config;
+pub mod config;
 pub mod constants;
 pub mod f64_utils;
 mod message;

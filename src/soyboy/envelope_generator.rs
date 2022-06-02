@@ -1,3 +1,5 @@
+use std::convert::TryFrom;
+
 use crate::{
     common::f64_utils,
     soyboy::{
@@ -7,6 +9,26 @@ use crate::{
         utils::{discrete_loudness, level_from_velocity, linear},
     },
 };
+
+#[derive(Debug, Copy, Clone)]
+enum StartTiming {
+    NoteOn = 0,
+    NoteOff,
+}
+
+impl TryFrom<u32> for StartTiming {
+    type Error = ();
+
+    fn try_from(id: u32) -> Result<Self, Self::Error> {
+        if id == StartTiming::NoteOn as u32 {
+            Ok(StartTiming::NoteOn)
+        } else if id == StartTiming::NoteOff as u32 {
+            Ok(StartTiming::NoteOff)
+        } else {
+            Err(())
+        }
+    }
+}
 
 #[derive(Debug)]
 pub enum EnvelopeState {
@@ -24,6 +46,7 @@ pub struct EnvelopeGenerator {
     release: f64,
     stutter_time: f64,
     stutter_depth: f64,
+    stutter_when: StartTiming,
 
     velocity: f64,
     note: u16,
@@ -45,6 +68,7 @@ impl EnvelopeGenerator {
             release: 0.1,
             stutter_time: 0.1,
             stutter_depth: 0.0,
+            stutter_when: StartTiming::NoteOn,
 
             velocity: 0.0,
             note: 0,
@@ -137,6 +161,15 @@ impl EnvelopeGenerator {
             }
         }
     }
+
+    fn start_stutter(&mut self) {
+        if let StartTiming::NoteOn = self.stutter_when {
+            self.stuttering = true;
+            self.stutter_velocity = 1.0;
+        } else {
+            self.stuttering = false;
+        }
+    }
 }
 
 impl AudioProcessor<f64> for EnvelopeGenerator {
@@ -163,12 +196,12 @@ impl Triggered for EnvelopeGenerator {
                 self.note = *note;
                 self.set_state(EnvelopeState::Attack);
                 self.velocity = *velocity;
-                self.stuttering = false;
-                self.stutter_velocity = 1.0;
+                self.start_stutter();
             }
             Event::NoteOff { note } => {
                 if *note == self.note {
                     self.set_state(EnvelopeState::Release);
+                    self.start_stutter();
                 }
             }
             _ => (),
@@ -185,6 +218,11 @@ impl Parametric<SoyBoyParameter> for EnvelopeGenerator {
             SoyBoyParameter::EgRelease => self.release = value,
             SoyBoyParameter::StutterTime => self.stutter_time = value,
             SoyBoyParameter::StutterDepth => self.stutter_depth = value,
+            SoyBoyParameter::StutterWhen => {
+                if let Ok(when) = StartTiming::try_from(value as u32) {
+                    self.stutter_when = when;
+                }
+            }
             _ => (),
         }
     }
@@ -197,6 +235,7 @@ impl Parametric<SoyBoyParameter> for EnvelopeGenerator {
             SoyBoyParameter::EgRelease => self.release,
             SoyBoyParameter::StutterTime => self.stutter_time,
             SoyBoyParameter::StutterDepth => self.stutter_depth,
+            SoyBoyParameter::StutterWhen => (self.stutter_when as u32).into(),
             _ => 0.0,
         }
     }

@@ -1,6 +1,6 @@
 use std::fmt;
 
-use super::config::PluginConfigV01;
+use super::config::PluginConfigV02;
 use super::waveform::Waveform;
 use crate::common::{constants, i4};
 use crate::soyboy::parameters::SoyBoyParameter;
@@ -14,7 +14,7 @@ pub enum GUIEvent {
     NoteOn,
     WaveTableData([i4; constants::WAVETABLE_SIZE]),
     WaveformData(Waveform),
-    Configure(PluginConfigV01),
+    Configure(PluginConfigV02),
     SetParam(SoyBoyParameter, f64),
 }
 
@@ -23,7 +23,7 @@ pub enum Vst3Message {
     InitializeWaveTable,
     RandomizeWaveTable,
     ConfigurationRequested,
-    ConfigurationData(PluginConfigV01),
+    ConfigurationData(PluginConfigV02),
     WaveTableData([i4; constants::WAVETABLE_SIZE]),
     SetWaveTable(usize, i4),
     WaveformData(Waveform),

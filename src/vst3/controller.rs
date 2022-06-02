@@ -27,7 +27,10 @@ use vst3_sys::{
     VstPtr, VST3,
 };
 
-use crate::common::{GUIEvent, PluginConfigV01, Vst3Message};
+use crate::common::{
+    config::{PluginConfigV01, PluginConfigV02},
+    GUIEvent, Vst3Message,
+};
 use crate::soyboy::parameters::{Normalizable, ParameterDef, Parametric, SoyBoyParameter};
 use crate::vst3::{gui::SoyBoyVST3GUI, plugin_data, raw_utils, vst3_utils};
 
@@ -175,19 +178,30 @@ impl IEditController for SoyBoyController {
             return kResultFalse;
         }
 
+        let set_config = |config: PluginConfigV02| {
+            let mut param_vals = self.param_values.lock().unwrap();
+            for param in SoyBoyParameter::iter() {
+                let param_def = self.param_defs.get(&param).unwrap();
+                let value = config.get_param(&param);
+                let norm = param_def.normalize(value);
+                param_vals.insert(param as u32, norm);
+            }
+        };
+
         match config_version {
             PluginConfigV01::CONFIG_VERSION => {
                 let mut config: PluginConfigV01 = PluginConfigV01::default();
                 vst3_utils::read_config!(config, state);
 
-                let mut param_vals = self.param_values.lock().unwrap();
-                for param in SoyBoyParameter::iter() {
-                    let param_def = self.param_defs.get(&param).unwrap();
-                    let value = config.get_param(&param);
-                    let norm = param_def.normalize(value);
-                    param_vals.insert(param as u32, norm);
-                }
+                let config = PluginConfigV02::from_v01(config, &self.param_defs);
+                (set_config)(config);
+                kResultTrue
+            }
+            PluginConfigV02::CONFIG_VERSION => {
+                let mut config: PluginConfigV02 = PluginConfigV02::default();
+                vst3_utils::read_config!(config, state);
 
+                (set_config)(config);
                 kResultTrue
             }
             _ => {

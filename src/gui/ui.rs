@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 
 use egui_glow::egui_winit::egui;
 
-use crate::common::PluginConfigV01;
+use crate::common::PluginConfigV02;
 use crate::gui::images::{Image, Images};
 use crate::soyboy::parameters::{ParameterDef, Parametric, SoyBoyParameter};
 use crate::vst3::ControllerConnection;
@@ -368,6 +368,7 @@ impl UI {
             SoyBoyParameter::SweepPeriod => self.param_period.set(value),
             SoyBoyParameter::StutterTime => self.param_time.set(value),
             SoyBoyParameter::StutterDepth => self.param_depth.set(value),
+            SoyBoyParameter::StutterWhen => (), //self.param_when.set(value),
             SoyBoyParameter::EgAttack => self.param_attack.set(value),
             SoyBoyParameter::EgDecay => self.param_decay.set(value),
             SoyBoyParameter::EgSustain => self.param_sustain.set(value),
@@ -379,7 +380,7 @@ impl UI {
         }
     }
 
-    pub fn configure(&mut self, config: PluginConfigV01) {
+    pub fn configure(&mut self, config: PluginConfigV02) {
         for ref param in SoyBoyParameter::iter() {
             self.set_value(param, config.get_param(param));
         }
