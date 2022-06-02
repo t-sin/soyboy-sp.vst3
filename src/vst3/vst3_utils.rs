@@ -361,3 +361,70 @@ pub fn send_message(
         connection.notify(msg);
     }
 }
+
+macro_rules! read_config {
+    ($config:ident, $state:ident) => {
+        let options = bincode::config::DefaultOptions::new()
+            .reject_trailing_bytes()
+            .with_little_endian()
+            .with_fixint_encoding();
+        let size = options.serialized_size(&$config).unwrap();
+        let mut bytes: Vec<u8> = vec![0; size as usize];
+
+        let result = $state.read(bytes.as_mut_ptr() as *mut c_void, size as i32, null_mut());
+
+        if result != kResultOk {
+            log::error!("read_config!: cannot read PluginConfig");
+            return kResultFalse;
+        }
+
+        let decoded = options.deserialize(&bytes[..]);
+        if decoded.is_err() {
+            log::error!("read_config!: invalid config: {:?}", decoded);
+            return kResultFalse;
+        }
+
+        $config = decoded.unwrap();
+    };
+}
+
+macro_rules! write_config {
+    ($version:expr, $config:expr, $state:ident) => {
+        let options = bincode::config::DefaultOptions::new()
+            .reject_trailing_bytes()
+            .with_little_endian()
+            .with_fixint_encoding();
+
+        let encoded = options.serialize($config);
+        if encoded.is_err() {
+            log::error!("cannot encode configuration. it's a bug!");
+            return kResultFalse;
+        }
+        let bytes = encoded.unwrap();
+
+        let result = $state.write(
+            &$version as *const _ as *const c_void,
+            mem::size_of::<u32>() as i32,
+            null_mut(),
+        );
+
+        if result != kResultOk {
+            log::error!("cannot write CONFIG_VERSION");
+            return kResultFalse;
+        }
+
+        let result = $state.write(
+            bytes.as_ptr() as *const c_void,
+            bytes.len() as i32,
+            null_mut(),
+        );
+
+        if result != kResultOk {
+            log::error!("cannot write PluginConfigV{:02}", $version);
+            return kResultFalse;
+        }
+    };
+}
+
+pub(crate) use read_config;
+pub(crate) use write_config;

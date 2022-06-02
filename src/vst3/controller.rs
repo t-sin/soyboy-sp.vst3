@@ -177,34 +177,9 @@ impl IEditController for SoyBoyController {
 
         match config_version {
             PluginConfigV01::CONFIG_VERSION => {
-                let options = bincode::config::DefaultOptions::new()
-                    .reject_trailing_bytes()
-                    .with_little_endian()
-                    .with_fixint_encoding();
-                let size = options
-                    .serialized_size(&PluginConfigV01::default())
-                    .unwrap();
-                let mut bytes: Vec<u8> = vec![0; size as usize];
+                let mut config: PluginConfigV01 = PluginConfigV01::default();
+                vst3_utils::read_config!(config, state);
 
-                let result = state.read(bytes.as_mut_ptr() as *mut c_void, size as i32, null_mut());
-
-                if result != kResultOk {
-                    log::error!(
-                        "IEditController::set_component_state(): cannot read PluginConfigV01"
-                    );
-                    return kResultFalse;
-                }
-
-                let decoded = options.deserialize(&bytes[..]);
-                if decoded.is_err() {
-                    log::error!(
-                        "IEditController::set_component_state(): invalid v01 config: {:?}",
-                        decoded
-                    );
-                    return kResultFalse;
-                }
-
-                let config: PluginConfigV01 = decoded.unwrap();
                 let mut param_vals = self.param_values.lock().unwrap();
                 for param in SoyBoyParameter::iter() {
                     let param_def = self.param_defs.get(&param).unwrap();
@@ -212,14 +187,14 @@ impl IEditController for SoyBoyController {
                     let norm = param_def.normalize(value);
                     param_vals.insert(param as u32, norm);
                 }
+
+                kResultTrue
             }
             _ => {
                 log::debug!("IEditController::set_component_state(): unsupported VST3 state");
-                return kResultFalse;
+                kResultFalse
             }
         }
-
-        kResultOk
     }
 
     unsafe fn set_state(&self, _state: SharedVstPtr<dyn IBStream>) -> tresult {

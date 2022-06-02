@@ -369,27 +369,9 @@ impl IComponent for SoyBoyPlugin {
 
         match config_version {
             PluginConfigV01::CONFIG_VERSION => {
-                let options = bincode::config::DefaultOptions::new()
-                    .reject_trailing_bytes()
-                    .with_little_endian()
-                    .with_fixint_encoding();
-                let size = options
-                    .serialized_size(&PluginConfigV01::default())
-                    .unwrap();
-                let mut bytes = vec![0; size as usize];
+                let mut config = PluginConfigV01::default();
+                vst3_utils::read_config!(config, state);
 
-                let result = state.read(bytes.as_mut_ptr() as *mut c_void, size as i32, null_mut());
-                if result != kResultOk {
-                    log::error!("set_state(): state.read() fails with error code {}", result);
-                    return kResultFalse;
-                }
-
-                let decoded = options.deserialize(&bytes[..]);
-                if decoded.is_err() {
-                    return kResultFalse;
-                }
-
-                let config: PluginConfigV01 = decoded.unwrap();
                 let mut soyboy = self.soyboy.lock().unwrap();
                 for param in SoyBoyParameter::iter() {
                     let param_def = self.param_defs.get(&param).unwrap();
@@ -420,42 +402,11 @@ impl IComponent for SoyBoyPlugin {
         }
         let state = state.unwrap();
 
-        let options = bincode::config::DefaultOptions::new()
-            .reject_trailing_bytes()
-            .with_little_endian()
-            .with_fixint_encoding();
-
-        let config_version = PluginConfigV01::CONFIG_VERSION;
-        let config = self.config.lock().unwrap();
-        let encoded = options.serialize(&*config);
-        if encoded.is_err() {
-            log::error!("cannot encode configuration. it's a bug!");
-            return kResultFalse;
-        }
-        let bytes = encoded.unwrap();
-
-        let result = state.write(
-            &config_version as *const _ as *const c_void,
-            mem::size_of::<u32>() as i32,
-            null_mut(),
+        vst3_utils::write_config!(
+            PluginConfigV01::CONFIG_VERSION,
+            &*self.config.lock().unwrap(),
+            state
         );
-
-        if result != kResultOk {
-            log::error!("cannot write CONFIG_VERSION");
-            return kResultFalse;
-        }
-
-        state.write(
-            bytes.as_ptr() as *const c_void,
-            bytes.len() as i32,
-            null_mut(),
-        );
-
-        if result != kResultOk {
-            log::error!("cannot write PluginConfigV01");
-            return kResultFalse;
-        }
-
         kResultOk
     }
 }
