@@ -56,6 +56,7 @@ pub struct EnvelopeGenerator {
     last_state_value: f64,
 
     stuttering: bool,
+    stuttering_samples: u64,
     stutter_velocity: f64,
 }
 
@@ -78,7 +79,8 @@ impl EnvelopeGenerator {
             last_state_value: 0.0,
 
             stuttering: false,
-            stutter_velocity: 0.0,
+            stuttering_samples: 0,
+            stutter_velocity: 1.0,
         }
     }
 
@@ -148,42 +150,73 @@ impl EnvelopeGenerator {
         }
     }
 
-    fn stutter(&mut self, elapsed_sec: f64) {
-        if self.stutter_depth > 0.0 && elapsed_sec > self.stutter_time {
-            self.stuttering = true;
-            self.stutter_velocity -= 1.0 - self.stutter_depth / 100.0;
+    fn stutter(&mut self, sample_rate: f64) {
+        if self.stuttering {
+            self.stuttering_samples += 1;
+            let elapsed_sec = self.stuttering_samples as f64 / sample_rate;
 
-            if self.stutter_velocity > 0.05 {
-                self.set_state(EnvelopeState::Attack);
-            } else {
-                self.stutter_velocity = 0.0;
-                self.stuttering = false;
+            if self.stutter_depth != 0.0 && elapsed_sec > self.stutter_time {
+                self.stutter_velocity -= 1.0 - self.stutter_depth / 100.0;
+                self.stuttering_samples = 0;
+
+                if self.stutter_velocity > 0.05 {
+                    self.set_state(EnvelopeState::Attack);
+                } else {
+                    self.set_state(EnvelopeState::Off);
+                    self.stutter_velocity = 0.0;
+                    self.stuttering = false;
+                }
             }
         }
     }
 
-    fn start_stutter(&mut self) {
-        if let StartTiming::NoteOn = self.stutter_when {
-            self.stuttering = true;
-            self.stutter_velocity = 1.0;
-        } else {
+    fn start_stutter(&mut self, note_on: bool) {
+        if self.stutter_depth == 0.0 {
             self.stuttering = false;
+            self.stutter_velocity = 0.0;
+        } else {
+            match self.stutter_when {
+                StartTiming::NoteOn => {
+                    if note_on {
+                        self.stuttering = true;
+                        self.stuttering_samples = 0;
+                        self.stutter_velocity = 1.0;
+                    } else {
+                        self.stuttering = false;
+                        self.stutter_velocity = 0.0;
+                    }
+                }
+                StartTiming::NoteOff => {
+                    if note_on {
+                        self.stuttering = false;
+                        self.stutter_velocity = 0.0;
+                    } else {
+                        self.stuttering = true;
+                        self.stuttering_samples = 0;
+                        self.stutter_velocity = 1.0;
+                    }
+                }
+            }
         }
     }
 }
 
 impl AudioProcessor<f64> for EnvelopeGenerator {
     fn process(&mut self, sample_rate: f64) -> f64 {
-        let s = self.elapsed_samples as f64 / sample_rate;
+        let sec = self.elapsed_samples as f64 / sample_rate;
 
-        self.stutter(s);
-        self.update_state(s);
-        let v = self.calculate(s);
+        self.stutter(sample_rate);
+        self.update_state(sec);
+        let v = self.calculate(sec);
         let v = f64_utils::normalize(v);
         self.last_value = v;
         self.elapsed_samples += 1;
 
-        discrete_loudness(v * self.stutter_velocity * level_from_velocity(self.velocity))
+        if self.stuttering && self.stutter_depth != 0.0 {
+            discrete_loudness(v * self.stutter_velocity * level_from_velocity(self.velocity))
+        } else {
+            discrete_loudness(v * level_from_velocity(self.velocity))
+        }
     }
 
     fn set_freq(&mut self, _freq: f64) {}
@@ -196,12 +229,12 @@ impl Triggered for EnvelopeGenerator {
                 self.note = *note;
                 self.set_state(EnvelopeState::Attack);
                 self.velocity = *velocity;
-                self.start_stutter();
+                self.start_stutter(true);
             }
             Event::NoteOff { note } => {
                 if *note == self.note {
                     self.set_state(EnvelopeState::Release);
-                    self.start_stutter();
+                    self.start_stutter(false);
                 }
             }
             _ => (),
