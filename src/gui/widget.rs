@@ -1105,3 +1105,83 @@ impl Behavior for Oscilloscope {
         response
     }
 }
+
+pub struct BootScreen {
+    logo: Image,
+    enabled: bool,
+    start_at: time::Instant,
+    enabled_rect: egui::Rect,
+    disabled_rect: egui::Rect,
+    sense: egui::Sense,
+}
+
+impl BootScreen {
+    pub fn new(logo: Image) -> Self {
+        Self {
+            logo,
+            enabled: true,
+            start_at: time::Instant::now(),
+            enabled_rect: screen_rect(),
+            disabled_rect: egui::Rect::from_two_pos(egui::pos2(-100.0, 0.0), egui::pos2(1.0, 1.0)),
+            sense: egui::Sense::focusable_noninteractive(),
+        }
+    }
+
+    pub fn enabled(&self) -> bool {
+        self.enabled
+    }
+
+    pub fn start(&mut self) {
+        self.enabled = true;
+        self.start_at = time::Instant::now();
+    }
+}
+
+impl Behavior for BootScreen {
+    fn update(&mut self) -> bool {
+        false
+    }
+
+    fn show(&mut self, ui: &mut egui::Ui) -> egui::Response {
+        if self.enabled {
+            let response = ui.allocate_rect(self.enabled_rect, self.sense);
+            let sec = self.start_at.elapsed().as_secs_f32();
+
+            if sec >= 4.0 {
+                self.enabled = false;
+            }
+
+            let alpha = if sec <= 0.5 {
+                (sec / 0.5 * 255.0) as u8
+            } else if sec > 3.5 && sec < 4.0 {
+                ((1.0 - (sec - 3.5) / 0.5) * 255.0) as u8
+            } else if sec >= 4.0 {
+                0
+            } else {
+                255
+            };
+            ui.painter().rect_filled(
+                self.enabled_rect,
+                egui::Rounding::none(),
+                egui::Color32::from_rgba_unmultiplied(0xab, 0xbb, 0xa8, alpha),
+            );
+
+            let cx = constants::SCREEN_WIDTH as f32 / 2.0 - self.logo.size.x / 2.0;
+            let cy = constants::SCREEN_HEIGHT as f32 / 2.0 - self.logo.size.y / 2.0;
+            let y = if sec < 3.0 {
+                (sec / 3.0) * (cy + 20.0) - 20.0
+            } else {
+                cy
+            };
+
+            if sec < 3.5 {
+                let image = ImageLabel::new(self.logo, cx, y);
+                ui.add(image);
+            }
+
+            response
+        } else {
+            ui.allocate_rect(self.disabled_rect, self.sense)
+        }
+    }
+}

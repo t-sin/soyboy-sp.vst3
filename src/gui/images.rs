@@ -4,6 +4,7 @@ use egui_glow::egui_winit::egui;
 const IMG_EDAMAME: &[u8] = include_bytes!("../../resources/edamame.png");
 const IMG_VERSION_FRAME: &[u8] = include_bytes!("../../resources/version-frame.png");
 const IMG_LOGO: &[u8] = include_bytes!("../../resources/logo.png");
+const IMG_TANTENDO: &[u8] = include_bytes!("../../resources/tantendo.png");
 const IMG_LABEL_GLOBAL: &[u8] = include_bytes!("../../resources/label-global.png");
 const IMG_LABEL_SQUARE: &[u8] = include_bytes!("../../resources/label-osc-square.png");
 const IMG_LABEL_NOISE: &[u8] = include_bytes!("../../resources/label-osc-noise.png");
@@ -65,6 +66,7 @@ pub struct Images {
     pub oscilloscope_border: RetainedImage,
     pub value_atlas: RetainedImage,
     pub param_atlas: RetainedImage,
+    pub tantendo: RetainedImage,
 }
 
 impl Images {
@@ -148,6 +150,7 @@ impl Images {
             .unwrap(),
             value_atlas: RetainedImage::from_image_bytes("value_atlas", IMG_VALUE_ATLAS).unwrap(),
             param_atlas: RetainedImage::from_image_bytes("name_atlas", IMG_PARAM_ATLAS).unwrap(),
+            tantendo: RetainedImage::from_image_bytes("tantendo", IMG_TANTENDO).unwrap(),
         }
     }
 }

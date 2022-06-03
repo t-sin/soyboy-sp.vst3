@@ -44,6 +44,7 @@ pub struct UI {
     pub param_stutter_timing: ParameterSelector,
     pub param_voices: ParameterVoices,
     pub param_wavetable: WaveTableEditor,
+    pub boot_screen: BootScreen,
 }
 
 impl UI {
@@ -370,6 +371,7 @@ impl UI {
                 340.0,
                 controller_connection,
             ),
+            boot_screen: BootScreen::new(Image::new(egui_ctx, &images.tantendo)),
             _images: images,
         }
     }

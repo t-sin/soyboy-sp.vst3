@@ -32,6 +32,7 @@ pub struct GUIThread {
     ui: UI,
     // window stuff
     quit: bool,
+    booting: bool,
     last_redrawed_at: RefCell<Option<time::Instant>>,
     needs_redraw: bool,
     waveform_view_enabled: Rc<RefCell<bool>>,
@@ -138,6 +139,7 @@ impl GUIThread {
                 waveform_view_enabled.clone(),
             ),
             quit: false,
+            booting: true,
             last_redrawed_at: RefCell::new(None),
             needs_redraw: false,
             waveform_view_enabled,
@@ -237,6 +239,21 @@ impl GUIThread {
                     let _ = self.ui.param_wavetable.show(ui);
                     let _ = self.ui.oscilloscope.show(ui);
                 });
+
+            if self.booting {
+                let _ = egui::Area::new("tantendo")
+                    .fixed_pos(egui::pos2(0.0, 0.0))
+                    .movable(false)
+                    .show(egui_ctx, |ui| {
+                        // buttonおした
+
+                        let _ = self.ui.boot_screen.show(ui);
+
+                        if !self.ui.boot_screen.enabled() {
+                            self.booting = false;
+                        }
+                    });
+            }
         });
     }
 
@@ -264,6 +281,7 @@ impl GUIThread {
             &mut self.ui.button_reset_random as &mut dyn Behavior,
             &mut self.ui.button_reset_sine as &mut dyn Behavior,
             &mut self.ui.param_voices as &mut dyn Behavior,
+            &mut self.ui.boot_screen as &mut dyn Behavior,
         ];
 
         for widget in behaviors.iter_mut() {
