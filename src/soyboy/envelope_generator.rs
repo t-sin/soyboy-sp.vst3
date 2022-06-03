@@ -12,8 +12,8 @@ use crate::{
 
 #[derive(Debug, Copy, Clone)]
 enum StartTiming {
-    NoteOn = 0,
-    NoteOff,
+    NoteOff = 0,
+    NoteOn,
 }
 
 impl TryFrom<u32> for StartTiming {

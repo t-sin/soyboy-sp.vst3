@@ -540,7 +540,7 @@ fn make_global_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
             default_value: 0.0,
         },
     );
-    static STUTTER_WHEN_LIST: [&str; 2] = ["Note on", "Note off"];
+    static STUTTER_WHEN_LIST: [&str; 2] = ["Note off", "Note on"];
     static STUTTER_WHEN: ListParameter = ListParameter {
         elements: &STUTTER_WHEN_LIST,
     };
@@ -553,7 +553,7 @@ fn make_global_parameters(params: &mut HashMap<SoyBoyParameter, ParameterDef>) {
             short_title: "Stutter when".to_string(),
             unit_name: "".to_string(),
             step_count: (STUTTER_WHEN.denormalize(1.0)) as i32,
-            default_value: 0.0,
+            default_value: 1.0,
         },
     );
 }
