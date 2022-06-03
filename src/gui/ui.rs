@@ -268,7 +268,7 @@ impl UI {
                 },
                 slider_images,
                 388.0,
-                342.0,
+                372.0,
                 event_handler.clone(),
             ),
             param_depth: ParameterSlider::new(
@@ -286,7 +286,7 @@ impl UI {
                 },
                 slider_images,
                 388.0,
-                378.0,
+                408.0,
                 event_handler.clone(),
             ),
             param_osc_type: ParameterSelector::new(
