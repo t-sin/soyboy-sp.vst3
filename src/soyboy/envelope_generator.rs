@@ -6,7 +6,7 @@ use crate::{
         event::{Event, Triggered},
         parameters::{ParameterDef, Parametric, SoyBoyParameter},
         types::AudioProcessor,
-        utils::{discrete_loudness, level_from_velocity, linear},
+        utils::{discrete_loudness, linear},
     },
 };
 
@@ -213,9 +213,9 @@ impl AudioProcessor<f64> for EnvelopeGenerator {
         self.elapsed_samples += 1;
 
         if self.stuttering && self.stutter_depth != 0.0 {
-            discrete_loudness(v * self.stutter_velocity * level_from_velocity(self.velocity))
+            discrete_loudness(v) * self.stutter_velocity * self.velocity
         } else {
-            discrete_loudness(v * level_from_velocity(self.velocity))
+            discrete_loudness(v) * self.velocity
         }
     }
 

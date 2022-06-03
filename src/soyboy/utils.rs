@@ -38,11 +38,6 @@ pub fn level(decibel: f64) -> f64 {
     f64_utils::normalize(v)
 }
 
-pub fn level_from_velocity(velocity: f64) -> f64 {
-    let v = 10.0f64.powf(velocity * 2.0 - 2.0);
-    f64_utils::normalize(v)
-}
-
 pub fn linear_denormalize(v: f64, min: f64, max: f64) -> f64 {
     let range = (max - min).abs();
     let v = v * range + min;
