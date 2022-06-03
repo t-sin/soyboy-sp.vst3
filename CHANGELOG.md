@@ -2,6 +2,12 @@
 
 ## unreleased
 
+## v1.0.0
+
+- New parameter: "Stutter timing"
+- Introduce backward compatibility against like adding parameter
+- Adjust the velocity sensitivity; velocity affects as linear
+
 ## v0.9.9
 
 - README for users
