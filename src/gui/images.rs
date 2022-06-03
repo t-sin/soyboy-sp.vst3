@@ -21,6 +21,8 @@ const IMG_PARAM_ATLAS: &[u8] = include_bytes!("../../resources/paramname.png");
 const IMG_SELECT_OSC_TYPE: &[u8] = include_bytes!("../../resources/select-osc-type.png");
 const IMG_SELECT_OSC_SQ_DUTY: &[u8] = include_bytes!("../../resources/select-osc-square-duty.png");
 const IMG_SELECT_SWEEP_TYPE: &[u8] = include_bytes!("../../resources/select-sweep-type.png");
+const IMG_SELECT_STUTTER_TIMING: &[u8] =
+    include_bytes!("../../resources/select-stutter-timing.png");
 const IMG_WAVETABLE_BORDER: &[u8] = include_bytes!("../../resources/wavetable-border.png");
 const IMG_OSCILLOSCOPE_BORDER: &[u8] = include_bytes!("../../resources/oscilloscope-border.png");
 
@@ -58,6 +60,7 @@ pub struct Images {
     pub select_osc_type: RetainedImage,
     pub select_osc_sq_duty: RetainedImage,
     pub select_sweep_type: RetainedImage,
+    pub select_stutter_timing: RetainedImage,
     pub wavetable_border: RetainedImage,
     pub oscilloscope_border: RetainedImage,
     pub value_atlas: RetainedImage,
@@ -126,6 +129,11 @@ impl Images {
             select_sweep_type: RetainedImage::from_image_bytes(
                 "soyboy:select:sweep-type",
                 IMG_SELECT_SWEEP_TYPE,
+            )
+            .unwrap(),
+            select_stutter_timing: RetainedImage::from_image_bytes(
+                "soyboy:select:stutter-timing",
+                IMG_SELECT_STUTTER_TIMING,
             )
             .unwrap(),
             wavetable_border: RetainedImage::from_image_bytes(

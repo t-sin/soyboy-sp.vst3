@@ -157,6 +157,7 @@ impl SoyBoyParameter {
             SoyBoyParameter::SweepPeriod => Some(Region::new(0.0, 176.0, 62.0, 14.0)),
             SoyBoyParameter::StutterTime => Some(Region::new(0.0, 192.0, 38.0, 14.0)),
             SoyBoyParameter::StutterDepth => Some(Region::new(0.0, 208.0, 58.0, 14.0)),
+            SoyBoyParameter::StutterWhen => Some(Region::new(0.0, 224.0, 53.0, 14.0)),
             _ => None,
         }
     }
@@ -181,6 +182,10 @@ impl SoyBoyParameter {
                 Region::new(66.0, 2.0, 48.0, 20.0),
                 Region::new(116.0, 2.0, 64.0, 20.0),
                 Region::new(182.0, 2.0, 58.0, 20.0),
+            ]),
+            SoyBoyParameter::StutterWhen => Some(vec![
+                Region::new(2.0, 2.0, 92.0, 20.0),
+                Region::new(96.0, 2.0, 84.0, 20.0),
             ]),
             _ => None,
         }

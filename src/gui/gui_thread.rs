@@ -230,6 +230,7 @@ impl GUIThread {
                     let _ = self.ui.param_osc_type.show(ui);
                     let _ = self.ui.param_osc_sq_duty.show(ui);
                     let _ = self.ui.param_sweep_type.show(ui);
+                    let _ = self.ui.param_stutter_timing.show(ui);
 
                     let _ = self.ui.param_voices.show(ui);
 

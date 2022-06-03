@@ -41,6 +41,7 @@ pub struct UI {
     pub param_osc_type: ParameterSelector,
     pub param_osc_sq_duty: ParameterSelector,
     pub param_sweep_type: ParameterSelector,
+    pub param_stutter_timing: ParameterSelector,
     pub param_voices: ParameterVoices,
     pub param_wavetable: WaveTableEditor,
 }
@@ -334,6 +335,23 @@ impl UI {
                 186.0,
                 event_handler.clone(),
             ),
+            param_stutter_timing: ParameterSelector::new(
+                SelectorValue {
+                    param: SoyBoyParameter::StutterWhen,
+                    param_def: param_defs
+                        .get(&SoyBoyParameter::StutterWhen)
+                        .unwrap()
+                        .clone(),
+                    value: *param_values
+                        .get(&(SoyBoyParameter::StutterWhen as u32))
+                        .unwrap(),
+                },
+                Image::new(egui_ctx, &images.select_stutter_timing),
+                Image::new(egui_ctx, &images.param_atlas),
+                388.0,
+                324.0,
+                event_handler.clone(),
+            ),
             param_voices: ParameterVoices::new(
                 *param_values
                     .get(&(SoyBoyParameter::NumVoices as u32))
@@ -368,7 +386,7 @@ impl UI {
             SoyBoyParameter::SweepPeriod => self.param_period.set(value),
             SoyBoyParameter::StutterTime => self.param_time.set(value),
             SoyBoyParameter::StutterDepth => self.param_depth.set(value),
-            SoyBoyParameter::StutterWhen => (), //self.param_when.set(value),
+            SoyBoyParameter::StutterWhen => self.param_stutter_timing.set(value),
             SoyBoyParameter::EgAttack => self.param_attack.set(value),
             SoyBoyParameter::EgDecay => self.param_decay.set(value),
             SoyBoyParameter::EgSustain => self.param_sustain.set(value),
