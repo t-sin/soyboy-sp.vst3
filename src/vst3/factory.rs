@@ -119,6 +119,7 @@ impl IPluginFactory2 for SoyBoyPluginFactory {
                 strcpy(plugin_data::VST3_CLASS_NAME, info.name.as_mut_ptr());
                 strcpy(plugin_data::VST3_VENDOR, info.vendor.as_mut_ptr());
                 strcpy(plugin_data::VST3_VERSION, info.version.as_mut_ptr());
+                strcpy(plugin_data::VST3_SDK_VERSION, info.sdk_version.as_mut_ptr());
                 strcpy(plugin_data::VST3_CLASS_CATEGORY, info.category.as_mut_ptr());
                 strcpy(
                     plugin_data::VST3_CLASS_SUBCATEGORIES,
@@ -137,6 +138,7 @@ impl IPluginFactory2 for SoyBoyPluginFactory {
                 );
                 strcpy(plugin_data::VST3_VENDOR, info.vendor.as_mut_ptr());
                 strcpy(plugin_data::VST3_VERSION, info.version.as_mut_ptr());
+                strcpy(plugin_data::VST3_SDK_VERSION, info.sdk_version.as_mut_ptr());
                 strcpy(
                     plugin_data::VST3_CONTROLLER_CLASS_CATEGORY,
                     info.category.as_mut_ptr(),
@@ -163,6 +165,7 @@ impl IPluginFactory3 for SoyBoyPluginFactory {
                 wstrcpy(plugin_data::VST3_CLASS_NAME, info.name.as_mut_ptr());
                 wstrcpy(plugin_data::VST3_VENDOR, info.vendor.as_mut_ptr());
                 wstrcpy(plugin_data::VST3_VERSION, info.version.as_mut_ptr());
+                wstrcpy(plugin_data::VST3_SDK_VERSION, info.sdk_version.as_mut_ptr());
                 strcpy(plugin_data::VST3_CLASS_CATEGORY, info.category.as_mut_ptr());
                 strcpy(
                     plugin_data::VST3_CLASS_SUBCATEGORIES,
@@ -181,6 +184,7 @@ impl IPluginFactory3 for SoyBoyPluginFactory {
                 );
                 wstrcpy(plugin_data::VST3_VENDOR, info.vendor.as_mut_ptr());
                 wstrcpy(plugin_data::VST3_VERSION, info.version.as_mut_ptr());
+                wstrcpy(plugin_data::VST3_SDK_VERSION, info.sdk_version.as_mut_ptr());
                 strcpy(
                     plugin_data::VST3_CONTROLLER_CLASS_CATEGORY,
                     info.category.as_mut_ptr(),
