@@ -48,7 +48,7 @@ impl IPluginFactory for SoyBoyPluginFactory {
             0 => {
                 let info = &mut *info;
 
-                info.cardinality = 0x7FFF_FFFF;
+                info.cardinality = plugin_data::VST3_CARDINALITY;
                 info.cid = SoyBoyPlugin::CID;
 
                 strcpy(plugin_data::VST3_CLASS_NAME, info.name.as_mut_ptr());
@@ -60,7 +60,7 @@ impl IPluginFactory for SoyBoyPluginFactory {
             1 => {
                 let info = &mut *info;
 
-                info.cardinality = 0x7FFF_FFFF;
+                info.cardinality = plugin_data::VST3_CARDINALITY;
                 info.cid = SoyBoyController::CID;
 
                 strcpy(
@@ -115,6 +115,7 @@ impl IPluginFactory2 for SoyBoyPluginFactory {
             0 => {
                 let info = &mut *info;
 
+                info.cardinality = plugin_data::VST3_CARDINALITY;
                 info.class_flags = 1;
                 strcpy(plugin_data::VST3_CLASS_NAME, info.name.as_mut_ptr());
                 strcpy(plugin_data::VST3_VENDOR, info.vendor.as_mut_ptr());
@@ -131,6 +132,7 @@ impl IPluginFactory2 for SoyBoyPluginFactory {
             1 => {
                 let info = &mut *info;
 
+                info.cardinality = plugin_data::VST3_CARDINALITY;
                 info.class_flags = 0;
                 strcpy(
                     plugin_data::VST3_CONTROLLER_CLASS_NAME,
@@ -161,6 +163,7 @@ impl IPluginFactory3 for SoyBoyPluginFactory {
             0 => {
                 let info = &mut *info;
 
+                info.cardinality = plugin_data::VST3_CARDINALITY;
                 info.class_flags = 1;
                 wstrcpy(plugin_data::VST3_CLASS_NAME, info.name.as_mut_ptr());
                 wstrcpy(plugin_data::VST3_VENDOR, info.vendor.as_mut_ptr());
@@ -177,6 +180,7 @@ impl IPluginFactory3 for SoyBoyPluginFactory {
             1 => {
                 let info = &mut *info;
 
+                info.cardinality = plugin_data::VST3_CARDINALITY;
                 info.class_flags = 0;
                 wstrcpy(
                     plugin_data::VST3_CONTROLLER_CLASS_NAME,

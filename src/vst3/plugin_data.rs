@@ -1,4 +1,5 @@
 pub const VST3_SDK_VERSION: &str = "3.7.0";
+pub const VST3_CARDINALITY: i32 = 0x7FFF_FFFF;
 
 pub const VST3_VENDOR: &str = "t-sin";
 pub const VST3_VERSION: &str = env!("CARGO_PKG_VERSION");
