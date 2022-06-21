@@ -2,6 +2,8 @@
 
 ## unreleased
 
+- Return VST3 metadata correctly:  Some DAW cannot load SoyBoy SP because this bug (#21)
+
 ## v1.0.0
 
 - New parameter: "Stutter timing"
