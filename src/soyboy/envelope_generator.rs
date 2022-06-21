@@ -55,6 +55,7 @@ pub struct EnvelopeGenerator {
     last_value: f64,
     last_state_value: f64,
 
+    note_on: bool,
     stuttering: bool,
     stuttering_samples: u64,
     stutter_velocity: f64,
@@ -78,6 +79,7 @@ impl EnvelopeGenerator {
             last_value: 0.0,
             last_state_value: 0.0,
 
+            note_on: false,
             stuttering: false,
             stuttering_samples: 0,
             stutter_velocity: 1.0,
@@ -96,7 +98,10 @@ impl EnvelopeGenerator {
             _ => false,
         };
 
-        same_note || silent || self.stuttering
+        match self.stutter_when {
+            StartTiming::NoteOn => same_note || !self.note_on,
+            StartTiming::NoteOff => same_note || silent || self.stuttering,
+        }
     }
 
     pub fn set_state(&mut self, state: EnvelopeState) {
@@ -226,6 +231,7 @@ impl Triggered for EnvelopeGenerator {
     fn trigger(&mut self, event: &Event) {
         match event {
             Event::NoteOn { note, velocity } => {
+                self.note_on = true;
                 self.note = *note;
                 self.set_state(EnvelopeState::Attack);
                 self.velocity = *velocity;
@@ -233,8 +239,11 @@ impl Triggered for EnvelopeGenerator {
             }
             Event::NoteOff { note } => {
                 if *note == self.note {
+                    self.note_on = false;
                     self.set_state(EnvelopeState::Release);
-                    self.start_stutter(false);
+                    if let StartTiming::NoteOff = self.stutter_when {
+                        self.start_stutter(false);
+                    }
                 }
             }
             _ => (),
