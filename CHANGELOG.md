@@ -3,6 +3,7 @@
 ## unreleased
 
 - Return VST3 metadata correctly:  Some DAW cannot load SoyBoy SP because this bug (#21)
+- Bugfix: Stutter make SoyBoy monophonic when stitter timiing is 'Note on'
 
 ## v1.0.0
 
