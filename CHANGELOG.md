@@ -2,6 +2,8 @@
 
 ## unreleased
 
+- Modulated frequency is always reset when note-on (#36)
+
 ## v1.0.1
 
 - Return VST3 metadata correctly: Some DAW cannot load SoyBoy SP because this bug (#21)

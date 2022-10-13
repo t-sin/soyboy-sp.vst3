@@ -141,6 +141,7 @@ impl Triggered for SweepOscillator {
         match event {
             Event::SweepReset { freq } => {
                 self.shadow_freq = *freq;
+                self.sweep_timer_sec = 0.0;
                 self.clipped = false;
             }
             Event::NoteOn {
