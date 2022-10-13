@@ -40,6 +40,7 @@ impl TryFrom<u32> for OscillatorType {
 }
 
 pub struct VoiceUnit {
+    note_on_freq: f64,
     freq: f64,
 
     square_osc: SquareWaveOscillator,
@@ -57,6 +58,7 @@ pub struct VoiceUnit {
 impl VoiceUnit {
     pub fn new() -> Self {
         Self {
+            note_on_freq: 0.0,
             freq: 0.0,
 
             square_osc: SquareWaveOscillator::new(),
@@ -93,7 +95,8 @@ impl Triggered for VoiceUnit {
     fn trigger(&mut self, event: &Event) {
         match event {
             Event::NoteOn { note, velocity: _ } => {
-                self.freq = frequency_from_note_number(*note);
+                self.note_on_freq = frequency_from_note_number(*note);
+                self.freq = self.note_on_freq;
                 self.sweep_osc
                     .trigger(&Event::SweepReset { freq: self.freq });
                 self.envelope_gen.trigger(event);
@@ -131,7 +134,10 @@ impl Parametric<SoyBoyParameter> for VoiceUnit {
                     self.selected_osc = r#type
                 }
             }
-            SoyBoyParameter::SweepType => self.sweep_osc.set_param(param, param_def, value),
+            SoyBoyParameter::SweepType => {
+                self.freq = self.note_on_freq;
+                self.sweep_osc.set_param(param, param_def, value);
+            }
             SoyBoyParameter::SweepAmount => self.sweep_osc.set_param(param, param_def, value),
             SoyBoyParameter::SweepPeriod => self.sweep_osc.set_param(param, param_def, value),
             SoyBoyParameter::StutterTime => self.envelope_gen.set_param(param, param_def, value),
@@ -178,26 +184,28 @@ impl Parametric<SoyBoyParameter> for VoiceUnit {
 
 impl AudioProcessor<f64> for VoiceUnit {
     fn process(&mut self, sample_rate: f64) -> f64 {
-        if self.sweep_osc.is_clipped() {
-            self.freq = 0.0;
+        let osc = if self.sweep_osc.is_clipped() {
+            i4::ZERO.into()
         } else {
-            self.freq += self.sweep_osc.process(sample_rate);
-        }
+            let freq_mod = self.sweep_osc.process(sample_rate);
+            self.freq += freq_mod;
 
-        let osc = match self.selected_osc {
-            OscillatorType::Square => {
-                self.square_osc.set_freq(self.freq);
-                self.square_osc.process(sample_rate)
-            }
-            OscillatorType::Noise => {
-                self.noise_osc.set_freq(self.freq);
-                self.noise_osc.process(sample_rate)
-            }
-            OscillatorType::WaveTable => {
-                self.wavetable_osc.set_freq(self.freq);
-                self.wavetable_osc.process(sample_rate)
+            match self.selected_osc {
+                OscillatorType::Square => {
+                    self.square_osc.set_freq(self.freq);
+                    self.square_osc.process(sample_rate)
+                }
+                OscillatorType::Noise => {
+                    self.noise_osc.set_freq(self.freq);
+                    self.noise_osc.process(sample_rate)
+                }
+                OscillatorType::WaveTable => {
+                    self.wavetable_osc.set_freq(self.freq);
+                    self.wavetable_osc.process(sample_rate)
+                }
             }
         };
+
         let env = self.envelope_gen.process(sample_rate);
 
         let v = self.dac.process(sample_rate, osc * env);

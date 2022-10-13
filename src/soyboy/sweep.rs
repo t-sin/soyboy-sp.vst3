@@ -61,7 +61,6 @@ impl SweepOscillator {
     fn check_frequency_clip(&mut self) {
         if self.shadow_freq < 10.0 || self.shadow_freq > 10000.0 {
             self.clipped = true;
-            self.shadow_freq = 0.0;
         }
     }
 
@@ -153,8 +152,9 @@ impl Parametric<SoyBoyParameter> for SweepOscillator {
     fn set_param(&mut self, param: &SoyBoyParameter, _param_def: &ParameterDef, value: f64) {
         match param {
             SoyBoyParameter::SweepType => {
-                self.sweep_timer_sec = 0.0;
                 if let Ok(sweep_type) = SweepType::try_from(value as u32) {
+                    self.clipped = false;
+                    self.sweep_timer_sec = 0.0;
                     self.sweep_type = sweep_type;
                 }
             }

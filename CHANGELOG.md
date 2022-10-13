@@ -3,6 +3,7 @@
 ## unreleased
 
 - Modulated frequency is always reset when note-on (#36)
+- Note's pitch always is reset to the frequency at note-on when we switch sweep type (#42)
 
 ## v1.0.1
 

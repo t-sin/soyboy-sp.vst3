@@ -14,6 +14,7 @@ impl i4 {
     pub const LEVELS: u8 = 2u8.pow(4);
     pub const SIGNED_MIN: i8 = i4::LEVELS as i8 / 2 * -1;
     pub const SIGNED_MAX: i8 = i4::LEVELS as i8 / 2 - 1;
+    pub const ZERO: i8 = i4::LEVELS as i8 / 4;
 }
 
 impl PartialEq for i4 {
