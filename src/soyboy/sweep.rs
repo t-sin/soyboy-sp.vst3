@@ -144,10 +144,6 @@ impl Triggered for SweepOscillator {
                 self.sweep_timer_sec = 0.0;
                 self.clipped = false;
             }
-            Event::NoteOn {
-                note: _,
-                velocity: _,
-            } => (),
             _ => (),
         }
     }
