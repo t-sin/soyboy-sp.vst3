@@ -1641,7 +1641,7 @@ dependencies = [
 
 [[package]]
 name = "soyboy-sp"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "bincode",
  "egui_extras",

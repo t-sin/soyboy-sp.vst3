@@ -1,6 +1,6 @@
 [package]
 name = "soyboy-sp"
-version = "1.0.1"
+version = "1.0.2"
 authors = ["t-sin <shinichi.tanaka45@gmail.com>"]
 edition = "2021"
 description = "A VST3 instrument to make some chiptunes"
