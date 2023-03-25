@@ -3,7 +3,7 @@ use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::time;
 
-use egui_glow::egui_winit::{egui, egui::Widget};
+use egui_winit::{egui, egui::Widget};
 
 use crate::common::{constants, i4, Vst3Message};
 use crate::gui::{images::Image, types::*};

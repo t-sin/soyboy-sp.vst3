@@ -1,6 +1,6 @@
 use std::os::raw::c_void;
 
-use egui_glow::egui_winit::egui;
+use egui_winit::egui;
 
 use crate::soyboy::parameters::SoyBoyParameter;
 

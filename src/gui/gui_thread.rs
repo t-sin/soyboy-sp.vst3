@@ -9,17 +9,28 @@ use std::sync::{
 };
 use std::time;
 
-use egui_glow::{egui_winit::egui, glow, EguiGlow};
-#[cfg(target_os = "linux")]
-use glutin::platform::unix::{EventLoopBuilderExtUnix, WindowBuilderExtUnix};
-#[cfg(target_os = "windows")]
-use glutin::platform::windows::{EventLoopBuilderExtWindows, WindowBuilderExtWindows};
+use cty::c_ulong;
+
+use egui_glow::{glow, EguiGlow};
+use egui_winit::egui;
 use glutin::{
+    config::{Config, ConfigSurfaceTypes, ConfigTemplate, ConfigTemplateBuilder, GlConfig},
+    context::{ContextApi, ContextAttributesBuilder},
+    display::{Display, GlDisplay},
+    surface::{Surface, SurfaceAttributes, SurfaceAttributesBuilder, SwapInterval, WindowSurface},
+};
+#[cfg(target_os = "linux")]
+use raw_window_handle::XlibWindowHandle;
+use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle, RawWindowHandle};
+#[cfg(target_os = "windows")]
+use winit::platform::windows::{EventLoopBuilderExtWindows, WindowBuilderExtWindows};
+#[cfg(target_os = "linux")]
+use winit::platform::x11::EventLoopBuilderExtX11;
+use winit::{
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop, EventLoopBuilder},
     platform::run_return::EventLoopExtRunReturn,
-    window::WindowBuilder,
-    PossiblyCurrent, WindowedContext,
+    window::{Window, WindowBuilder},
 };
 
 use crate::common::{constants, GUIEvent, GUIThreadMessage, Vst3Message};
@@ -41,8 +52,7 @@ pub struct GUIThread {
     controller_connection: Arc<Mutex<ControllerConnection>>,
     // egui stuff
     egui_glow: EguiGlow,
-    window: WindowedContext<PossiblyCurrent>,
-    // glow_context: Rc<glow::Context>,
+    window: (Window, Surface<WindowSurface>),
 }
 
 impl Drop for GUIThread {
@@ -57,25 +67,31 @@ impl Drop for GUIThread {
 // originally from here:
 //   https://github.com/emilk/egui/blob/7cd285ecbc2d319f1feac7b9fd9464d06a5ccf77/egui_glow/examples/pure_glow.rs
 impl GUIThread {
-    fn setup_event_loop(parent: ParentWindow) -> (EventLoop<GUIEvent>, WindowBuilder) {
+    fn setup_display(parent: ParentWindow) -> Display {
         #[cfg(target_os = "linux")]
-        {
-            let parent_id: usize = if parent.0.is_null() {
+        let (event_loop, window) = {
+            let parent_id: c_ulong = if parent.0.is_null() {
                 0
             } else {
-                parent.0 as usize
+                parent.0 as c_ulong
             };
+            let mut parent_window = XlibWindowHandle::empty();
+            parent_window.window = parent_id;
+            let parent_window = RawWindowHandle::Xlib(parent_window);
 
             let event_loop = EventLoopBuilder::<GUIEvent>::with_user_event()
                 .with_any_thread(true)
                 .build();
-            let window_builder = WindowBuilder::new().with_x11_parent(parent_id);
+            let window = WindowBuilder::new()
+                .with_parent_window(Some(parent_window))
+                .build(&event_loop)
+                .unwrap();
 
-            (event_loop, window_builder)
-        }
+            (event_loop, window)
+        };
 
         #[cfg(target_os = "windows")]
-        {
+        let (event_loop, window) = {
             let parent_id = if parent.0.is_null() {
                 null_mut()
             } else {
@@ -91,7 +107,61 @@ impl GUIThread {
                 .with_resizable(false);
 
             (event_loop, window_builder)
-        }
+        };
+
+        let raw_display = event_loop.raw_display_handle();
+        let raw_window_handle = window.raw_window_handle();
+
+        #[cfg(egl_backend)]
+        let preference = DisplayApiPreference::Egl;
+        #[cfg(glx_backend)]
+        let preference = DisplayApiPreference::Glx(Box::new(unix::register_xlib_error_hook));
+        #[cfg(cgl_backend)]
+        let preference = DisplayApiPreference::Cgl;
+        #[cfg(wgl_backend)]
+        let preference = DisplayApiPreference::Wgl(Some(raw_window_handle.unwrap()));
+        #[cfg(all(egl_backend, wgl_backend))]
+        let preference = DisplayApiPreference::WglThenEgl(Some(raw_window_handle.unwrap()));
+        #[cfg(all(egl_backend, glx_backend))]
+        let preference = DisplayApiPreference::GlxThenEgl(Box::new(unix::register_xlib_error_hook));
+        let gl_display = unsafe { Display::new(raw_display, preference).unwrap() };
+        println!("Running on: {}", gl_display.version_string());
+
+        let mut builder = ConfigTemplateBuilder::new().with_alpha_size(8);
+        builder = builder
+            .compatible_with_native_window(raw_window_handle)
+            .with_surface_type(ConfigSurfaceTypes::WINDOW);
+        #[cfg(cgl_backend)]
+        let builder = builder.with_transparency(true).with_multisampling(8);
+        let template = builder.build();
+
+        let config = unsafe { gl_display.find_configs(template) }
+            .unwrap()
+            .reduce(|acc, config| {
+                if config.num_samples() > acc.num_samples() {
+                    config
+                } else {
+                    acc
+                }
+            })
+            .unwrap();
+        println!("Picked a config with {} samples", config.num_samples());
+
+        let context_attributes = ContextAttributesBuilder::new().build(Some(raw_window_handle));
+        let fallback_context_attributes = ContextAttributesBuilder::new()
+            .with_context_api(ContextApi::Gles(None))
+            .build(Some(raw_window_handle));
+        let mut not_current_gl_context = Some(unsafe {
+            gl_display
+                .create_context(&config, &context_attributes)
+                .unwrap_or_else(|_| {
+                    gl_display
+                        .create_context(&config, &fallback_context_attributes)
+                        .expect("failed to create context")
+                })
+        });
+
+        gl_display
     }
 
     fn setup(
@@ -103,18 +173,7 @@ impl GUIThread {
         plugin_event_recv: Receiver<GUIEvent>,
         controller_connection: Arc<Mutex<ControllerConnection>>,
     ) -> (Self, EventLoop<GUIEvent>) {
-        let (event_loop, window_builder) = Self::setup_event_loop(parent);
-        let window = unsafe {
-            glutin::ContextBuilder::new()
-                .with_depth_buffer(0)
-                .with_srgb(true)
-                .with_stencil_buffer(0)
-                .with_vsync(true)
-                .build_windowed(window_builder, &event_loop)
-                .unwrap()
-                .make_current()
-                .unwrap()
-        };
+        let display = Self::setup_display(parent);
 
         let glow_context =
             unsafe { glow::Context::from_loader_function(|s| window.get_proc_address(s)) };

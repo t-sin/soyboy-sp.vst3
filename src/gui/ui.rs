@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 
-use egui_glow::egui_winit::egui;
+use egui_winit::egui;
 
 use crate::common::PluginConfigV02;
 use crate::gui::images::{Image, Images};

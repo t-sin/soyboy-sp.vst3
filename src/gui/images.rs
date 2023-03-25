@@ -1,5 +1,5 @@
 use egui_extras::image::RetainedImage;
-use egui_glow::egui_winit::egui;
+use egui_winit::egui;
 
 const IMG_EDAMAME: &[u8] = include_bytes!("../../resources/edamame.png");
 const IMG_VERSION_FRAME: &[u8] = include_bytes!("../../resources/version-frame.png");
